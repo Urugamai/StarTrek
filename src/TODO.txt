@@ -1,0 +1,162 @@
+Version 0.1
+===========
+- Basic game play
+    - Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
+    - Command interface
+        - Does lwjgl have a text window ability or do we need to do something special???
+    - Torpedo
+        - straight line for now, be ready for gravity calculations in the future
+        - numeric count of available torpedoes
+    - Hit detection (already there?)
+        - NO damage calc, etc yet
+
+Version 0.2
+===========
+- Movement
+    - YOU
+    - Romulans - computer smarts
+    - Impulse drive (in sector and across sector boundary)
+- Graphics
+    - Starship Enterprise
+    - Romulan vessel
+- Audio
+    - add any sound for
+        - movement (separate warp and impulse noises in future)
+        - torpedo
+        - Hits
+        - Computer accepting commands
+
+Version 0.3
+===========
+- Add energy capacity to all ships (Enterprise, Romulans, StarBase, Borg, etc)
+- Phasers
+    - Lightspeed travel of beam
+    - Straight line for now, gravity later
+    - Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
+    - can shoot into other quadrants?
+
+Version 0.4
+===========
+- Graphics
+    - 3D Star picture
+    - StarBase
+- Torpedo Tubes
+    - can launch 'n' torpedoes at once where n is the number of tubes available
+    - Each torpedo can be sent in a different direction
+- Warp drive (to new sector)
+    - Sucked out of warp if crossing a sector with high concentration of enemy vessels)
+
+Version 0.5
+===========
+- Graphics
+    - rotate the ship sprites into the direction of travel
+- Enemies fight back
+    - Torpedo and Phaser capabilities
+- Better Audio files
+
+Version 0.6
+===========
+- Damage
+    - Add various things that can get damaged
+        - Phasers
+        - torpedo tubes
+        - Impulse drive
+        - warp core
+        - Warp Nacelles
+        - generators
+        - computer
+            - navigation
+            - targeting
+            - command (fast repair time as long as there is at least 1 repair crew to do it)
+        - Physical Ship (as a %)
+            - reduces repair crews
+            - reduces efficiency?
+    - Add to all relavant vessels (enterprise, romulans, starbases, etc)
+
+Version 0.7
+===========
+- Shields
+    - Balanced by default
+    - Can manually set balance for front, back, port and starboard to re-allocate remaining shield energy
+    - shields have little effect on torpedoes
+        - Minor course alteration (similar calculation to Gravity but away from shielded vessel)
+
+Version 0.8
+===========
+- Damage Control
+    - Repair crews (n at start)
+    - commands to allocate 'n' crews to damaged area(s)
+- Damage
+    - Add death of repair crews (reduces n)
+- Add audio for
+    - damage
+    - Repair completion
+
+Version 0.9
+===========
+- GRAVITY
+    - Affect ships? (sucks them towards star)
+    - affects torpedo path (a lot)
+    - affects phaser path (not much?)
+    - does not affect starbase (maintains position itself)
+    - does not affect ships docked to starbase
+- StarBase Recharge
+    - Instant restore all repair crews
+    - Repairs run 10 times quicker at base
+    - recharge energy is 10 times quicker at base
+    - Some damage can ONLY be repaired at starbase
+        - Impulse drive
+        - warp nacelles
+        - Physical ship damage
+
+Version 1.0
+===========
+- Demotion vessels
+    - Spaceship (50% of Enterprise)
+    - Cruiser (35%)
+    - Shuttle (20% of Enterprise)
+    - Saucer Section (10% of Enterprise, moves SLOWLY, a torpedo tube, a phaser, not much energy, strong shields)
+    - Garbage Scow (5% of Enterprise)
+- Promotion vessels
+    - BattleStar (300% of Enterprise)
+        - Forces the BORG into the game
+            - BORG can be introduced earlier by
+                - crossing out of 'federation' space
+                - High 'Kill to StarBase visit' ratio (strong player)
+
+Version 1.1
+===========
+- Exploration
+    - Travel outside federation space introduces new enemies - Out of federation space the sectors are 'full' of relevant enemy
+        - BORG out side 1
+        - (those nasty trans-dimensional insectoids) out side 2
+        - Romulans out side 3
+        - ??? out side 4
+- Commands to split/join the Enterprise
+    - BattleBridge (110% of Enterprise but less staff (repair crews, etc))
+    - Saucer Section (10% of Enterprise but 200% sheilds)
+
+Version 2.0
+===========
+- Multiplayer
+    - more than one Enterprise Class vessel
+        - Count of enemy vessels will need to become N * NumberOfPlayers
+    - option to be on the non-federation side??
+    - BIGGER universe needed to accommodate all the extra players, vessels, etc and to spread them out
+- Negotiation
+    - Ability to negotiate a peace (only after clearing the whole federation space of that enemy)
+        - backstabbing probability (they break the peace deal)
+- Incursion
+    - Enemy dont start 'randomly throughout the federation' but instead
+        - infiltrate from their 'side'
+        - move ACROSS federation space towards the opposite side
+        - have high density near their border and reducing as they cross federation space
+            - i.e. lots of ships enter but at each sector some stop while the rest continue
+    - Enemies attack any ship that is NOT one of their own
+
+NOTES
+=====
+BORG = 400% of Romulan
+Sector scale is ~10 light seconds? (about the most people will wait for a phaser beam to travel its path)
+    - how does this compare with 'solar system'?
+    - Should we have 'planets' in the sector?
