@@ -231,6 +231,7 @@ public class Game {
 
 		textWindow = new GameText(0, height, 5);
 		textWindow.writeLn( "Star Trekking across the universe...", org.newdawn.slick.Color.green);
+		textWindow.writeLn("");
 
 		// setup the initial game state
 		startGame();
@@ -462,15 +463,17 @@ public class Game {
 			logicRequiredThisLoop = false;
 		}
 
+		if (Keyboard.isKeyDown(Keyboard.KEY_RETURN)) {
+			processCommand(userInput);
+			userInput = "";
+			textWindow.writeLn("");
+		}
+
 		if (Keyboard.next()) {
 			char keyPressed = Keyboard.getEventCharacter();
 			if (keyPressed != 0) {
-				if (keyPressed == Keyboard.KEY_RETURN) {
-					processCommand(userInput);
-				} else {
-					textWindow.write("" + keyPressed);
-					userInput += keyPressed;
-				}
+				textWindow.write("" + keyPressed);
+				userInput += keyPressed;
 			}
 		}
 
@@ -522,7 +525,11 @@ public class Game {
 	}
 
 	private void processCommand(String cmd) {
+		String CMD = cmd.toUpperCase();
 
+		if (CMD == "TOR") {
+			tryToFire();
+		}
 	}
 	/**
 	 * @param direction

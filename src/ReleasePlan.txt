@@ -3,7 +3,7 @@ Version 0.1
 - Basic game play
     - DONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
     - Command interface
-        - Does lwjgl have a text window ability or do we need to do something special???
+        - Does lwjgl have a text window ability (NO) - implement in own class GameText
         - Should we have a Mouse-click option for direction/target/move rather than commands to make it happen?
     - Torpedo
         - straight line for now, be ready for gravity calculations in the future

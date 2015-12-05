@@ -20,6 +20,7 @@ public class GameText {
 	private int 				windowRows;
 	private int 				bottomLeftX, bottomLeftY;
 	private int 				lineHeight;
+	private org.newdawn.slick.Color currentColour = org.newdawn.slick.Color.green;
 
 	protected GameText(int blockX, int blockY, int lines) {
 		// Setup FONT stuff
@@ -44,7 +45,12 @@ public class GameText {
 	/*
 	 * writeLn - add line to screen, scroll all others up
 	 */
+	public void writeLn( String line) {
+		writeLn(line, currentColour);
+	}
+
 	public void writeLn( String line, org.newdawn.slick.Color clr) {
+		currentColour = clr;
 		for (int i = windowRows-1; i > 0; i--) {
 			textRow[i] = textRow[i - 1];
 		}
