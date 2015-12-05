@@ -1,9 +1,10 @@
 Version 0.1
 ===========
 - Basic game play
-    - Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
+    - DONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
     - Command interface
         - Does lwjgl have a text window ability or do we need to do something special???
+        - Should we have a Mouse-click option for direction/target/move rather than commands to make it happen?
     - Torpedo
         - straight line for now, be ready for gravity calculations in the future
         - numeric count of available torpedoes
@@ -49,7 +50,7 @@ Version 0.4
 Version 0.5
 ===========
 - Graphics
-    - rotate the ship sprites into the direction of travel
+    - rotate the ship sprites into the direction of travel, direction of torpedo launch, phaser fire
 - Enemies fight back
     - Torpedo and Phaser capabilities
 - Better Audio files

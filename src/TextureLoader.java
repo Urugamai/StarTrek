@@ -274,8 +274,8 @@ public class TextureLoader {
 		if (imgIcon == null || img == null || imgIcon.getIconHeight() < 0 || imgIcon.getIconWidth() < 0) {
 			throw new IOException("Cannot find: " + ref);
 		} else {
-//			System.out.println("Icon: " + ref + " size is " + imgIcon.getIconWidth() + " by " + imgIcon.getIconHeight());
-//			System.out.println("Img: " + ref + " size is " + img.getWidth(null) + " by " + img.getHeight(null));
+//			System.out.println("DEBUG: Icon: " + ref + " size is " + imgIcon.getIconWidth() + " by " + imgIcon.getIconHeight());
+//			System.out.println("DEBUG: Img: " + ref + " size is " + img.getWidth(null) + " by " + img.getHeight(null));
 		}
 
 		BufferedImage bufferedImage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);

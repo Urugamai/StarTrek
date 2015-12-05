@@ -52,6 +52,9 @@ public class Sprite {
 	/** The height in pixels of this sprite */
 	private int			height;
 
+	// The current angle of rotation for the sprite
+	private float		rotation = 0.0f, rotationSpeed = 0.2f;
+
 	/**
 	 * Create a new sprite from a specified image.
 	 *
@@ -94,6 +97,17 @@ public class Sprite {
 	 * @param y The y location at which to draw this sprite
 	 */
 	public void draw(int x, int y) {
+		draw(x, y, -1.00f);
+	}
+
+	public void draw(int x, int y, float angle) {
+		float maxYtex = texture.getHeight(), maxXtex = texture.getWidth(), centreYtex = maxYtex/2, centreXtex = maxXtex/2, centreY = height/2, centreX = width / 2;
+
+		if (angle >= 0) {
+			if (rotation < angle ) { rotation += rotationSpeed; if (rotation > angle) rotation = angle; }
+			if (rotation > angle ) { rotation -= rotationSpeed; if (rotation < angle) rotation = angle; }
+		}
+
 		// store the current model matrix
 		glPushMatrix();
 
@@ -101,8 +115,9 @@ public class Sprite {
 		texture.bind();
 
 		// translate to the right location and prepare to draw
-		glTranslatef(x, y, 0);
-		// glRotatef(10, 1, 0, 0);  // TODO Work out how to rotate and add suitable options
+		glTranslatef(x+centreX, y+centreY, 0);
+		glRotatef(rotation, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-centreX, -centreY, 0);
 
 		// draw a quad textured to match the sprite
 		glBegin(GL_QUADS);
@@ -110,13 +125,13 @@ public class Sprite {
 			glTexCoord2f(0, 0);
 			glVertex2f(0, 0);
 
-			glTexCoord2f(0, texture.getHeight());
+			glTexCoord2f(0, maxYtex);
 			glVertex2f(0, height);
 
-			glTexCoord2f(texture.getWidth(), texture.getHeight());
+			glTexCoord2f(maxXtex, maxYtex);
 			glVertex2f(width, height);
 
-			glTexCoord2f(texture.getWidth(), 0);
+			glTexCoord2f(maxXtex, 0);
 			glVertex2f(width, 0);
 		}
 		glEnd();

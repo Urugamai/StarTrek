@@ -30,6 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.security.Key;
 import java.util.ArrayList;
 
 import org.lwjgl.LWJGLException;
@@ -82,11 +83,15 @@ public class Game {
 
 	private int					width				= 1000;
 	private int					height				= 1000;
+	private int					heightTextArea		= 100;
 
 	private float				moveSpeed			= 300;
 	private long				firingInterval		= 500;
 
 	private TextureLoader		textureLoader;
+
+	private GameText 			textWindow;
+	private String				userInput = "";
 
 	private ArrayList<Entity>	entities			= new ArrayList<Entity>();
 	private ArrayList<Entity>	removeList			= new ArrayList<Entity>();
@@ -224,6 +229,9 @@ public class Game {
 			shots[i] = new TorpedoEntity(this, FILE_IMG_TORPEDO, 0, 0);
 		}
 
+		textWindow = new GameText(0, height, 5);
+		textWindow.writeLn( "Star Trekking across the universe...", org.newdawn.slick.Color.green);
+
 		// setup the initial game state
 		startGame();
 	}
@@ -263,30 +271,23 @@ public class Game {
 
 	/**
 	 * Initialise the starting state of the entities (ship and aliens). Each
-	 * entitiy will be added to the overall list of entities in the game.
+	 * entity will be added to the overall list of entities in the game.
 	 */
 	private void initEntities() {
 		// create the player ship and place it somewhere TODO Make the initial location of the Enterprise Random but not on any existing objects
 		ship = new PlayerShipEntity(this, FILE_IMG_ENTERPRISE, 50, 50);
 		entities.add(ship);
 
-		// create a block of aliens (5 rows, by 12 aliens, spaced evenly)
-//		alienCount = 0;
-//		for (int row = 0; row < 5; row++) {
-//			for (int x = 0; x < 12; x++) {
-//				Entity alien = new EnemyShipEntity(this, 100 + (x * 50), (50) + row * 30);
-//				entities.add(alien);
-//				alienCount++;
-//			}
-//		}
-
-		Entity Romulan = new EnemyShipEntity(this, width - 100, height - 100);
+		// TODO Make the enemy ship locations initially random and not in every sector
+		// todo make a SET of enemy vessels and place throughout federation space
+		Entity Romulan = new EnemyShipEntity(this, width - 50, height - heightTextArea -50);
 		entities.add(Romulan);
 
-		Entity Star = new StarEntity(this, FILE_IMG_STAR, width/2, height/2);
+		Entity Star = new StarEntity(this, FILE_IMG_STAR, width/2, (height - heightTextArea)/2);
 		entities.add(Star);
 
-		Entity StarBase = new FriendlyEntity(this, FILE_IMG_STARBASE, width-100, 100);
+		// todo make the starbase location somewhat random and only in a few sectors
+		Entity StarBase = new FriendlyEntity(this, FILE_IMG_STARBASE, width-50, 100);
 		entities.add(StarBase);
 	}
 
@@ -461,15 +462,21 @@ public class Game {
 			logicRequiredThisLoop = false;
 		}
 
-		// if we're waiting for an "any key" press then draw the
-		// current message
-		if (waitingForKeyPress) {
-			message.draw(325, 250);
+		if (Keyboard.next()) {
+			char keyPressed = Keyboard.getEventCharacter();
+			if (keyPressed != 0) {
+				if (keyPressed == Keyboard.KEY_RETURN) {
+					processCommand(userInput);
+				} else {
+					textWindow.write("" + keyPressed);
+					userInput += keyPressed;
+				}
+			}
 		}
 
-		// resolve the movemfent of the ship. First assume the ship
+		// resolve the movement of the ship. First assume the ship
 		// isn't moving. If either cursor key is pressed then
-		// update the movement appropraitely
+		// update the movement appropriately
 		ship.setHorizontalMovement(0);
 
 		// get mouse movement on x axis. We need to get it now, since
@@ -477,7 +484,7 @@ public class Game {
 		// there haven't been any movement since last call.
 		mouseX = Mouse.getDX();
 
-		// we delegate input checking to submethod since we want to check
+		// we delegate input checking to sub-method since we want to check
 		// for keyboard, mouse & controller
 		boolean leftPressed   = hasInput(Keyboard.KEY_LEFT);
 		boolean rightPressed  = hasInput(Keyboard.KEY_RIGHT);
@@ -506,12 +513,17 @@ public class Game {
 			}
 		}
 
+		textWindow.draw();
+
 		// if escape has been pressed, stop the game
 		if ((Display.isCloseRequested() || Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) && isApplication) {
 			Game.gameRunning = false;
 		}
 	}
 
+	private void processCommand(String cmd) {
+
+	}
 	/**
 	 * @param direction
 	 * @return
@@ -546,8 +558,8 @@ public class Game {
 	public static void main(String argv[]) {
 		isApplication = true;
 		System.out.println("Use -fullscreen for fullscreen mode");
-//		new Game((argv.length > 0 && "-fullscreen".equalsIgnoreCase(argv[0]))).execute();
-		new Game(true).execute();	// force always full screen
+		new Game((argv.length > 0 && "-fullscreen".equalsIgnoreCase(argv[0]))).execute();
+//		new Game(true).execute();	// force to full screen
 
 		System.exit(0);
 	}
