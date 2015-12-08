@@ -39,27 +39,36 @@ public class GameText {
 		bottomLeftX = blockX;
 		bottomLeftY = blockY;
 
-		lineHeight = font2.getLineHeight();
+		lineHeight = font2.getLineHeight()+2;	// 2 pixel line separation
 	}
 
-	/*
-	 * writeLn - add line to screen, scroll all others up
-	 */
-	public void writeLn( String line) {
-		writeLn(line, currentColour);
+	public int getHeight() {
+		return lineHeight * windowRows;
 	}
 
-	public void writeLn( String line, org.newdawn.slick.Color clr) {
+	public void setTextColour(org.newdawn.slick.Color clr) {
 		currentColour = clr;
-		for (int i = windowRows-1; i > 0; i--) {
-			textRow[i] = textRow[i - 1];
-		}
-		textRow[0] = line;
+	}
+
+	public void writeLine(int row, String line) {
+		if (row > windowRows - 1) return;
+		if (row < 0) return;
+
+		textRow[row] = line;
 	}
 
 	public void write( String line ) {
 		if (textRow[0] == null) textRow[0] = "";
-		textRow[0] += line;
+		textRow[0] += line.trim();
+	}
+
+	public void scroll() {
+		for (int row = windowRows-1; row > 0; row--) {
+			if (textRow[row-1] == null || textRow[row-1].trim().isEmpty()) continue;
+
+			textRow[row] = textRow[row - 1].trim();
+		}
+		textRow[0] = "";
 	}
 
 	public void draw() {
@@ -67,16 +76,15 @@ public class GameText {
 		glLoadIdentity();
 		glEnable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		//char key = Keyboard.getEventCharacter();
-//		font2.drawString(10, height - heightTextArea + 10, "THE LIGHTWEIGHT JAVA GAMES LIBRARY", org.newdawn.slick.Color.green);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for (int row = 0; row < windowRows; row++) {
-			if ( textRow[row] != null) font2.drawString(bottomLeftX, bottomLeftY - ( (row+1) * lineHeight), textRow[row], org.newdawn.slick.Color.green);
+			if ( textRow[row] != null && !textRow[row].isEmpty()) font2.drawString(bottomLeftX, bottomLeftY - ( (row+1) * lineHeight), textRow[row], org.newdawn.slick.Color.green);
 		}
 
 		org.newdawn.slick.Color.white.bind();
-		glPopMatrix();
 		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
+		glPopMatrix();
 	}
 }

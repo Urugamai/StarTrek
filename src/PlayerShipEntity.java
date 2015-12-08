@@ -30,22 +30,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * The entity that represents the players ship
- *
- * @author Kevin Glass
- * @author Brian Matzon
- */
 public class PlayerShipEntity extends Entity {
-
-	/** Right border at which to disallow further movement */
-	private static final int  RIGHT_BORDER      = 750;
-
-	/** Left border at which to disallow further movement */
-	private static final int  LEFT_BORDER       = 10;
-
-	/** The game in which the ship exists */
-	private Game game;
+	private static final int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
+	private static final int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
+	private Game game;									/** The game in which the ship exists */
 
 	/**
 	 * Create a new entity to represent the players ship

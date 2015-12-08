@@ -47,26 +47,13 @@ import java.awt.Rectangle;
  */
 public abstract class Entity {
 
-	/** The current x location of this entity */
-	protected float	x;
-
-	/** The current y location of this entity */
-	protected float	y;
-
-	/** The sprite that represents this entity */
-	protected Sprite	sprite;
-
-	/** The current speed of this entity horizontally (pixels/sec) */
-	protected float	dx;
-
-	/** The current speed of this entity vertically (pixels/sec) */
-	protected float	dy;
-
-	/** The rectangle used for this entity during collisions  resolution */
-	private Rectangle	me	= new Rectangle();
-
-	/** The rectangle used for other entities during collision resolution */
-	private Rectangle	him	= new Rectangle();
+	protected float		x;						/** The current x location of this entity */
+	protected float		y;						/** The current y location of this entity */
+	protected Sprite	sprite;					/** The sprite that represents this entity */
+	protected float		dx;						/** The current speed of this entity horizontally (pixels/sec) */
+	protected float		dy;						/** The current speed of this entity vertically (pixels/sec) */
+	private Rectangle	me	= new Rectangle();	/** The rectangle used for this entity during collisions  resolution */
+	private Rectangle	him	= new Rectangle();	/** The rectangle used for other entities during collision resolution */
 
 	/**
 	 * Construct a entity based on a sprite image and a location.

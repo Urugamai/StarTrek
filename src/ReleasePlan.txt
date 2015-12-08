@@ -2,13 +2,12 @@ Version 0.1
 ===========
 - Basic game play
     - DONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
-    - Command interface
+    - DONE: Command interface
         - Does lwjgl have a text window ability (NO) - implement in own class GameText
         - Should we have a Mouse-click option for direction/target/move rather than commands to make it happen?
-    - Torpedo
+    - DONE: Torpedo
         - straight line for now, be ready for gravity calculations in the future
-        - numeric count of available torpedoes
-    - Hit detection (already there?)
+    - DONE: Hit detection
         - NO damage calc, etc yet
 
 Version 0.2
@@ -44,6 +43,7 @@ Version 0.4
 - Torpedo Tubes
     - can launch 'n' torpedoes at once where n is the number of tubes available
     - Each torpedo can be sent in a different direction
+    - numeric count (limit) of available torpedoes
 - Warp drive (to new sector)
     - Sucked out of warp if crossing a sector with high concentration of enemy vessels)
 
@@ -54,6 +54,7 @@ Version 0.5
 - Enemies fight back
     - Torpedo and Phaser capabilities
 - Better Audio files
+- ship status view (down right side.  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
 
 Version 0.6
 ===========
@@ -145,8 +146,9 @@ Version 2.0
     - option to be on the non-federation side??
     - BIGGER universe needed to accommodate all the extra players, vessels, etc and to spread them out
 - Negotiation
-    - Ability to negotiate a peace (only after clearing the whole federation space of that enemy)
+    - Ability to negotiate a peace (only after clearing the whole federation space of that enemy?)
         - backstabbing probability (they break the peace deal)
+        - Insult (you shot after they offer peace) increases enemy numbers
 - Incursion
     - Enemy dont start 'randomly throughout the federation' but instead
         - infiltrate from their 'side'
@@ -155,9 +157,51 @@ Version 2.0
             - i.e. lots of ships enter but at each sector some stop while the rest continue
     - Enemies attack any ship that is NOT one of their own
 
+BUGS
+=====
+1.  For some reason the lwjgl audio library crashes on initialisation sometimes.  Restart the application is the
+    work-around until the cause can be identified.
+2.  next...
+
 NOTES
 =====
 BORG = 400% of Romulan
 Sector scale is ~10 light seconds? (about the most people will wait for a phaser beam to travel its path)
     - how does this compare with 'solar system'?
     - Should we have 'planets' in the sector?
+
+
+Opening Address
+================
+
+You are Captain of the Starship Enterprise.  Your mission is to save the Federation from the Romulan invasion
+currently underway.  Due to the significance of this attack, you will be promoted or demoted as you progress.
+Do well and you will be allocated better starships and be requested to explore strange new worlds and to go
+where no man has gone before.  Do badly and you will be demoted to lesser craft where it will be harder for
+you to redeem yourself and regain your status.
+
+Torpedo's are smart enough not to destroy friendly ships but they will damage and destroy a starbase as they
+assume you know what your are doing and therefore assume that the base has been taken over by the enemy.  Dont
+get it wrong.
+
+The visible sector on your main display covers a 10 by 10 light-second area of space.  Hence, even
+phaser fire can be seen travelling to the target.  Note that the phaser fire display is computer generated as you
+cannot 'see' the phaser beam.  This also means that your display will not indicate phaser fire from the enemy, but
+you will feel its effects.  Torpedoes on the other hand, travel noticeably slower and so scanner reflections can
+see both our and the enemy's torpedoes in transit.
+
+The computer understands a number of commands but they must be entered correctly or they will not work.  The
+commands are;
+
+DONE
+====
+TOR,direction   -   direction is a decimal number of degrees at which the torpedo will be targetted.  Use the
+                    computer to get assistance in generating the coordinate but bear in mind that gravitational
+                    effects are far to complicated and variable for the computer to predict.
+
+TODO
+====
+ORB,range       -   go into orbit of the star at a distance of 'range' light-seconds
+DOCK            -   connect with starbase - you must be reasonably close for this to work as the starbase autopilot
+                    uses bluetooth to reduce detection by the enemy
+

@@ -37,15 +37,9 @@
  * @author Brian Matzon
  */
 public class FriendlyEntity extends Entity {
-
-	/** Right border at which to disallow further movement */
-	private static final int  RIGHT_BORDER      = 750;
-
-	/** Left border at which to disallow further movement */
-	private static final int  LEFT_BORDER       = 10;
-
-	/** The game in which the ship exists */
-	private Game game;
+	private static final int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
+	private static final int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
+	private Game game;									/** The game in which the ship exists */
 
 	/**
 	 * Create a new entity to represent the players ship
@@ -57,6 +51,7 @@ public class FriendlyEntity extends Entity {
 	 */
 	public FriendlyEntity(Game game, String ref, int x, int y) {
 		super(game.getSprite(ref), x, y);
+		sprite.setAngle(-2.0f);		// configure this sprite to rotate constantly anti-clockwise
 
 		this.game = game;
 	}
@@ -90,8 +85,8 @@ public class FriendlyEntity extends Entity {
 	public void collidedWith(Entity other) {
 		// if its an alien, notify the game that the player
 		// is dead
-		if (other instanceof EnemyShipEntity) {
-			game.notifyDeath();
-		}
+//		if (other instanceof EnemyShipEntity) {
+//			game.notifyDeath();
+//		}
 	}
 }

@@ -30,43 +30,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * An entity which represents one of our space invader aliens.
- *
- * @author Kevin Glass
- * @author Brian Matzon
- */
 public class StarEntity extends Entity {
-
-	/** Movement made downwards when a border is hit */
-	private static final int	DOWNWARD_MOVEMENT	= 10;
-
-	/** Border at which player dies */
-	private static final int	BOTTOM_BORDER		= 570;
-
-	/** Right border at which to shift direction */
-	private static final int	RIGHT_BORDER		= 750;
-
-	/** Left border at which to shift direction */
-	private static final int	LEFT_BORDER			= 10;
-
-	/** The speed at which the alien moves horizontally */
-	private float				moveSpeed			= 75;
-
-	/** The game in which the entity exists */
-	private Game				game;
-
-	/** The animation frames */
-	private Sprite[]			frames				= new Sprite[4];
-
-	/** The time since the last frame change took place */
-	private long				lastFrameChange;
-
-	/** The frame duration in milliseconds, i.e. how long any given frame of animation lasts */
-	private long				frameDuration		= 250;
-
-	/** The current frame of animation being displayed */
-	private int					frameNumber;
+	private Game				game;									/** The game in which the entity exists */
+//	private static int			frameCount = 4;
+//	private Sprite[]			frames				= new Sprite[frameCount];	/** The animation frames */
+//	private long				lastFrameChange;						/** The time since the last frame change took place */
+//	private long				frameDuration		= 500;				/** The frame duration in milliseconds, i.e. how long any given frame of animation lasts */
+//	private int					frameNumber;							/** The current frame of animation being displayed */
 
 	/**
 	 * Create a new alien entity
@@ -77,17 +47,9 @@ public class StarEntity extends Entity {
 	 */
 	public StarEntity(Game game,String ref, int x, int y) {
 		super(game.getSprite(ref), x, y);
-
-		// TODO create an animated star and use these frames, need (4) images
-
-		// setup the animation frames
-		frames[0] = sprite;
-		frames[1] = sprite; //was: game.getSprite(Game.FILE_IMG_STARBASE);
-		frames[2] = sprite;
-		frames[3] = sprite; //was: game.getSprite(Game.FILE_IMG_STAR);
+		sprite.setAngle(-1.0f);		// set this sprite to constantly rotate clockwise
 
 		this.game = game;
-		dx = 0;  // star does not move
 	}
 
 	/**
@@ -96,41 +58,14 @@ public class StarEntity extends Entity {
 	 * @param delta The time that has elapsed since last move
 	 */
 	public void move(long delta) {
-		// since the move tells us how much time has passed
-		// by we can use it to drive the animation, however
-		// its the not the prettiest solution
-		lastFrameChange += delta;
-
-		// if we need to change the frame, update the frame number
-		// and flip over the sprite in use
-		if (lastFrameChange > frameDuration) {
-			// reset our frame change time counter
-			lastFrameChange = 0;
-
-			// update the frame
-			frameNumber++;
-			if (frameNumber >= frames.length) {
-				frameNumber = 0;
-			}
-
-			sprite = frames[frameNumber];
-		}
+		// STARS do not move.
+		// TODO: Version >2: implement some two-star systems (maybe even 3?) where the stars orbit each other
 	}
 
 	/**
 	 * Update the game logic related to aliens
 	 */
 	public void doLogic() {
-		// swap over horizontal movement and move down the
-		// screen a bit
-		dx = -dx;
-		y += DOWNWARD_MOVEMENT;
-
-		// if we've reached the bottom of the screen then the player
-		// dies
-		if (y > BOTTOM_BORDER) {
-			game.notifyDeath();
-		}
 	}
 
 	/**
@@ -139,6 +74,6 @@ public class StarEntity extends Entity {
 	 * @param other The other entity
 	 */
 	public void collidedWith(Entity other) {
-		// collisions with aliens are handled elsewhere
+		// collisions with stars handle elsewhere
 	}
 }

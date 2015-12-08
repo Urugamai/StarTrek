@@ -42,18 +42,12 @@ import static org.lwjgl.opengl.GL11.*;
  * @author Brian Matzon
  */
 public class Sprite {
-
-	/** The texture that stores the image for this sprite */
-	private Texture	texture;
-
-	/** The width in pixels of this sprite */
-	private int			width;
-
-	/** The height in pixels of this sprite */
-	private int			height;
-
-	// The current angle of rotation for the sprite
-	private float		rotation = 0.0f, rotationSpeed = 0.2f;
+	private Texture		texture;					/** The texture that stores the image for this sprite */
+	private int			width;						/** The width in pixels of this sprite */
+	private int			height;						/** The height in pixels of this sprite */
+	private float		currentAngle = 0.0f
+						, targetAngle = 0.0f
+						, rotationSpeed = 0.2f;		// The rotation settings for the sprite
 
 	/**
 	 * Create a new sprite from a specified image.
@@ -90,6 +84,18 @@ public class Sprite {
 		return texture.getImageHeight();
 	}
 
+	public void setAngle(float degrees) {
+		targetAngle = degrees;
+	}
+
+	public void rotate(float degrees) {
+		targetAngle += degrees;
+	}
+
+	public void setRotationSpeed(float degreesPerFrame) {
+		rotationSpeed = degreesPerFrame;
+	}
+
 	/**
 	 * Draw the sprite at the specified location
 	 *
@@ -97,15 +103,24 @@ public class Sprite {
 	 * @param y The y location at which to draw this sprite
 	 */
 	public void draw(int x, int y) {
-		draw(x, y, -1.00f);
-	}
 
-	public void draw(int x, int y, float angle) {
 		float maxYtex = texture.getHeight(), maxXtex = texture.getWidth(), centreYtex = maxYtex/2, centreXtex = maxXtex/2, centreY = height/2, centreX = width / 2;
 
-		if (angle >= 0) {
-			if (rotation < angle ) { rotation += rotationSpeed; if (rotation > angle) rotation = angle; }
-			if (rotation > angle ) { rotation -= rotationSpeed; if (rotation < angle) rotation = angle; }
+		if (targetAngle >= 0) {
+			if (currentAngle < targetAngle) {
+				currentAngle += rotationSpeed;
+				if (currentAngle > targetAngle) currentAngle = targetAngle;
+			}
+			if (currentAngle > targetAngle) {
+				currentAngle -= rotationSpeed;
+				if (currentAngle < targetAngle) currentAngle = targetAngle;
+			}
+		} else if (targetAngle == -1.0f) {		// Permanent clockwise rotation
+			currentAngle += rotationSpeed;
+			currentAngle %= 360.0f;
+		} else if (targetAngle == -2.0f) {
+			currentAngle -= rotationSpeed;
+			if (currentAngle <= 0.0f) currentAngle += 360.0f;
 		}
 
 		// store the current model matrix
@@ -116,7 +131,7 @@ public class Sprite {
 
 		// translate to the right location and prepare to draw
 		glTranslatef(x+centreX, y+centreY, 0);
-		glRotatef(rotation, 0.0f, 0.0f, 1.0f);
+		glRotatef(currentAngle, 0.0f, 0.0f, 1.0f);
 		glTranslatef(-centreX, -centreY, 0);
 
 		// draw a quad textured to match the sprite

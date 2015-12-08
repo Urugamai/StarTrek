@@ -30,43 +30,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * An entity which represents one of our space invader aliens.
- *
- * @author Kevin Glass
- * @author Brian Matzon
- */
 public class EnemyShipEntity extends Entity {
 
-	/** Movement made downwards when a border is hit */
-	private static final int	DOWNWARD_MOVEMENT	= 10;
-
-	/** Border at which player dies */
-	private static final int	BOTTOM_BORDER		= 570;
-
-	/** Right border at which to shift direction */
-	private static final int	RIGHT_BORDER		= 750;
-
-	/** Left border at which to shift direction */
-	private static final int	LEFT_BORDER			= 10;
-
-	/** The speed at which the alien moves horizontally */
-	private float				moveSpeed			= 75;
-
-	/** The game in which the entity exists */
-	private Game				game;
-
-	/** The animation frames */
-	private Sprite[]			frames				= new Sprite[4];
-
-	/** The time since the last frame change took place */
-	private long				lastFrameChange;
-
-	/** The frame duration in milliseconds, i.e. how long any given frame of animation lasts */
-	private long				frameDuration		= 250;
-
-	/** The current frame of animation being displayed */
-	private int					frameNumber;
+	private static final int	DOWNWARD_MOVEMENT	= 0;				/** Movement made downwards when a border is hit */
+	private static final int	BOTTOM_BORDER		= 570;				/** Border at which player dies */
+	private static final int	RIGHT_BORDER		= 750;				/** Right border at which to shift direction */
+	private static final int	LEFT_BORDER			= 10;				/** Left border at which to shift direction */
+	private float				moveSpeed			= 0;				/** The speed at which the alien moves horizontally */
+	private Game				game;									/** The game in which the entity exists */
+	private Sprite[]			frames				= new Sprite[4];	/** The animation frames */
+	private long				lastFrameChange;						/** The time since the last frame change took place */
+	private long				frameDuration		= 250;				/** The frame duration in milliseconds, i.e. how long any given frame of animation lasts */
+	private int					frameNumber;							/** The current frame of animation being displayed */
 
 	/**
 	 * Create a new alien entity

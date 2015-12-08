@@ -37,18 +37,10 @@
  * @author Brian Matzon
  */
 public class TorpedoEntity extends Entity {
-
-	/** Top border at which shots are outside */
-	private static final int	TOP_BORDER	= -100;
-
-	/** The vertical speed at which the players shot moves */
-	private float				moveSpeed		= -300;
-
-	/** The game in which this entity exists */
-	private Game				game;
-
-	/** True if this shot has been "used", i.e. its hit something */
-	private boolean				used;
+	private static final int	TOP_BORDER	= -100;			/** Top border at which shots are outside */
+	private float				moveSpeed		= -300;		/** The vertical speed at which the players shot moves */
+	private Game				game;						/** The game in which this entity exists */
+	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
 
 	/**
 	 * Create a new shot from the player
@@ -62,7 +54,8 @@ public class TorpedoEntity extends Entity {
 		super(game.getSprite(sprite), x, y);
 
 		this.game = game;
-		dy = moveSpeed;
+		dx = 0;
+		dy = 0;
 	}
 
 	/**
@@ -71,10 +64,18 @@ public class TorpedoEntity extends Entity {
 	 * @param x new x coordinate
 	 * @param y new y coordinate
 	 */
-	public void reinitialize(int x, int y) {
+	public void reinitialize(int x, int y, float direction) {
 		this.x = x;
 		this.y = y;
 		used = false;
+
+		float rads = (float)Math.toRadians(direction);
+		float dir = (direction+90) % 360;
+
+		this.dx = (float)Math.cos(rads)*100;
+		this.dy = (float)Math.sin(rads)*100;
+		sprite.setAngle(dir);
+		sprite.setRotationSpeed(100);	// instant
 	}
 
 	/**
@@ -105,11 +106,14 @@ public class TorpedoEntity extends Entity {
 			return;
 		}
 
+		if (other instanceof PlayerShipEntity) return; // We start the torpedo IN SHIP so this happens initially
+
+		game.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
+
 		// if we've hit an alien, kill it!
 		if (other instanceof EnemyShipEntity) {
 			// remove the affected entities
-			game.removeEntity(this);
-			game.removeEntity(other);
+			game.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
 
 			// notify the game that the alien has been killed
 			game.notifyAlienKilled();

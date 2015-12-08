@@ -83,15 +83,17 @@ public class Game {
 
 	private int					width				= 1000;
 	private int					height				= 1000;
-	private int					heightTextArea		= 100;
+	private int					heightTextArea;
 
 	private float				moveSpeed			= 300;
 	private long				firingInterval		= 500;
+	private long				msElapsed;
 
 	private TextureLoader		textureLoader;
 
 	private GameText 			textWindow;
 	private String				userInput = "";
+	private boolean				returnDown;
 
 	private ArrayList<Entity>	entities			= new ArrayList<Entity>();
 	private ArrayList<Entity>	removeList			= new ArrayList<Entity>();
@@ -230,8 +232,9 @@ public class Game {
 		}
 
 		textWindow = new GameText(0, height, 5);
-		textWindow.writeLn( "Star Trekking across the universe...", org.newdawn.slick.Color.green);
-		textWindow.writeLn("");
+		textWindow.setTextColour( org.newdawn.slick.Color.green);
+		textWindow.write( "Star Trekking across the universe...");
+		textWindow.scroll();
 
 		// setup the initial game state
 		startGame();
@@ -281,10 +284,10 @@ public class Game {
 
 		// TODO Make the enemy ship locations initially random and not in every sector
 		// todo make a SET of enemy vessels and place throughout federation space
-		Entity Romulan = new EnemyShipEntity(this, width - 50, height - heightTextArea -50);
+		Entity Romulan = new EnemyShipEntity(this, width - 50, height - textWindow.getHeight() -50);
 		entities.add(Romulan);
 
-		Entity Star = new StarEntity(this, FILE_IMG_STAR, width/2, (height - heightTextArea)/2);
+		Entity Star = new StarEntity(this, FILE_IMG_STAR, width/2, (height - textWindow.getHeight())/2);
 		entities.add(Star);
 
 		// todo make the starbase location somewhat random and only in a few sectors
@@ -356,20 +359,17 @@ public class Game {
 	}
 
 	/**
-	 * Attempt to fire a shot from the player. Its called "try"
+	 * Attempt to fire a shot from the player in the direction provided.
+	 * Its called "try"
 	 * since we must first check that the player can fire at this
-	 * point, i.e. has he/she waited long enough between shots
+	 * point.
 	 */
-	public void tryToFire() {
-		// check that we have waiting long enough to fire
-		if (System.currentTimeMillis() - lastFire < firingInterval) {
-			return;
-		}
+	public void tryToFire(float direction) {
 
-		// if we waited long enough, create the shot entity, and record the time.
-		lastFire = System.currentTimeMillis();
+		// TODO check if a torpedo tube has been [re]loaded and so is available to shoot
+
 		TorpedoEntity shot = shots[shotIndex++ % shots.length];
-		shot.reinitialize(ship.getX() + 10, ship.getY() - 30);
+		shot.reinitialize(ship.getX(), ship.getY(), direction);
 		entities.add(shot);
 
 		soundManager.playEffect(SOUND_SHOT);
@@ -398,44 +398,31 @@ public class Game {
 		Display.destroy();
 	}
 
-	/**
-	 * Notification that a frame is being rendered. Responsible for
-	 * running game logic and rendering the scene.
-	 */
-	public void frameRendering() {
+	private void setTimeDelta() {
 		//SystemTimer.sleep(lastLoopTime+10-SystemTimer.getTime());
 		Display.sync(60);
 
 		// work out how long its been since the last update, this
 		// will be used to calculate how far the entities should
 		// move this loop
-		long delta = getTime() - lastLoopTime;
-		lastLoopTime = getTime();
-		lastFpsTime += delta;
+		long now = getTime();
+		msElapsed = now - lastLoopTime;
+		lastLoopTime = now;
+		lastFpsTime += msElapsed;
 		fps++;
 
 		// update our FPS counter if a second has passed
 		if (lastFpsTime >= 1000) {
 			Display.setTitle(WINDOW_TITLE + " (FPS: " + fps + ")");
-			lastFpsTime = 0;
+			lastFpsTime %= 1000;
 			fps = 0;
 		}
+	}
 
-		// cycle round asking each entity to move itself
-		if (!waitingForKeyPress && !soundManager.isPlayingSound()) {
-			for ( Entity entity : entities ) {
-				entity.move(delta);
-			}
-		}
-
-		// cycle round drawing all the entities we have in the game
-		for ( Entity entity : entities ) {
-			entity.draw();
-		}
-
+	private void processHits() {
 		// brute force collisions, compare every entity against
 		// every other entity. If any of them collide notify
-		// both entities that the collision has occured
+		// both entities that the collision has occurred
 		for (int p = 0; p < entities.size(); p++) {
 			for (int s = p + 1; s < entities.size(); s++) {
 				Entity me = entities.get(p);
@@ -451,32 +438,46 @@ public class Game {
 		// remove any entity that has been marked for clear up
 		entities.removeAll(removeList);
 		removeList.clear();
+	}
 
-		// if a game event has indicated that game logic should
-		// be resolved, cycle round every entity requesting that
-		// their personal logic should be considered.
-		if (logicRequiredThisLoop) {
-			for ( Entity entity : entities ) {
-				entity.doLogic();
-			}
-
-			logicRequiredThisLoop = false;
-		}
-
-		if (Keyboard.isKeyDown(Keyboard.KEY_RETURN)) {
-			processCommand(userInput);
-			userInput = "";
-			textWindow.writeLn("");
+	private char getCurrentKey() {
+		boolean returnPressed = Keyboard.isKeyDown(Keyboard.KEY_RETURN);
+		if (returnPressed) {
+			if (returnDown) return '\0';  // Already processed this pressing of return
+			returnDown = true;
+			return Keyboard.getEventCharacter();
 		}
 
 		if (Keyboard.next()) {
-			char keyPressed = Keyboard.getEventCharacter();
-			if (keyPressed != 0) {
-				textWindow.write("" + keyPressed);
-				userInput += keyPressed;
+			return Keyboard.getEventCharacter();
+		}
+
+		return '\0';
+	}
+
+	private void userInteracations() {
+
+		char key = getCurrentKey();
+
+		if (key != '\0') {
+			// do something with this key
+			if (key == 32) return;	// space ignored
+			if (key == 13) {
+				processCommand(userInput);
+				userInput = "";
+				textWindow.scroll();
+			} else {
+				if (key == 8 && userInput.length() > 0 ) { // Backspace
+					userInput = userInput.substring(0, userInput.length() - 1);
+					textWindow.writeLine(0, userInput);
+				} else {
+					userInput += key;
+					textWindow.write("" + key);
+				}
 			}
 		}
 
+/* TO BE REMOVED
 		// resolve the movement of the ship. First assume the ship
 		// isn't moving. If either cursor key is pressed then
 		// update the movement appropriately
@@ -502,7 +503,7 @@ public class Game {
 
 			// if we're pressing fire, attempt to fire
 			if (firePressed) {
-				tryToFire();
+				tryToFire(0);
 			}
 		} else {
 			if (!firePressed) {
@@ -515,8 +516,7 @@ public class Game {
 				soundManager.playSound(SOUND_START);
 			}
 		}
-
-		textWindow.draw();
+*/
 
 		// if escape has been pressed, stop the game
 		if ((Display.isCloseRequested() || Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) && isApplication) {
@@ -524,13 +524,52 @@ public class Game {
 		}
 	}
 
-	private void processCommand(String cmd) {
-		String CMD = cmd.toUpperCase();
+	/** THE MAIN GAME PROCESSOR, called every loop
+	 * ********************************************
+	 *
+	 * Notification that a frame is being rendered. Responsible for
+	 * running game logic and rendering the scene.
+	 */
+	public void frameRendering() {	//
 
-		if (CMD == "TOR") {
-			tryToFire();
+		setTimeDelta();
+
+		// cycle round asking each entity to move itself
+		for ( Entity entity : entities ) {
+			entity.move(msElapsed);
+		}
+
+		// cycle round drawing all the entities we have in the game
+		for ( Entity entity : entities ) {
+			entity.draw();
+		}
+
+		processHits();
+
+		// TODO: This probably needs to change
+
+		// cycle round every entity requesting that
+		// their personal logic should be considered.
+			for ( Entity entity : entities ) {
+				entity.doLogic();
+			}
+
+		userInteracations();
+
+		textWindow.draw();
+	}
+
+	private void processCommand(String cmd) {
+		String CMD = cmd.trim().toUpperCase();
+
+		if (CMD.startsWith("TOR") ) {
+			String direction = CMD.substring(4).trim();
+			if (direction.isEmpty()) return;
+			float angle = Float.valueOf(direction);
+			tryToFire(angle);
 		}
 	}
+
 	/**
 	 * @param direction
 	 * @return
