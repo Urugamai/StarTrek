@@ -96,6 +96,10 @@ public class Sprite {
 		rotationSpeed = degreesPerFrame;
 	}
 
+	public float getCurrentAngle() {
+		return currentAngle;
+	}
+
 	/**
 	 * Draw the sprite at the specified location
 	 *
@@ -103,6 +107,7 @@ public class Sprite {
 	 * @param y The y location at which to draw this sprite
 	 */
 	public void draw(int x, int y) {
+		float correctedAngle;
 
 		float maxYtex = texture.getHeight(), maxXtex = texture.getWidth(), centreYtex = maxYtex/2, centreXtex = maxXtex/2, centreY = height/2, centreX = width / 2;
 
@@ -131,7 +136,8 @@ public class Sprite {
 
 		// translate to the right location and prepare to draw
 		glTranslatef(x+centreX, y+centreY, 0);
-		glRotatef(currentAngle, 0.0f, 0.0f, 1.0f);
+		correctedAngle = (currentAngle+90) % 360;
+		glRotatef(correctedAngle, 0.0f, 0.0f, 1.0f);
 		glTranslatef(-centreX, -centreY, 0);
 
 		// draw a quad textured to match the sprite

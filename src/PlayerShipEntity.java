@@ -31,9 +31,14 @@
  */
 
 public class PlayerShipEntity extends Entity {
-	private static final int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
-	private static final int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
+	private static int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
+	private static int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
+	private static int  TOP_BORDER;
+	private static int  BOTTOM_BORDER;
 	private Game game;									/** The game in which the ship exists */
+
+	private float heading = 0.0f;
+	private float speed = 0.0f;
 
 	/**
 	 * Create a new entity to represent the players ship
@@ -47,25 +52,40 @@ public class PlayerShipEntity extends Entity {
 		super(game.getSprite(ref), x, y);
 
 		this.game = game;
+
+		RIGHT_BORDER = game.getWidth() - 30;
+		LEFT_BORDER = 30;
+		TOP_BORDER = 30;
+		BOTTOM_BORDER = game.getHeight() - 30;
+	}
+
+	public void newHeading(float direction) {
+
+		float dir = direction;
+
+		sprite.setAngle(dir);
+		sprite.setRotationSpeed(0.2f);
+	}
+
+	public void setSpeed(float force) {
+		speed = force/5;
 	}
 
 	/**
-	 * Request that the ship move itself based on an elapsed ammount of
+	 * Request that the ship move itself based on an elapsed amount of
 	 * time
 	 *
 	 * @param delta The time that has elapsed since last move (ms)
 	 */
-	public void move(long delta) {
-		// if we're moving left and have reached the left hand side
-		// of the screen, don't move
-		if ((dx < 0) && (x < LEFT_BORDER)) {
-			return;
-		}
-		// if we're moving right and have reached the right hand side
-		// of the screen, don't move
-		if ((dx > 0) && (x > RIGHT_BORDER)) {
-			return;
-		}
+	public void move(long delta) {// TODO: in future we will NOT set the to zero but actually move into the next sector
+		if ((dx < 0) && (x < LEFT_BORDER)) { dx = 0; return; }
+		if ((dx > 0) && (x > RIGHT_BORDER)) { dx = 0; return; }
+		if ((dy < 0) && (y < TOP_BORDER)) { dy = 0; return; }
+		if ((dy > 0) && (y > BOTTOM_BORDER)) { dy = 0; return; }
+
+		float rads = (float)Math.toRadians(sprite.getCurrentAngle());
+		dx = (float)Math.cos(rads)*speed;
+		dy = (float)Math.sin(rads)*speed;
 
 		super.move(delta);
 	}
@@ -76,8 +96,7 @@ public class PlayerShipEntity extends Entity {
 	 * @param other The entity with which the ship has collided
 	 */
 	public void collidedWith(Entity other) {
-		// if its an alien, notify the game that the player
-		// is dead
+
 		if (other instanceof EnemyShipEntity) {
 			game.notifyDeath();
 		}

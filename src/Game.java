@@ -154,6 +154,13 @@ public class Game {
 		return (Sys.getTime() * 1000) / timerTicksPerSecond;
 	}
 
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
 	/**
 	 * Sleep for a fixed number of milliseconds.
 	 *
@@ -477,47 +484,6 @@ public class Game {
 			}
 		}
 
-/* TO BE REMOVED
-		// resolve the movement of the ship. First assume the ship
-		// isn't moving. If either cursor key is pressed then
-		// update the movement appropriately
-		ship.setHorizontalMovement(0);
-
-		// get mouse movement on x axis. We need to get it now, since
-		// we can only call getDX ONCE! - secondary calls will yield 0, since
-		// there haven't been any movement since last call.
-		mouseX = Mouse.getDX();
-
-		// we delegate input checking to sub-method since we want to check
-		// for keyboard, mouse & controller
-		boolean leftPressed   = hasInput(Keyboard.KEY_LEFT);
-		boolean rightPressed  = hasInput(Keyboard.KEY_RIGHT);
-		boolean firePressed   = hasInput(Keyboard.KEY_SPACE);
-
-		if (!waitingForKeyPress && !soundManager.isPlayingSound()) {
-			if ((leftPressed) && (!rightPressed)) {
-				ship.setHorizontalMovement(-moveSpeed);
-			} else if ((rightPressed) && (!leftPressed)) {
-				ship.setHorizontalMovement(moveSpeed);
-			}
-
-			// if we're pressing fire, attempt to fire
-			if (firePressed) {
-				tryToFire(0);
-			}
-		} else {
-			if (!firePressed) {
-				fireHasBeenReleased = true;
-			}
-			if ((firePressed) && (fireHasBeenReleased) && !soundManager.isPlayingSound()) {
-				waitingForKeyPress = false;
-				fireHasBeenReleased = false;
-				startGame();
-				soundManager.playSound(SOUND_START);
-			}
-		}
-*/
-
 		// if escape has been pressed, stop the game
 		if ((Display.isCloseRequested() || Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) && isApplication) {
 			Game.gameRunning = false;
@@ -560,14 +526,53 @@ public class Game {
 	}
 
 	private void processCommand(String cmd) {
+		float angle;
+		float force;
+		String direction = "", power = "";
+
 		String CMD = cmd.trim().toUpperCase();
 
 		if (CMD.startsWith("TOR") ) {
-			String direction = CMD.substring(4).trim();
+			direction = CMD.substring(4).trim();
 			if (direction.isEmpty()) return;
-			float angle = Float.valueOf(direction);
+			try {
+				angle = Float.valueOf(direction);
+			} catch (Exception e) {
+				return;  // no firing for you when you get the parameter wrong
+			}
 			tryToFire(angle);
+			return;
 		}
+
+		if (CMD.startsWith("IMP")) {
+			int comma1 = CMD.indexOf(",");
+			int comma2 = CMD.indexOf(",", comma1+1);
+			if (comma1 > 0 && comma2 > comma1) {
+				direction = CMD.substring(comma1 + 1, comma2);
+				power = CMD.substring(comma2 + 1);
+//				textWindow.writeLine(2, direction);
+//				textWindow.writeLine(1, power);
+
+				try {
+					angle = Float.valueOf(direction);
+					force = Float.valueOf(power);
+				} catch (Exception e) {
+					return; // no moving for you when you get the parameters wrong
+				}
+
+				ship.newHeading(angle);
+				ship.setSpeed(force);
+			}
+			return;
+		}
+
+		if (CMD.startsWith("STOP")) {
+			ship.setSpeed(0.0f);
+			return;
+		}
+
+		if (CMD.startsWith("EXIT"))	Game.gameRunning = false;
+
 	}
 
 	/**

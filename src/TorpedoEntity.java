@@ -38,7 +38,7 @@
  */
 public class TorpedoEntity extends Entity {
 	private static final int	TOP_BORDER	= -100;			/** Top border at which shots are outside */
-	private float				moveSpeed		= -300;		/** The vertical speed at which the players shot moves */
+	private float				moveSpeed	= 100;			/** The vertical speed at which the players shot moves */
 	private Game				game;						/** The game in which this entity exists */
 	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
 
@@ -70,12 +70,12 @@ public class TorpedoEntity extends Entity {
 		used = false;
 
 		float rads = (float)Math.toRadians(direction);
-		float dir = (direction+90) % 360;
+		float dir = direction;
 
-		this.dx = (float)Math.cos(rads)*100;
-		this.dy = (float)Math.sin(rads)*100;
+		this.dx = (float)Math.cos(rads)*moveSpeed;
+		this.dy = (float)Math.sin(rads)*moveSpeed;
 		sprite.setAngle(dir);
-		sprite.setRotationSpeed(100);	// instant
+		sprite.setRotationSpeed(100);	// effectively instant (OK, 3 to 4 FRAMES, it is usually hidden behind your ship for at least that long)
 	}
 
 	/**

@@ -1,4 +1,4 @@
-Version 0.1
+Version 0.1 DONE
 ===========
 - Basic game play
     - DONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
@@ -13,9 +13,9 @@ Version 0.1
 Version 0.2
 ===========
 - Movement
-    - YOU
+    - DONE: YOU
     - Romulans - computer smarts
-    - Impulse drive (in sector and across sector boundary)
+    - Impulse drive (in sector only for now)
 - Graphics
     - Starship Enterprise
     - Romulan vessel
@@ -28,6 +28,8 @@ Version 0.2
 
 Version 0.3
 ===========
+- Movement
+    - Across sector boundary!
 - Add energy capacity to all ships (Enterprise, Romulans, StarBase, Borg, etc)
 - Phasers
     - Lightspeed travel of beam
@@ -195,13 +197,21 @@ commands are;
 
 DONE
 ====
-TOR,direction   -   direction is a decimal number of degrees at which the torpedo will be targetted.  Use the
-                    computer to get assistance in generating the coordinate but bear in mind that gravitational
-                    effects are far to complicated and variable for the computer to predict.
+TOR,direction           -   direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
+                            computer to get assistance in generating the coordinate but bear in mind that gravitational
+                            effects are far to complicated and variable for the computer to predict.
 
 TODO
 ====
-ORB,range       -   go into orbit of the star at a distance of 'range' light-seconds
-DOCK            -   connect with starbase - you must be reasonably close for this to work as the starbase autopilot
-                    uses bluetooth to reduce detection by the enemy
-
+IMP,direction,power     -   Impulse engines used to move around within a star system.  Does not stop until ordered.
+                            Moving can be good as it makes you harder to hit, but also makes it harder for you to
+                            hit the enemy.
+STOP                    -   Computer calculates and implements impulse forces necessary to effective stop in space
+WARP,direction,range    -   Turn in the direction indicated and activate warp drive. Range is roughly the number of
+                            sectors travelled over.  Note that travelling at an angle will not necessary cross as
+                            many sectors as you have entered.  Get out your trigonometry and pythagoras notes to
+                            understand the distance travelled.
+ORB,range               -   go into orbit of the star at a distance of 'range' light-seconds
+DOCK                    -   connect with starbase - you must be reasonably close for this to work as the starbase
+                            autopilot uses bluetooth to reduce detection by the enemy
+AS                      -   ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
