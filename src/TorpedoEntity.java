@@ -39,21 +39,21 @@
 public class TorpedoEntity extends Entity {
 	private static final int	TOP_BORDER	= -100;			/** Top border at which shots are outside */
 	private float				moveSpeed	= 100;			/** The vertical speed at which the players shot moves */
-	private Game				game;						/** The game in which this entity exists */
+	private Sector				sector;						/** The sector in which this entity exists */
 	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
 
 	/**
 	 * Create a new shot from the player
 	 *
-	 * @param game The game in which the shot has been created
+	 * @param sector The sector in which the shot has been created
 	 * @param sprite The sprite representing this shot
 	 * @param x The initial x location of the shot
 	 * @param y The initial y location of the shot
 	 */
-	public TorpedoEntity(Game game, String sprite, int x, int y) {
-		super(game.getSprite(sprite), x, y);
+	public TorpedoEntity(Sector sector, String sprite, int x, int y) {
+		super(sector.getSprite(sprite), x, y);
 
-		this.game = game;
+		this.sector = sector;
 		dx = 0;
 		dy = 0;
 	}
@@ -89,7 +89,7 @@ public class TorpedoEntity extends Entity {
 
 		// if we shot off the screen, remove ourselfs
 		if (y < TOP_BORDER) {
-			game.removeEntity(this);
+			sector.removeEntity(this);
 		}
 	}
 
@@ -108,15 +108,15 @@ public class TorpedoEntity extends Entity {
 
 		if (other instanceof PlayerShipEntity) return; // We start the torpedo IN SHIP so this happens initially
 
-		game.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
+		sector.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
 
 		// if we've hit an alien, kill it!
 		if (other instanceof EnemyShipEntity) {
 			// remove the affected entities
-			game.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
+			sector.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
 
-			// notify the game that the alien has been killed
-			game.notifyAlienKilled();
+			// notify the sector that the alien has been killed
+			sector.notifyAlienKilled();
 			used = true;
 		}
 	}

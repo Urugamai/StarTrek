@@ -4,7 +4,6 @@ Version 0.1 DONE
     - DONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
     - DONE: Command interface
         - Does lwjgl have a text window ability (NO) - implement in own class GameText
-        - Should we have a Mouse-click option for direction/target/move rather than commands to make it happen?
     - DONE: Torpedo
         - straight line for now, be ready for gravity calculations in the future
     - DONE: Hit detection
@@ -16,6 +15,7 @@ Version 0.2
     - DONE: YOU
     - Romulans - computer smarts
     - Impulse drive (in sector only for now)
+        - Use 'acceleration' to get to new 'speed' selected.
 - Graphics
     - Starship Enterprise
     - Romulan vessel
@@ -29,7 +29,9 @@ Version 0.2
 Version 0.3
 ===========
 - Movement
-    - Across sector boundary!
+    - WARP Drive!  Travel across sector boundary!
+        - Accelerate to full impulse before enabling WARP drive.
+        - WARP still travels through space, just a LOT faster, can hit stuff, etc.
 - Add energy capacity to all ships (Enterprise, Romulans, StarBase, Borg, etc)
 - Phasers
     - Lightspeed travel of beam
@@ -159,6 +161,12 @@ Version 2.0
             - i.e. lots of ships enter but at each sector some stop while the rest continue
     - Enemies attack any ship that is NOT one of their own
 
+OTHER
+=====
+- Should we have a Mouse-click option for direction/target/move as well as commands?  Mouse could be a 'damageable' item!
+- For orbits, gravity, etc it may be worthwhile changing from x,y coordinates to Angle,Distance.
+- Need to add 'vector' for direction of motion
+
 BUGS
 =====
 1.  For some reason the lwjgl audio library crashes on initialisation sometimes.  Restart the application is the
@@ -200,13 +208,14 @@ DONE
 TOR,direction           -   direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
                             computer to get assistance in generating the coordinate but bear in mind that gravitational
                             effects are far to complicated and variable for the computer to predict.
-
-TODO
-====
 IMP,direction,power     -   Impulse engines used to move around within a star system.  Does not stop until ordered.
                             Moving can be good as it makes you harder to hit, but also makes it harder for you to
                             hit the enemy.
 STOP                    -   Computer calculates and implements impulse forces necessary to effective stop in space
+EXIT                    -   Quit game.  ESC Key is also meant to work.
+
+TODO
+====
 WARP,direction,range    -   Turn in the direction indicated and activate warp drive. Range is roughly the number of
                             sectors travelled over.  Note that travelling at an angle will not necessary cross as
                             many sectors as you have entered.  Get out your trigonometry and pythagoras notes to

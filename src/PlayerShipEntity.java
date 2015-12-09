@@ -61,9 +61,9 @@ public class PlayerShipEntity extends Entity {
 
 	public void newHeading(float direction) {
 
-		float dir = direction;
+		heading = direction;
 
-		sprite.setAngle(dir);
+		sprite.setAngle(heading);
 		sprite.setRotationSpeed(0.2f);
 	}
 
@@ -98,7 +98,7 @@ public class PlayerShipEntity extends Entity {
 	public void collidedWith(Entity other) {
 
 		if (other instanceof EnemyShipEntity) {
-			game.notifyDeath();
+			//game.notifyDeath();
 		}
 	}
 }

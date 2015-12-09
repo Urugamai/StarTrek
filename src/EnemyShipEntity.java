@@ -32,16 +32,18 @@
 
 public class EnemyShipEntity extends Entity {
 
-	private static final int	DOWNWARD_MOVEMENT	= 0;				/** Movement made downwards when a border is hit */
-	private static final int	BOTTOM_BORDER		= 570;				/** Border at which player dies */
-	private static final int	RIGHT_BORDER		= 750;				/** Right border at which to shift direction */
-	private static final int	LEFT_BORDER			= 10;				/** Left border at which to shift direction */
-	private float				moveSpeed			= 0;				/** The speed at which the alien moves horizontally */
-	private Game				game;									/** The game in which the entity exists */
-	private Sprite[]			frames				= new Sprite[4];	/** The animation frames */
-	private long				lastFrameChange;						/** The time since the last frame change took place */
-	private long				frameDuration		= 250;				/** The frame duration in milliseconds, i.e. how long any given frame of animation lasts */
-	private int					frameNumber;							/** The current frame of animation being displayed */
+	private static int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
+	private static int  LEFT_BORDER       = 10;		/** Left border at which to disallow further movement */
+	private static int  TOP_BORDER;
+	private static int  BOTTOM_BORDER;
+
+	private long		accumulatedTime		= 0;
+	private static long	courseDuration = 10000;
+
+	private Game		game;						/** The game in which the entity exists */
+
+	private float heading = 0.0f;
+	private float speed = 0.0f;
 
 	/**
 	 * Create a new alien entity
@@ -50,55 +52,50 @@ public class EnemyShipEntity extends Entity {
 	 * @param x The intial x location of this alien
 	 * @param y The intial y location of this alien
 	 */
-	public EnemyShipEntity(Game game, int x, int y) {
-		super(game.getSprite(Game.FILE_IMG_ROMULAN), x, y);
-
-		// setup the animation frames
-		frames[0] = sprite;
-		frames[1] = sprite; //was: game.getSprite(Game.FILE_IMG_STARBASE);
-		frames[2] = sprite;
-		frames[3] = sprite; //was: game.getSprite(Game.FILE_IMG_STAR);
+	public EnemyShipEntity(Game game, String shipFile, int x, int y) {
+		super(game.getSprite(shipFile), x, y);
 
 		this.game = game;
-		dx = -moveSpeed;
+
+		RIGHT_BORDER = game.getWidth() - 30;
+		LEFT_BORDER = 30;
+		TOP_BORDER = 30;
+		BOTTOM_BORDER = game.getHeight() - 30;
+	}
+
+	public void newHeading() {
+
+		heading = ((float)Math.random()*360.0f + 180 ) % 360;
+
+		sprite.setAngle(heading);
+		sprite.setRotationSpeed(0.2f);
+	}
+
+	public void newSpeed() {
+		speed = (float)Math.random()*100.0f;
 	}
 
 	/**
-	 * Request that this alien moved based on time elapsed
+	 * Request that this alien move
 	 *
 	 * @param delta The time that has elapsed since last move
 	 */
 	public void move(long delta) {
-		// since the move tells us how much time has passed
-		// by we can use it to drive the animation, however
-		// its the not the prettiest solution
-		lastFrameChange += delta;
-
-		// if we need to change the frame, update the frame number
-		// and flip over the sprite in use
-		if (lastFrameChange > frameDuration) {
-			// reset our frame change time counter
-			lastFrameChange = 0;
-
-			// update the frame
-			frameNumber++;
-			if (frameNumber >= frames.length) {
-				frameNumber = 0;
-			}
-
-			sprite = frames[frameNumber];
+		accumulatedTime += delta;
+		if (accumulatedTime > courseDuration) {
+			newHeading();
+			newSpeed();
+			accumulatedTime -= courseDuration;
 		}
 
-		// if we have reached the left hand side of the screen and
-		// are moving left then request a logic update
-		if ((dx < 0) && (x < LEFT_BORDER)) {
-			game.updateLogic();
-		}
-		// and vice vesa, if we have reached the right hand side of
-		// the screen and are moving right, request a logic update
-		if ((dx > 0) && (x > RIGHT_BORDER)) {
-			game.updateLogic();
-		}
+		if ((dx < 0) && (x < LEFT_BORDER)) { speed = 0; }
+		if ((dx > 0) && (x > RIGHT_BORDER)) { speed = 0; }
+		if ((dy < 0) && (y < TOP_BORDER)) { speed = 0; }
+		if ((dy > 0) && (y > BOTTOM_BORDER)) { speed = 0; }
+
+		float rads = (float)Math.toRadians(sprite.getCurrentAngle());
+		dx = (float)Math.cos(rads)*speed;
+		dy = (float)Math.sin(rads)*speed;
 
 		// proceed with normal move
 		super.move(delta);
@@ -108,16 +105,6 @@ public class EnemyShipEntity extends Entity {
 	 * Update the game logic related to aliens
 	 */
 	public void doLogic() {
-		// swap over horizontal movement and move down the
-		// screen a bit
-		dx = -dx;
-		y += DOWNWARD_MOVEMENT;
-
-		// if we've reached the bottom of the screen then the player
-		// dies
-		if (y > BOTTOM_BORDER) {
-			game.notifyDeath();
-		}
 	}
 
 	/**

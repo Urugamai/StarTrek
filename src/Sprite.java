@@ -66,20 +66,10 @@ public class Sprite {
 		}
 	}
 
-	/**
-	 * Get the width of this sprite in pixels
-	 *
-	 * @return The width of this sprite in pixels
-	 */
 	public int getWidth() {
 		return texture.getImageWidth();
 	}
 
-	/**
-	 * Get the height of this sprite in pixels
-	 *
-	 * @return The height of this sprite in pixels
-	 */
 	public int getHeight() {
 		return texture.getImageHeight();
 	}

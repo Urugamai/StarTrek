@@ -58,35 +58,13 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class Game {
 
-	/** Game Parameters */
-	private static String		WINDOW_TITLE		= "Star Trek - TNG";
-
-	// Graphics
-	private static String		FILE_IMG_ENTERPRISE	= "res/ST_Enterprise.gif";
-	private static String		FILE_IMG_TORPEDO	= "res/ST_Torpedo.gif";
-	public static  String 		FILE_IMG_ROMULAN 	= "res/ST_Romulan.gif";
-	public static  String		FILE_IMG_STARBASE	= "res/ST_StarBase.gif";
-	public static  String		FILE_IMG_STAR		= "res/ST_Star.gif";
-
-	// Audio
-	private static String		FILE_SND_TORPEDO	= "res/ST_Torpedo.wav";
-
-	// Originals
-	private static String		FILE_IMG_START		= "res/pressanykey.gif";
-	private static String		FILE_IMG_LOSE		= "res/gotyou.gif";
-	private static String		FILE_IMG_WIN		= "res/youwin.gif";
-
-	private static String		FILE_SND_HIT		= "res/hit.wav";
-	private static String		FILE_SND_LOSE		= "res/loose.wav";
-	private static String		FILE_SND_START		= "res/start.wav";
-	private static String		FILE_SND_WIN		= "res/win.wav";
+	private Galaxy galaxy;
+	private Galaxy.galacticLocation currentSector;
+	private Sector sector;
 
 	private int					width				= 1000;
 	private int					height				= 1000;
-	private int					heightTextArea;
 
-	private float				moveSpeed			= 300;
-	private long				firingInterval		= 500;
 	private long				msElapsed;
 
 	private TextureLoader		textureLoader;
@@ -95,37 +73,28 @@ public class Game {
 	private String				userInput = "";
 	private boolean				returnDown;
 
-	private ArrayList<Entity>	entities			= new ArrayList<Entity>();
-	private ArrayList<Entity>	removeList			= new ArrayList<Entity>();
 	private PlayerShipEntity	ship;
-	private TorpedoEntity[]		shots;
 
-	private Sprite				message;
 	private Sprite				pressAnyKey;
 	private Sprite				youWin;
 	private Sprite				gotYou;
 
-	private int					shotIndex;
-	private long				lastFire;
 	private int					alienCount;
-	private boolean				waitingForKeyPress	= true;
-	private boolean				logicRequiredThisLoop;
 	private long				lastLoopTime		= getTime();
-	private boolean				fireHasBeenReleased;
 
 	private long				lastFpsTime;
 	private int					fps;
 	private static long			timerTicksPerSecond	= Sys.getTimerResolution();
 
 	public static boolean		gameRunning			= true;
-	private SoundManager		soundManager;
+	public SoundManager			soundManager;
 	private boolean				fullscreen;
 
-	private int					SOUND_SHOT;
-	private int					SOUND_HIT;
-	private int					SOUND_START;
-	private int					SOUND_WIN;
-	private int					SOUND_LOOSE;
+	public int					SOUND_SHOT;
+	public int					SOUND_HIT;
+	public int					SOUND_START;
+	public int					SOUND_WIN;
+	public int					SOUND_LOOSE;
 
 	private int					mouseX;
 
@@ -161,6 +130,18 @@ public class Game {
 	public int getHeight() {
 		return height;
 	}
+
+	/**
+	 * Create or get a sprite which displays the image that is pointed
+	 * to in the classpath by "ref"
+	 *
+	 * @param ref A reference to the image to load
+	 * @return A sprite that can be drawn onto the current graphics context.
+	 */
+	public Sprite getSprite(String ref) {
+		return new Sprite(textureLoader, ref);
+	}
+
 	/**
 	 * Sleep for a fixed number of milliseconds.
 	 *
@@ -180,7 +161,7 @@ public class Game {
 		// initialize the window beforehand
 		try {
 			setDisplayMode();
-			Display.setTitle(WINDOW_TITLE);
+			Display.setTitle(Constants.WINDOW_TITLE);
 			Display.setFullscreen(fullscreen);
 			Display.create();
 
@@ -213,11 +194,11 @@ public class Game {
 			soundManager.initialize(8);
 
 			// load our sound data
-			SOUND_SHOT   = soundManager.addSound(FILE_SND_TORPEDO);
-			SOUND_HIT    = soundManager.addSound(FILE_SND_HIT);
-			SOUND_START  = soundManager.addSound(FILE_SND_START);
-			SOUND_WIN    = soundManager.addSound(FILE_SND_WIN);
-			SOUND_LOOSE  = soundManager.addSound(FILE_SND_LOSE);
+			SOUND_SHOT   = soundManager.addSound(Constants.FILE_SND_TORPEDO);
+			SOUND_HIT    = soundManager.addSound(Constants.FILE_SND_HIT);
+			SOUND_START  = soundManager.addSound(Constants.FILE_SND_START);
+			SOUND_WIN    = soundManager.addSound(Constants.FILE_SND_WIN);
+			SOUND_LOOSE  = soundManager.addSound(Constants.FILE_SND_LOSE);
 		} catch (LWJGLException le) {
 			System.out.println("Game exiting - exception in initialization:");
 			le.printStackTrace();
@@ -226,17 +207,9 @@ public class Game {
 		}
 
 		// get our sprites
-		gotYou = getSprite(FILE_IMG_LOSE);
-		pressAnyKey = getSprite(FILE_IMG_START);
-		youWin = getSprite(FILE_IMG_WIN);
-
-		message = pressAnyKey;
-
-		// setup 5 shots
-		shots = new TorpedoEntity[15];
-		for (int i = 0; i < shots.length; i++) {
-			shots[i] = new TorpedoEntity(this, FILE_IMG_TORPEDO, 0, 0);
-		}
+//		gotYou = getSprite(Constants.FILE_IMG_LOSE);
+//		pressAnyKey = getSprite(Constants.FILE_IMG_START);
+//		youWin = getSprite(Constants.FILE_IMG_WIN);
 
 		textWindow = new GameText(0, height, 5);
 		textWindow.setTextColour( org.newdawn.slick.Color.green);
@@ -276,30 +249,12 @@ public class Game {
 	 */
 	private void startGame() {
 		// clear out any existing entities and intialise a new set
-		entities.clear();
-		initEntities();
-	}
-
-	/**
-	 * Initialise the starting state of the entities (ship and aliens). Each
-	 * entity will be added to the overall list of entities in the game.
-	 */
-	private void initEntities() {
-		// create the player ship and place it somewhere TODO Make the initial location of the Enterprise Random but not on any existing objects
-		ship = new PlayerShipEntity(this, FILE_IMG_ENTERPRISE, 50, 50);
-		entities.add(ship);
-
-		// TODO Make the enemy ship locations initially random and not in every sector
-		// todo make a SET of enemy vessels and place throughout federation space
-		Entity Romulan = new EnemyShipEntity(this, width - 50, height - textWindow.getHeight() -50);
-		entities.add(Romulan);
-
-		Entity Star = new StarEntity(this, FILE_IMG_STAR, width/2, (height - textWindow.getHeight())/2);
-		entities.add(Star);
-
-		// todo make the starbase location somewhat random and only in a few sectors
-		Entity StarBase = new FriendlyEntity(this, FILE_IMG_STARBASE, width-50, 100);
-		entities.add(StarBase);
+		//entities.clear();
+		galaxy = new Galaxy(this);
+		galaxy.initSectors( width, (height - textWindow.getHeight()) );
+//		currentSector = galaxy.getSafeSector();
+		currentSector = galaxy.getLeastSafeSector();
+		sector = galaxy.getSector(currentSector);
 	}
 
 	/**
@@ -308,78 +263,6 @@ public class Game {
 	 * game event)
 	 */
 	public void updateLogic() {
-		logicRequiredThisLoop = true;
-	}
-
-	/**
-	 * Remove an entity from the game. The entity removed will
-	 * no longer move or be drawn.
-	 *
-	 * @param entity The entity that should be removed
-	 */
-	public void removeEntity(Entity entity) {
-		removeList.add(entity);
-	}
-
-	/**
-	 * Notification that the player has died.
-	 */
-	public void notifyDeath() {
-		if (!waitingForKeyPress) {
-			soundManager.playSound(SOUND_LOOSE);
-		}
-		message = gotYou;
-		waitingForKeyPress = true;
-	}
-
-	/**
-	 * Notification that the player has won since all the aliens
-	 * are dead.
-	 */
-	public void notifyWin() {
-		message = youWin;
-		waitingForKeyPress = true;
-		soundManager.playSound(SOUND_WIN);
-	}
-
-	/**
-	 * Notification that an alien has been killed
-	 */
-	public void notifyAlienKilled() {
-		// reduce the alient count, if there are none left, the player has won!
-		alienCount--;
-
-		if (alienCount == 0) {
-			notifyWin();
-		}
-
-		// if there are still some aliens left then they all need to get faster, so
-		// speed up all the existing aliens
-		for ( Entity entity : entities ) {
-			if ( entity instanceof EnemyShipEntity ) {
-				// speed up by 2%
-				entity.setHorizontalMovement(entity.getHorizontalMovement() * 1.04f);
-			}
-		}
-
-		soundManager.playEffect(SOUND_HIT);
-	}
-
-	/**
-	 * Attempt to fire a shot from the player in the direction provided.
-	 * Its called "try"
-	 * since we must first check that the player can fire at this
-	 * point.
-	 */
-	public void tryToFire(float direction) {
-
-		// TODO check if a torpedo tube has been [re]loaded and so is available to shoot
-
-		TorpedoEntity shot = shots[shotIndex++ % shots.length];
-		shot.reinitialize(ship.getX(), ship.getY(), direction);
-		entities.add(shot);
-
-		soundManager.playEffect(SOUND_SHOT);
 	}
 
 	/**
@@ -387,6 +270,8 @@ public class Game {
 	 * and requesting that the callback update its screen.
 	 */
 	private void gameLoop() {
+		soundManager.playEffect(SOUND_START);
+
 		while (Game.gameRunning) {
 			// clear screen
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -420,31 +305,10 @@ public class Game {
 
 		// update our FPS counter if a second has passed
 		if (lastFpsTime >= 1000) {
-			Display.setTitle(WINDOW_TITLE + " (FPS: " + fps + ")");
+			Display.setTitle(Constants.WINDOW_TITLE + " (FPS: " + fps + ")");
 			lastFpsTime %= 1000;
 			fps = 0;
 		}
-	}
-
-	private void processHits() {
-		// brute force collisions, compare every entity against
-		// every other entity. If any of them collide notify
-		// both entities that the collision has occurred
-		for (int p = 0; p < entities.size(); p++) {
-			for (int s = p + 1; s < entities.size(); s++) {
-				Entity me = entities.get(p);
-				Entity him = entities.get(s);
-
-				if (me.collidesWith(him)) {
-					me.collidedWith(him);
-					him.collidedWith(me);
-				}
-			}
-		}
-
-		// remove any entity that has been marked for clear up
-		entities.removeAll(removeList);
-		removeList.clear();
 	}
 
 	private char getCurrentKey() {
@@ -464,6 +328,7 @@ public class Game {
 
 	private void userInteracations() {
 
+		textWindow.writeLine(4, "Currently in sector (" + currentSector.getGx() + "," + currentSector.getGy() + ")");
 		char key = getCurrentKey();
 
 		if (key != '\0') {
@@ -500,25 +365,13 @@ public class Game {
 
 		setTimeDelta();
 
-		// cycle round asking each entity to move itself
-		for ( Entity entity : entities ) {
-			entity.move(msElapsed);
-		}
+		sector.move(msElapsed);
 
-		// cycle round drawing all the entities we have in the game
-		for ( Entity entity : entities ) {
-			entity.draw();
-		}
+		sector.draw();
 
-		processHits();
+		sector.processHits();
 
-		// TODO: This probably needs to change
-
-		// cycle round every entity requesting that
-		// their personal logic should be considered.
-			for ( Entity entity : entities ) {
-				entity.doLogic();
-			}
+		sector.doLogic();
 
 		userInteracations();
 
@@ -538,9 +391,10 @@ public class Game {
 			try {
 				angle = Float.valueOf(direction);
 			} catch (Exception e) {
+				textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
 				return;  // no firing for you when you get the parameter wrong
 			}
-			tryToFire(angle);
+			sector.tryToFire(angle);
 			return;
 		}
 
@@ -550,13 +404,12 @@ public class Game {
 			if (comma1 > 0 && comma2 > comma1) {
 				direction = CMD.substring(comma1 + 1, comma2);
 				power = CMD.substring(comma2 + 1);
-//				textWindow.writeLine(2, direction);
-//				textWindow.writeLine(1, power);
 
 				try {
 					angle = Float.valueOf(direction);
 					force = Float.valueOf(power);
 				} catch (Exception e) {
+					textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,force");
 					return; // no moving for you when you get the parameters wrong
 				}
 
@@ -573,30 +426,6 @@ public class Game {
 
 		if (CMD.startsWith("EXIT"))	Game.gameRunning = false;
 
-	}
-
-	/**
-	 * @param direction
-	 * @return
-	 */
-	private boolean hasInput(int direction) {
-		switch(direction) {
-			case Keyboard.KEY_LEFT:
-				return
-						Keyboard.isKeyDown(Keyboard.KEY_LEFT) ||
-								mouseX < 0;
-
-			case Keyboard.KEY_RIGHT:
-				return
-						Keyboard.isKeyDown(Keyboard.KEY_RIGHT) ||
-								mouseX > 0;
-
-			case Keyboard.KEY_SPACE:
-				return
-						Keyboard.isKeyDown(Keyboard.KEY_SPACE) ||
-								Mouse.isButtonDown(0);
-		}
-		return false;
 	}
 
 	/**
@@ -622,14 +451,4 @@ public class Game {
 		gameLoop();
 	}
 
-	/**
-	 * Create or get a sprite which displays the image that is pointed
-	 * to in the classpath by "ref"
-	 *
-	 * @param ref A reference to the image to load
-	 * @return A sprite that can be drawn onto the current graphics context.
-	 */
-	public Sprite getSprite(String ref) {
-		return new Sprite(textureLoader, ref);
-	}
 }
