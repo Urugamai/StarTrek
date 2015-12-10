@@ -75,11 +75,12 @@ public class Sprite {
 	}
 
 	public void setAngle(float degrees) {
-		targetAngle = degrees;
+		targetAngle = degrees % 360;
 	}
 
 	public void rotate(float degrees) {
 		targetAngle += degrees;
+		targetAngle %= 360;
 	}
 
 	public void setRotationSpeed(float degreesPerFrame) {
@@ -98,35 +99,41 @@ public class Sprite {
 	 */
 	public void draw(int x, int y) {
 		float correctedAngle;
+		int f1=1, f2=1;
 
 		float maxYtex = texture.getHeight(), maxXtex = texture.getWidth(), centreYtex = maxYtex/2, centreXtex = maxXtex/2, centreY = height/2, centreX = width / 2;
 
-		if (targetAngle >= 0) {
-			if (currentAngle < targetAngle) {
-				currentAngle += rotationSpeed;
-				if (currentAngle > targetAngle) currentAngle = targetAngle;
-			}
-			if (currentAngle > targetAngle) {
-				currentAngle -= rotationSpeed;
-				if (currentAngle < targetAngle) currentAngle = targetAngle;
-			}
+		if (targetAngle >= 0 && currentAngle != targetAngle) {
+			if (Math.abs(currentAngle - targetAngle) > 180) f1 = -1; else f1 = 1;
+			if (currentAngle < targetAngle) f2 = 1; else f2 = -1;
+			currentAngle += rotationSpeed*f1*f2;
+
+			if (currentAngle < 0) currentAngle += 360;
+			currentAngle %= 360;
+			if ( Math.abs(currentAngle - targetAngle) <= (rotationSpeed)) currentAngle = targetAngle;
 		} else if (targetAngle == -1.0f) {		// Permanent clockwise rotation
 			currentAngle += rotationSpeed;
 			currentAngle %= 360.0f;
-		} else if (targetAngle == -2.0f) {
+		} else if (targetAngle == -2.0f) {		// Permanent anti-clockwise rotation
 			currentAngle -= rotationSpeed;
 			if (currentAngle <= 0.0f) currentAngle += 360.0f;
 		}
 
+//		glMatrixMode(GL_TEXTURE);
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		// store the current model matrix
 		glPushMatrix();
+
+//		glColor4d(0,0,0,0);
 
 		// bind to the appropriate texture for this sprite
 		texture.bind();
 
 		// translate to the right location and prepare to draw
-		glTranslatef(x+centreX, y+centreY, 0);
 		correctedAngle = (currentAngle+90) % 360;
+		glTranslatef(x+centreX, y+centreY, 0);
 		glRotatef(correctedAngle, 0.0f, 0.0f, 1.0f);
 		glTranslatef(-centreX, -centreY, 0);
 
@@ -149,5 +156,7 @@ public class Sprite {
 
 		// restore the model view matrix to prevent contamination
 		glPopMatrix();
+		glDisable(GL_BLEND);
+		glMatrixMode(GL_MODELVIEW);
 	}
 }

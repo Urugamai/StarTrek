@@ -275,13 +275,14 @@ public class TextureLoader {
 			throw new IOException("Cannot find: " + ref);
 		} else {
 //			System.out.println("DEBUG: Icon: " + ref + " size is " + imgIcon.getIconWidth() + " by " + imgIcon.getIconHeight());
-//			System.out.println("DEBUG: Img: " + ref + " size is " + img.getWidth(null) + " by " + img.getHeight(null));
+//			System.out.println("DEBUG: Img: " + ref + " size is " + img.getWidth(null) + " by " + img.getHeight(null) );
 		}
 
 		BufferedImage bufferedImage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-		Graphics g = bufferedImage.getGraphics();
-		g.drawImage(img, 0, 0, null);
+		Graphics g = bufferedImage.getGraphics();		// get pointer to graphics storage
+		g.drawImage(img, 0, 0, null);					// write img into graphics storage
 		g.dispose();
+		System.out.println("DEBUG: bufferedImg: " + ref + " hasAlpha is " + bufferedImage.getColorModel().hasAlpha() );
 
 		return bufferedImage;
 	}

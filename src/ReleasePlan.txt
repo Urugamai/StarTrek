@@ -12,21 +12,24 @@ Version 0.2
 ===========
 - Movement
     - DONE: YOU
-    - Romulans - computer smarts
+    - DONE: Turn in direction providing shortest angle change
     - DONE: Impulse drive (in sector only for now)
 
 Version 0.3
 ===========
+- Galactic Map
+    - Only shows sector details for ones you have seen with LRS
+    - Shows all starbases as that is a federation released document and so LRS to find them is not necessary
 - Movement
-    - WARP Drive!  Travel across sector boundary!
-        - Accelerate to full impulse before enabling WARP drive.
+    - WARP Drive!  Travel across sector boundary
+        - Accelerate (currently instantaneous :-( ) to full impulse before enabling WARP drive
         - WARP still travels through space, just a LOT faster, can hit stuff, etc.
 - Add energy capacity to all ships (Enterprise, Romulans, StarBase, Borg, etc)
 - Phasers
     - Lightspeed travel of beam
     - Straight line for now, gravity later
     - Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
-    - can shoot into other quadrants?
+    - cannot shoot into other quadrants - there is interstellar 'space' between the sectors within which the beam degrades to zero
 
 Version 0.4
 ===========
@@ -103,6 +106,7 @@ Version 0.9
 Version 1.0
 ===========
 - Graphics
+    - Fix alpha channel to remove the box overlap visuals
     - DONE: rotate the ship sprites into the direction of travel
     - Starship Enterprise
     - Romulan vessel
@@ -114,6 +118,8 @@ Version 1.0
         - torpedo
         - Hits
         - Computer accepting commands
+- Enemy Smarts
+    - Romulans - move smarter
 - Demotion vessels
     - Spaceship (50% of Enterprise)
     - Cruiser (35%)
@@ -167,7 +173,7 @@ OTHER
 BUGS
 =====
 1.  For some reason the lwjgl audio library crashes on initialisation sometimes.  Restart the application is the
-    work-around until the cause can be identified.
+    work-around until the cause can be identified.  Possibly find a way to detect failure before app crash and try again?
 2.  next...
 
 NOTES
