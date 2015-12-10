@@ -17,15 +17,11 @@ Version 0.2 DONE
 
 Version 0.3
 ===========
-- Galactic Map (Press and hold KEY_F2)
-    - Replaces sector screen with Galactic Map
-    - DOES NOT PAUSE game operation (if possible)
-    - Only shows sector details for ones you have seen with LRS
-    - Shows all starbases as they are where the federation put them so LRS to find them is not necessary
-    - Starbase sectors 'could' report the number of enemy as well via sub-space communications
-
-Version 0.x
-===========
+- DONE: Galactic Map (Press and hold KEY_F2)
+    - DONE: Replaces sector screen with Galactic Map
+    - DONE: DOES NOT PAUSE game operation (if possible)
+    - DONE: Only shows sector details for ones you have seen with LRS
+    - DONE: Shows all starbase Sectors as they are where the federation put them so LRS to find them is not necessary
 - Add PLANETS (between 0 and 9)
     - Needs orbital calculation
     - move very slowly - faster inner and slower outer planets
@@ -215,6 +211,11 @@ cannot 'see' the phaser beam.  This also means that your display will not indica
 you will feel its effects.  Torpedoes on the other hand, travel noticeably slower and so scanner reflections can
 see both our and the enemy's torpedoes in transit.
 
+Starbases report SRS results via sub-space communications.  It may pay to go to those sectors early and clean them out
+before the enemy destroy the starbase.
+
+Actions take energy, fortunately this is recharged slowly during normal operations and can be rapidly refilled when
+docked to a starbase.
 
 The computer understands a number of commands but they must be entered correctly or they will not work.  The
 commands are;
@@ -228,6 +229,8 @@ IMP,direction,power     -   Impulse engines used to move around within a star sy
                             power is % of full (0 - 100).
                             Moving can be good as it makes you harder to hit, but also makes it harder for you to
                             hit the enemy.
+SRS                     -   Add current sector details to the galactic map.
+LRS                     -   Add the current and 8 surrounding sectors to the galactic map.
 STOP                    -   Computer calculates and implements impulse forces necessary to effective stop in space
 EXIT                    -   Quit game.  ESC Key is also meant to work.
 

@@ -431,6 +431,16 @@ public class Game {
 			return;
 		}
 
+		if (pieces[0].compareToIgnoreCase("LRS") == 0 ) {
+			galaxy.doLRS(currentSector);
+			return;
+		}
+
+		if (pieces[0].compareToIgnoreCase("SRS") == 0 ) {
+			galaxy.doSRS(currentSector);
+			return;
+		}
+
 		if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) {
 			Game.gameRunning = false;
 			return;

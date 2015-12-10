@@ -9,6 +9,7 @@ public class Galaxy {
 	private GameText galacticMap;
 
 	private Sector[][] sectorList = new Sector[sizeX][sizeY];
+	private int[][][] LRS = new int[sizeX][sizeY][Constants.LRSItems.Size];
 
 	public class galacticLocation {
 		private int gx;
@@ -26,6 +27,15 @@ public class Galaxy {
 		for (int gx = 0; gx < sizeX; gx++) {
 			for (int gy = 0; gy < sizeY; gy++) {
 				sectorList[gx][gy] = new Sector(game);
+				if (sectorList[gx][gy].getStarbaseCount() > 0) {
+					LRS[gx][gy][Constants.LRSItems.Enemy.value()] = sectorList[gx][gy].getEnemyCount();
+					LRS[gx][gy][Constants.LRSItems.Starbases.value()] = sectorList[gx][gy].getStarbaseCount();
+					LRS[gx][gy][Constants.LRSItems.Planets.value()] = sectorList[gx][gy].getPlanetCount();
+				} else {
+					LRS[gx][gy][Constants.LRSItems.Enemy.value()] = -1;
+					LRS[gx][gy][Constants.LRSItems.Starbases.value()] = -1;
+					LRS[gx][gy][Constants.LRSItems.Planets.value()] = -1;
+				}
 			}
 		}
 
@@ -114,26 +124,36 @@ public class Galaxy {
 		return sectorList[sector.getGx()][sector.getGy()];
 	}
 
+	public void doLRS(galacticLocation currentSector ) {
+		for (int gx = Math.max(0, currentSector.getGx()-1); gx <= Math.min(sizeX-1, currentSector.getGx()+1); gx++ ) {
+			for (int gy = Math.max(0, currentSector.getGy()-1); gy <= Math.min(sizeY-1, currentSector.getGy()+1); gy++ ) {
+				LRS[gx][gy][Constants.LRSItems.Enemy.value()] = sectorList[gx][gy].getEnemyCount();
+				LRS[gx][gy][Constants.LRSItems.Starbases.value()] = sectorList[gx][gy].getStarbaseCount();
+				LRS[gx][gy][Constants.LRSItems.Planets.value()] = sectorList[gx][gy].getPlanetCount();
+			}
+		}
+	}
+
+	public void doSRS(galacticLocation currentSector ) {
+		int gx = currentSector.getGx();
+		int gy = currentSector.getGy();
+		LRS[gx][gy][Constants.LRSItems.Enemy.value()] = sectorList[gx][gy].getEnemyCount();
+		LRS[gx][gy][Constants.LRSItems.Starbases.value()] = sectorList[gx][gy].getStarbaseCount();
+		LRS[gx][gy][Constants.LRSItems.Planets.value()] = sectorList[gx][gy].getPlanetCount();
+	}
+
 	public void draw() {
 		int currentRow = 1;
 		String currentLine = "";
 		for (int gy = 0; gy < sizeY; gy++) {
 			currentRow = (sizeY - gy)*2 + 6;
 			for (int gx = 0; gx < sizeX; gx++) {
-				if (sectorList[gx][gy].getSectorLRS()) {
+
 					currentLine += "[";
-					currentLine += sectorList[gx][gy].getEnemyCount();
-					currentLine += sectorList[gx][gy].getStarbaseCount();
-					currentLine += sectorList[gx][gy].getPlanetCount();
+					currentLine += LRS[gx][gy][Constants.LRSItems.Enemy.value()] < 0 ? " " : LRS[gx][gy][Constants.LRSItems.Enemy.value()];
+					currentLine += LRS[gx][gy][Constants.LRSItems.Starbases.value()] < 0 ? " " : LRS[gx][gy][Constants.LRSItems.Starbases.value()];
+					currentLine += LRS[gx][gy][Constants.LRSItems.Planets.value()] < 0 ? " " : LRS[gx][gy][Constants.LRSItems.Planets.value()];
 					currentLine += "] ";
-				} else {
-					currentLine += "[";
-					currentLine += " ";
-					currentLine += " ";
-					currentLine += " ";
-					currentLine += "] ";
-				}
-				sectorList[gx][gy].setLRS(false);	// it is in our galactic map, don't refresh until we have scanned it again
 			}
 			galacticMap.writeLine(currentRow, currentLine );
 //			System.out.println(currentLine);

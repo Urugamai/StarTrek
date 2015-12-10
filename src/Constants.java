@@ -39,6 +39,14 @@ public class Constants {
 	public static final float		c					= 200.0f;	// The speed of light, in pixels per second
 
 	public static enum DisplayMode { Sector, GalacticMap };
+	public static enum LRSItems {
+		Enemy(0), Starbases(1), Planets(2);
+		private final int value;
+		LRSItems(int value) {this.value = value; }
+		public int value() { return value; }
+		public static final int Size = LRSItems.values().length;
+	};
+
 	// Prevent construction call
 	private Constants(){ }
 }
