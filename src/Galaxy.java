@@ -6,6 +6,7 @@ public class Galaxy {
 	private static final int sizeX = 10;
 	private static final int sizeY = 10;
 	private int alienCount = 0;
+	private GameText galacticMap;
 
 	private Sector[][] sectorList = new Sector[sizeX][sizeY];
 
@@ -27,6 +28,8 @@ public class Galaxy {
 				sectorList[gx][gy] = new Sector(game);
 			}
 		}
+
+		galacticMap = new GameText(10,game.getHeight(),40);
 	}
 
 	public void initSectors(int width, int height) {
@@ -109,6 +112,37 @@ public class Galaxy {
 
 	public Sector getSector(galacticLocation sector) {
 		return sectorList[sector.getGx()][sector.getGy()];
+	}
+
+	public void draw() {
+		int currentRow = 1;
+		String currentLine = "";
+		for (int gy = 0; gy < sizeY; gy++) {
+			currentRow = (sizeY - gy)*2 + 6;
+			for (int gx = 0; gx < sizeX; gx++) {
+				if (sectorList[gx][gy].getSectorLRS()) {
+					currentLine += "[";
+					currentLine += sectorList[gx][gy].getEnemyCount();
+					currentLine += sectorList[gx][gy].getStarbaseCount();
+					currentLine += sectorList[gx][gy].getPlanetCount();
+					currentLine += "] ";
+				} else {
+					currentLine += "[";
+					currentLine += " ";
+					currentLine += " ";
+					currentLine += " ";
+					currentLine += "] ";
+				}
+				sectorList[gx][gy].setLRS(false);	// it is in our galactic map, don't refresh until we have scanned it again
+			}
+			galacticMap.writeLine(currentRow, currentLine );
+//			System.out.println(currentLine);
+			currentLine = "";
+		}
+
+		galacticMap.writeLine(22 + 6, "FEDERATION SPACE GALACTIC MAP");
+		galacticMap.draw();
+		galacticMap.writeLine(0 + 6, "Only updated after Long Range Scan performed.");
 	}
 }
 

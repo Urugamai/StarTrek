@@ -29,6 +29,7 @@ public class Constants {
 	public static final float		maxGravity			= 20;
 	public static final float		starbaseProbability = 0.2f;
 	public static final int			startEnemyCount		= 100;	// Per Galaxy
+	public static final int			maxPlanets			= 9;
 
 	// All speeds are % of lightspeed
 	public static final float		phaserSpeed			= 1.0f;
@@ -37,6 +38,7 @@ public class Constants {
 	public static final float		torpedoSpeed		= 0.5f;
 	public static final float		c					= 200.0f;	// The speed of light, in pixels per second
 
+	public static enum DisplayMode { Sector, GalacticMap };
 	// Prevent construction call
 	private Constants(){ }
 }

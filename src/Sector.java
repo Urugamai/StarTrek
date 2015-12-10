@@ -8,10 +8,13 @@ public class Sector {
 	private int 				enemyCount 			= 0;
 	private int 				starbaseCount 		= 0;
 	private float 				starGravity 		= 0;
+	private int					planetCount			= 0;
 
 	private PlayerShipEntity	ship;
 	private TorpedoEntity[]		shots;
 	private int					shotIndex;
+
+	private boolean				LRS					= false;
 
 	private ArrayList<Entity> 	entities			= new ArrayList<Entity>();
 	private ArrayList<Entity>	removeList			= new ArrayList<Entity>();
@@ -20,8 +23,13 @@ public class Sector {
 		this.game = game;
 
 		newEnemyCount();
+
 		starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
+		LRS = (starbaseCount > 0);
+
 		starGravity = (int)(Math.random()*(Constants.maxGravity+1));
+
+		planetCount = (int)(Math.random()*(Constants.maxPlanets + 1) );
 
 		// setup n shots
 		shots = new TorpedoEntity[15];
@@ -49,6 +57,8 @@ public class Sector {
 		return starGravity;
 	}
 
+	public int getPlanetCount() { return planetCount; }
+
 	/**
 	 * Initialise the starting state of the entities (ship and aliens). Each
 	 * entity will be added to the overall list of entities in the game.
@@ -60,7 +70,7 @@ public class Sector {
 		newEntity = new StarEntity(game, Constants.FILE_IMG_STAR, width/2, height/2);
 		entities.add(newEntity);
 
-		// whack it a starbase if needed
+		// whack in a starbase if needed
 		newEntity = null;
 		for (int i = 0; i < starbaseCount; i++) {
 			do {
@@ -217,5 +227,14 @@ public class Sector {
 		for ( Entity entity : entities ) {
 			entity.doLogic();
 		}
+	}
+
+	public boolean getSectorLRS() {
+		return true; //TODO restore to LRS once testing completed
+	}
+
+	public void setLRS(boolean lrs) {
+		LRS = lrs;
+		if ( starbaseCount > 0) LRS = true;
 	}
 }

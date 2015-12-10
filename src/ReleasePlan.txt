@@ -8,7 +8,7 @@ Version 0.1 DONE
         - straight line for now, be ready for gravity calculations in the future
     - DONE: Hit detection
 
-Version 0.2
+Version 0.2 DONE
 ===========
 - Movement
     - DONE: YOU
@@ -17,9 +17,20 @@ Version 0.2
 
 Version 0.3
 ===========
-- Galactic Map
+- Galactic Map (Press and hold KEY_F2)
+    - Replaces sector screen with Galactic Map
+    - DOES NOT PAUSE game operation (if possible)
     - Only shows sector details for ones you have seen with LRS
-    - Shows all starbases as that is a federation released document and so LRS to find them is not necessary
+    - Shows all starbases as they are where the federation put them so LRS to find them is not necessary
+    - Starbase sectors 'could' report the number of enemy as well via sub-space communications
+
+Version 0.x
+===========
+- Add PLANETS (between 0 and 9)
+    - Needs orbital calculation
+    - move very slowly - faster inner and slower outer planets
+    - collisions kill
+    - orbits to avoid starbase location/orbit
 - Movement
     - WARP Drive!  Travel across sector boundary
         - Accelerate (currently instantaneous :-( ) to full impulse before enabling WARP drive
@@ -31,8 +42,9 @@ Version 0.3
     - Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
     - cannot shoot into other quadrants - there is interstellar 'space' between the sectors within which the beam degrades to zero
 
-Version 0.4
+Version 0.x
 ===========
+- Add STARDATE
 - Torpedo Tubes
     - can launch 'n' torpedoes at once where n is the number of tubes available
     - Each torpedo can be sent in a different direction
@@ -40,7 +52,7 @@ Version 0.4
 - Warp drive (to new sector)
     - Sucked out of warp if crossing a sector with high concentration of enemy vessels
 
-Version 0.5
+Version 0.x
 ===========
 - Enemies fight back
     - Torpedo and Phaser capabilities
@@ -48,7 +60,7 @@ Version 0.5
 - ship status view (down right side.  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
 - Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
 
-Version 0.6
+Version 0.x
 ===========
 - Damage
     - Add various things that can get damaged
@@ -67,7 +79,7 @@ Version 0.6
             - reduces efficiency?
     - Add to all relavant vessels (enterprise, romulans, starbases, etc)
 
-Version 0.7
+Version 0.x
 ===========
 - Shields
     - Balanced by default
@@ -75,7 +87,7 @@ Version 0.7
     - shields have little effect on torpedoes
         - Minor course alteration (similar calculation to Gravity but away from shielded vessel)
 
-Version 0.8
+Version 0.x
 ===========
 - Damage Control
     - Repair crews (n at start)
@@ -86,7 +98,7 @@ Version 0.8
     - damage
     - Repair completion
 
-Version 0.9
+Version 0.x
 ===========
 - GRAVITY
     - Affect ships? (sucks them towards star)
@@ -229,3 +241,6 @@ ORB,range               -   go into orbit of the star at a distance of 'range' l
 DOCK                    -   connect with starbase - you must be reasonably close for this to work as the starbase
                             autopilot uses bluetooth to reduce detection by the enemy
 AS                      -   ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
+PHA,direction,power     -   fire Phasers in the direction indicated with start power at the level indicated.  Power
+                            will decrease by 1% (10%?) per lightsecond travelled.
+COMP,

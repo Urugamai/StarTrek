@@ -30,9 +30,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.security.Key;
-import java.util.ArrayList;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -73,13 +70,9 @@ public class Game {
 	private String				userInput = "";
 	private boolean				returnDown;
 
-	private Sprite				pressAnyKey;
-	private Sprite				youWin;
-	private Sprite				gotYou;
+	private Constants.DisplayMode displayMode;
 
-	private int					alienCount;
 	private long				lastLoopTime		= getTime();
-
 	private long				lastFpsTime;
 	private int					fps;
 	private static long			timerTicksPerSecond	= Sys.getTimerResolution();
@@ -157,6 +150,7 @@ public class Game {
 	 */
 	public void initialize() {
 		// initialize the window beforehand
+		displayMode = Constants.DisplayMode.Sector;
 		try {
 			setDisplayMode();
 			Display.setTitle(Constants.WINDOW_TITLE);
@@ -324,9 +318,13 @@ public class Game {
 		return '\0';
 	}
 
-	private void userInteracations() {
+	private void userInteractions() {
 
 		textWindow.writeLine(4, "Currently in sector (" + currentSector.getGx() + "," + currentSector.getGy() + ")");
+
+		if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GalacticMap;
+		else displayMode = Constants.DisplayMode.Sector;
+
 		char key = getCurrentKey();
 
 		if (key != '\0') {
@@ -365,13 +363,16 @@ public class Game {
 
 		sector.move(msElapsed);
 
-		sector.draw();
+		if (displayMode == Constants.DisplayMode.Sector)
+			sector.draw();
+		else if (displayMode == Constants.DisplayMode.GalacticMap)
+			galaxy.draw();
 
 		sector.processHits();
 
 		sector.doLogic();
 
-		userInteracations();
+		userInteractions();
 
 		textWindow.draw();
 	}
@@ -379,51 +380,64 @@ public class Game {
 	private void processCommand(String cmd) {
 		float angle;
 		float force;
+		String[] pieces;
 		String direction = "", power = "";
 
-		String CMD = cmd.trim().toUpperCase();
+		pieces = cmd.trim().toUpperCase().split("[ ,\\t\\n\\x0B\\f\\r]");
 
-		if (CMD.startsWith("TOR") ) {
-			direction = CMD.substring(4).trim();
-			if (direction.isEmpty()) return;
-			try {
-				angle = Float.valueOf(direction);
-			} catch (Exception e) {
+		if (pieces[0].compareToIgnoreCase("TOR") == 0 ) {
+			if (pieces.length > 1) {
+				direction = pieces[1];
+				try {
+					angle = Float.valueOf(direction);
+				} catch (Exception e) {
+					textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
+					return;  // no firing for you when you get the parameter wrong
+				}
+				sector.tryToFire(angle);
+			} else {
 				textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
 				return;  // no firing for you when you get the parameter wrong
 			}
-			sector.tryToFire(angle);
+
 			return;
 		}
 
-		if (CMD.startsWith("IMP")) {
-			int comma1 = CMD.indexOf(",");
-			int comma2 = CMD.indexOf(",", comma1+1);
-			if (comma1 > 0 && comma2 > comma1) {
-				direction = CMD.substring(comma1 + 1, comma2);
-				power = CMD.substring(comma2 + 1);
+		if (pieces[0].compareToIgnoreCase("IMP") == 0 ) {
+			if ( pieces.length > 2 ) {
+				direction = pieces[1];
+				power = pieces[2];
 
 				try {
 					angle = Float.valueOf(direction);
 					force = Float.valueOf(power);
 				} catch (Exception e) {
-					textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,force");
+					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,force");
 					return; // no moving for you when you get the parameters wrong
 				}
-
-				sector.setShipHeading(angle);
-				sector.setShipSpeed(force);
+			} else {
+				textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,force");
+				return; // no moving for you when you get the parameters wrong
 			}
+
+			sector.setShipHeading(angle);
+			sector.setShipSpeed(force);
+
 			return;
 		}
 
-		if (CMD.startsWith("STOP")) {
+		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {
 			sector.setShipSpeed(0.0f);
 			return;
 		}
 
-		if (CMD.startsWith("EXIT"))	Game.gameRunning = false;
+		if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) {
+			Game.gameRunning = false;
+			return;
+		}
 
+		textWindow.writeLine(1, "Error: No such command: " + cmd);
+		return;
 	}
 
 	/**
