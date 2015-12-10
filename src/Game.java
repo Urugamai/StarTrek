@@ -73,8 +73,6 @@ public class Game {
 	private String				userInput = "";
 	private boolean				returnDown;
 
-	private PlayerShipEntity	ship;
-
 	private Sprite				pressAnyKey;
 	private Sprite				youWin;
 	private Sprite				gotYou;
@@ -413,14 +411,14 @@ public class Game {
 					return; // no moving for you when you get the parameters wrong
 				}
 
-				ship.newHeading(angle);
-				ship.setSpeed(force);
+				sector.setShipHeading(angle);
+				sector.setShipSpeed(force);
 			}
 			return;
 		}
 
 		if (CMD.startsWith("STOP")) {
-			ship.setSpeed(0.0f);
+			sector.setShipSpeed(0.0f);
 			return;
 		}
 

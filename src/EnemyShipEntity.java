@@ -72,7 +72,7 @@ public class EnemyShipEntity extends Entity {
 	}
 
 	public void newSpeed() {
-		speed = (float)Math.random()*100.0f;
+		speed = (float)Math.random()*(Constants.c * Constants.impulseSpeedMax);
 	}
 
 	/**

@@ -25,9 +25,17 @@ public class Constants {
 	public static final String		FILE_SND_START		= "res/start.wav";
 	public static final String		FILE_SND_WIN		= "res/win.wav";
 
-	public static final int			maxEnemy			= 5;
+	public static final int			maxEnemy			= 5;	// Per sector
 	public static final float		maxGravity			= 20;
 	public static final float		starbaseProbability = 0.2f;
+	public static final int			startEnemyCount		= 100;	// Per Galaxy
+
+	// All speeds are % of lightspeed
+	public static final float		phaserSpeed			= 1.0f;
+	public static final float		warpSpeedMax		= 8.0f;
+	public static final float		impulseSpeedMax		= 0.1f;
+	public static final float		torpedoSpeed		= 0.5f;
+	public static final float		c					= 200.0f;	// The speed of light, in pixels per second
 
 	// Prevent construction call
 	private Constants(){ }

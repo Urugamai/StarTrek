@@ -5,24 +5,23 @@ import java.util.ArrayList;
  */
 public class Sector {
 	private Game				game;						/** The game in which this entity exists */
-	private int enemyCount = 0;
-	private int starbaseCount = 0;
-	private float starGravity = 0;
-	private int alienCount = 0;
+	private int 				enemyCount 			= 0;
+	private int 				starbaseCount 		= 0;
+	private float 				starGravity 		= 0;
 
 	private PlayerShipEntity	ship;
 	private TorpedoEntity[]		shots;
 	private int					shotIndex;
 
-	private ArrayList<Entity> entities			= new ArrayList<Entity>();
+	private ArrayList<Entity> 	entities			= new ArrayList<Entity>();
 	private ArrayList<Entity>	removeList			= new ArrayList<Entity>();
 
-	public Sector(Game game, int maxEnemy, float maxGravity, float starbaseProbability) {
+	public Sector(Game game) {
 		this.game = game;
 
-		enemyCount = Math.random() < 0.4 ? (int)(Math.random()*(maxEnemy+1)) : 0;
-		starbaseCount = Math.random() < starbaseProbability ? 1 : 0;
-		starGravity = (int)(Math.random()*(maxGravity+1));
+		newEnemyCount();
+		starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
+		starGravity = (int)(Math.random()*(Constants.maxGravity+1));
 
 		// setup n shots
 		shots = new TorpedoEntity[15];
@@ -34,6 +33,11 @@ public class Sector {
 	public Sprite getSprite(String ref) { return game.getSprite(ref); }
 
 	public int getEnemyCount() {
+		return enemyCount;
+	}
+
+	public int newEnemyCount() {
+		enemyCount += Math.random() < 0.7 ? (int) (Math.random() * (Constants.maxEnemy - enemyCount + 1)) : 0;
 		return enemyCount;
 	}
 
@@ -83,7 +87,6 @@ public class Sector {
 				newEntity = new EnemyShipEntity(game, Constants.FILE_IMG_ROMULAN, (int)(Math.random()*(width-50)), (int)(Math.random()*(height - 50)));
 			} while ( checkEntityForOverlap(newEntity));
 			entities.add(newEntity); // this ones a keeper
-			alienCount++;
 		}
 	}
 
@@ -123,13 +126,6 @@ public class Sector {
 	 * Notification that an alien has been killed
 	 */
 	public void notifyAlienKilled() {
-		// reduce the alient count, if there are none left, the player has won!
-		alienCount--;
-
-		if (alienCount == 0) {
-			notifyWin();
-		}
-
 		// if there are still some aliens left then they all need to get faster, so
 		// speed up all the existing aliens
 		for ( Entity entity : entities ) {
@@ -142,6 +138,14 @@ public class Sector {
 		game.soundManager.playEffect(game.SOUND_HIT);
 	}
 
+	public void setShipHeading(float direction) {
+		ship.newHeading(direction);
+	}
+
+	public void setShipSpeed(float force) {
+		ship.setSpeed(force);
+	}
+
 	/**
 	 * Attempt to fire a shot from the player in the direction provided.
 	 * Its called "try"
@@ -149,15 +153,26 @@ public class Sector {
 	 * point.
 	 */
 	public void tryToFire(float direction) {
+		int dx = 0, dy = 0;
+		int x = ship.getX(), y = ship.getY();
+//		int width = ship.sprite.getWidth() / 2, height = ship.sprite.getHeight() / 2;
+
 
 		// TODO check if a torpedo tube has been [re]loaded and is available to shoot
 
+//			float rads = (float) Math.toRadians(direction);
+//			dx = (int) Math.ceil((float) Math.cos(rads) * width);
+//			dy = (int) Math.ceil((float) Math.sin(rads) * height);
+
 		TorpedoEntity shot = shots[shotIndex++ % shots.length];
-		shot.reinitialize(ship.getX(), ship.getY(), direction);
+		shot.reinitialize(ship, x + dx, y + dy, direction);
 		entities.add(shot);
 
 		game.soundManager.playEffect(game.SOUND_SHOT);
 	}
+
+	// TODO processHits needs to be a LOT smarter
+	// Identify source and target objects to determine type of hit involved.
 
 	public void processHits() {
 		// brute force collisions, compare every entity against

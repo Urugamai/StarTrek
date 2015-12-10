@@ -31,16 +31,14 @@
  */
 
 /**
- * An entity representing a shot fired by the player's ship
+ * An entity representing a shot fired
  *
- * @author Kevin Glass
- * @author Brian Matzon
  */
 public class TorpedoEntity extends Entity {
 	private static final int	TOP_BORDER	= -100;			/** Top border at which shots are outside */
-	private float				moveSpeed	= 100;			/** The vertical speed at which the players shot moves */
 	private Sector				sector;						/** The sector in which this entity exists */
 	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
+	private Entity				Parent;						/** The parent entity for this torpedo - the only entity that cannot be 'hit' by the torpedo */
 
 	/**
 	 * Create a new shot from the player
@@ -64,16 +62,17 @@ public class TorpedoEntity extends Entity {
 	 * @param x new x coordinate
 	 * @param y new y coordinate
 	 */
-	public void reinitialize(int x, int y, float direction) {
+	public void reinitialize(Entity source, int x, int y, float direction) {
 		this.x = x;
 		this.y = y;
 		used = false;
+		Parent = source;
 
 		float rads = (float)Math.toRadians(direction);
 		float dir = direction;
 
-		this.dx = (float)Math.cos(rads)*moveSpeed;
-		this.dy = (float)Math.sin(rads)*moveSpeed;
+		this.dx = (float)Math.cos(rads)*(Constants.c*Constants.torpedoSpeed);
+		this.dy = (float)Math.sin(rads)*(Constants.c*Constants.torpedoSpeed);
 		sprite.setAngle(dir);
 		sprite.setRotationSpeed(100);	// effectively instant (OK, 3 to 4 FRAMES, it is usually hidden behind your ship for at least that long)
 	}
@@ -106,7 +105,7 @@ public class TorpedoEntity extends Entity {
 			return;
 		}
 
-		if (other instanceof PlayerShipEntity) return; // We start the torpedo IN SHIP so this happens initially
+		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
 
 		sector.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
 

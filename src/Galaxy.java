@@ -5,6 +5,7 @@ public class Galaxy {
 	private Game				game;						/** The game in which this entity exists */
 	private static final int sizeX = 10;
 	private static final int sizeY = 10;
+	private int alienCount = 0;
 
 	private Sector[][] sectorList = new Sector[sizeX][sizeY];
 
@@ -23,15 +24,19 @@ public class Galaxy {
 
 		for (int gx = 0; gx < sizeX; gx++) {
 			for (int gy = 0; gy < sizeY; gy++) {
-				sectorList[gx][gy] = new Sector(game, Constants.maxEnemy, Constants.maxGravity, Constants.starbaseProbability);
+				sectorList[gx][gy] = new Sector(game);
 			}
 		}
 	}
 
 	public void initSectors(int width, int height) {
-		for (int gx = 0; gx < sizeX; gx++) {
-			for (int gy = 0; gy < sizeY; gy++) {
-				sectorList[gx][gy].initEntities( width, height );
+		while (alienCount < Constants.startEnemyCount) {
+			alienCount = 0;
+			for (int gx = 0; gx < sizeX; gx++) {
+				for (int gy = 0; gy < sizeY; gy++) {
+					sectorList[gx][gy].initEntities(width, height);
+					alienCount += sectorList[gx][gy].getEnemyCount();
+				}
 			}
 		}
 	}

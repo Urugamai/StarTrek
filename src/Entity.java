@@ -75,7 +75,6 @@ public abstract class Entity {
 	 * @param delta The amount of time that has passed in milliseconds
 	 */
 	public void move(long delta) {
-		// update the location of the entity based on move speeds
 		x += (delta * dx) / 1000;
 		y += (delta * dy) / 1000;
 	}

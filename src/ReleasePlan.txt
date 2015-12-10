@@ -7,24 +7,13 @@ Version 0.1 DONE
     - DONE: Torpedo
         - straight line for now, be ready for gravity calculations in the future
     - DONE: Hit detection
-        - NO damage calc, etc yet
 
 Version 0.2
 ===========
 - Movement
     - DONE: YOU
     - Romulans - computer smarts
-    - Impulse drive (in sector only for now)
-        - Use 'acceleration' to get to new 'speed' selected.
-- Graphics
-    - Starship Enterprise
-    - Romulan vessel
-- Audio
-    - add any sound for
-        - movement (separate warp and impulse noises in future)
-        - torpedo
-        - Hits
-        - Computer accepting commands
+    - DONE: Impulse drive (in sector only for now)
 
 Version 0.3
 ===========
@@ -41,24 +30,20 @@ Version 0.3
 
 Version 0.4
 ===========
-- Graphics
-    - 3D Star picture
-    - StarBase
 - Torpedo Tubes
     - can launch 'n' torpedoes at once where n is the number of tubes available
     - Each torpedo can be sent in a different direction
     - numeric count (limit) of available torpedoes
 - Warp drive (to new sector)
-    - Sucked out of warp if crossing a sector with high concentration of enemy vessels)
+    - Sucked out of warp if crossing a sector with high concentration of enemy vessels
 
 Version 0.5
 ===========
-- Graphics
-    - rotate the ship sprites into the direction of travel, direction of torpedo launch, phaser fire
 - Enemies fight back
     - Torpedo and Phaser capabilities
 - Better Audio files
 - ship status view (down right side.  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
+- Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
 
 Version 0.6
 ===========
@@ -117,6 +102,18 @@ Version 0.9
 
 Version 1.0
 ===========
+- Graphics
+    - DONE: rotate the ship sprites into the direction of travel
+    - Starship Enterprise
+    - Romulan vessel
+    - 3D Star picture
+    - StarBase
+- Audio
+    - add any sound for
+        - movement (separate warp and impulse noises in future)
+        - torpedo
+        - Hits
+        - Computer accepting commands
 - Demotion vessels
     - Spaceship (50% of Enterprise)
     - Cruiser (35%)
@@ -190,15 +187,16 @@ Do well and you will be allocated better starships and be requested to explore s
 where no man has gone before.  Do badly and you will be demoted to lesser craft where it will be harder for
 you to redeem yourself and regain your status.
 
-Torpedo's are smart enough not to destroy friendly ships but they will damage and destroy a starbase as they
-assume you know what your are doing and therefore assume that the base has been taken over by the enemy.  Dont
-get it wrong.
+Torpedo's are smart enough not to destroy the ship they start at but they will damage and possibly destroy anything
+else, even friendly units, as they assume you know what your are doing.  Dont get it wrong or you may make more
+enemies.
 
 The visible sector on your main display covers a 10 by 10 light-second area of space.  Hence, even
 phaser fire can be seen travelling to the target.  Note that the phaser fire display is computer generated as you
 cannot 'see' the phaser beam.  This also means that your display will not indicate phaser fire from the enemy, but
 you will feel its effects.  Torpedoes on the other hand, travel noticeably slower and so scanner reflections can
 see both our and the enemy's torpedoes in transit.
+
 
 The computer understands a number of commands but they must be entered correctly or they will not work.  The
 commands are;
@@ -209,6 +207,7 @@ TOR,direction           -   direction is a decimal number of degrees at which th
                             computer to get assistance in generating the coordinate but bear in mind that gravitational
                             effects are far to complicated and variable for the computer to predict.
 IMP,direction,power     -   Impulse engines used to move around within a star system.  Does not stop until ordered.
+                            power is % of full (0 - 100).
                             Moving can be good as it makes you harder to hit, but also makes it harder for you to
                             hit the enemy.
 STOP                    -   Computer calculates and implements impulse forces necessary to effective stop in space

@@ -30,6 +30,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
+
 public class PlayerShipEntity extends Entity {
 	private static int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
 	private static int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
@@ -68,7 +70,9 @@ public class PlayerShipEntity extends Entity {
 	}
 
 	public void setSpeed(float force) {
-		speed = force/5;
+		if (force < 0) force = 0;
+		if (force > 100) force = 100;
+		speed = force/100 * Constants.impulseSpeedMax * Constants.c;
 	}
 
 	/**
