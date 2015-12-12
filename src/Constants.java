@@ -11,6 +11,7 @@ public class Constants {
 	public static final String 		FILE_IMG_ROMULAN 	= "res/ST_Romulan.gif";
 	public static final String		FILE_IMG_STARBASE	= "res/ST_StarBase.gif";
 	public static final String		FILE_IMG_STAR		= "res/ST_Star.gif";
+	public static final String		FILE_SND_LOSE		= "res/ST_lose.wav";	// TODO Replace sound with one of my own
 
 	// Audio
 	public static final String		FILE_SND_TORPEDO	= "res/ST_Torpedo.wav";
@@ -21,7 +22,6 @@ public class Constants {
 //	public static final String		FILE_IMG_WIN		= "res/youwin.gif";
 
 	public static final String		FILE_SND_HIT		= "res/hit.wav";
-	public static final String		FILE_SND_LOSE		= "res/ST_lose.wav";
 	public static final String		FILE_SND_START		= "res/start.wav";
 	public static final String		FILE_SND_WIN		= "res/win.wav";
 
