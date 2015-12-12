@@ -24,9 +24,13 @@ Version 0.3
     - DONE: Shows all starbase Sectors as they are where the federation put them so LRS to find them is not necessary
 - Add PLANETS (between 0 and 9)
     - Needs orbital calculation
+    - Need a graphic or several - smaller inner and larger outer planets (can sprites be resized?)
+    - Planets are allocated starting from large outer and working inwards until planet count reached
+    - Orbits are at (min(width, height) - 100) / planetCount increments from centre (use as distance from star)
     - move very slowly - faster inner and slower outer planets
     - collisions kill
-    - orbits to avoid starbase location/orbit
+    - Objects to avoid orbital paths on initial placement (StarBases, ships, etc)
+    - Make star SMALLER
 - Movement
     - WARP Drive!  Travel across sector boundary
         - Accelerate (currently instantaneous :-( ) to full impulse before enabling WARP drive
@@ -102,10 +106,11 @@ Version 0.x
     - affects phaser path (not much?)
     - does not affect starbase (maintains position itself)
     - does not affect ships docked to starbase
-- StarBase Recharge
-    - Instant restore all repair crews
-    - Repairs run 10 times quicker at base
-    - recharge energy is 10 times quicker at base
+- StarBase Recharge of your ship
+    - Use (CurrentEnergy/MaxEnergy) of starbase to determine % effectiveness of repairs
+    - Instant restore n% repair crews
+    - Repairs run n% of 10 times quicker at base
+    - recharge energy is n% of 10 times quicker at base
     - Some damage can ONLY be repaired at starbase
         - Impulse drive
         - warp nacelles
@@ -114,6 +119,7 @@ Version 0.x
 Version 1.0
 ===========
 - Graphics
+    - Make Galactic Map GRAPHICAL (less CHARACTER based ;-) )
     - Fix alpha channel to remove the box overlap visuals
     - DONE: rotate the ship sprites into the direction of travel
     - Starship Enterprise
