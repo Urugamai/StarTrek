@@ -16,12 +16,12 @@ public class Constants {
 	public static final String		FILE_SND_TORPEDO	= "res/ST_Torpedo.wav";
 
 	// Originals
-	public static final String		FILE_IMG_START		= "res/pressanykey.gif";
-	public static final String		FILE_IMG_LOSE		= "res/gotyou.gif";
-	public static final String		FILE_IMG_WIN		= "res/youwin.gif";
+//	public static final String		FILE_IMG_START		= "res/pressanykey.gif";
+//	public static final String		FILE_IMG_LOSE		= "res/gotyou.gif";
+//	public static final String		FILE_IMG_WIN		= "res/youwin.gif";
 
 	public static final String		FILE_SND_HIT		= "res/hit.wav";
-	public static final String		FILE_SND_LOSE		= "res/loose.wav";
+	public static final String		FILE_SND_LOSE		= "res/ST_lose.wav";
 	public static final String		FILE_SND_START		= "res/start.wav";
 	public static final String		FILE_SND_WIN		= "res/win.wav";
 
