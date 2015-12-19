@@ -30,6 +30,7 @@ public class Constants {
 	public static final float		starbaseProbability = 0.2f;
 	public static final int			startEnemyCount		= 100;	// Per Galaxy
 	public static final int			maxPlanets			= 9;
+	public static final double 		PixelSize 			= 1E6;	// Metres Per Pixel
 
 	// All speeds are % of lightspeed
 	public static final float		phaserSpeed			= 1.0f;

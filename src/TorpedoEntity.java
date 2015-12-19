@@ -52,8 +52,8 @@ public class TorpedoEntity extends Entity {
 		super(sector.getSprite(sprite), x, y);
 
 		this.sector = sector;
-		dx = 0;
-		dy = 0;
+//		dx = 0;
+//		dy = 0;
 	}
 
 	/**
@@ -63,16 +63,16 @@ public class TorpedoEntity extends Entity {
 	 * @param y new y coordinate
 	 */
 	public void reinitialize(Entity source, int x, int y, float direction) {
-		this.x = x;
-		this.y = y;
+//		this.x = x;
+//		this.y = y;
 		used = false;
 		Parent = source;
 
 		float rads = (float)Math.toRadians(direction);
 		float dir = direction;
 
-		this.dx = (float)Math.cos(rads)*(Constants.c*Constants.torpedoSpeed);
-		this.dy = (float)Math.sin(rads)*(Constants.c*Constants.torpedoSpeed);
+//		this.dx = (float)Math.cos(rads)*(Constants.c*Constants.torpedoSpeed);
+//		this.dy = (float)Math.sin(rads)*(Constants.c*Constants.torpedoSpeed);
 		sprite.setAngle(dir);
 		sprite.setRotationSpeed(100);	// effectively instant (OK, 3 to 4 FRAMES, it is usually hidden behind your ship for at least that long)
 	}
@@ -87,9 +87,9 @@ public class TorpedoEntity extends Entity {
 		super.move(delta);
 
 		// if we shot off the screen, remove ourselfs
-		if (y < TOP_BORDER) {
-			sector.removeEntity(this);
-		}
+//		if (y < TOP_BORDER) {
+//			sector.removeEntity(this);
+//		}
 	}
 
 	/**

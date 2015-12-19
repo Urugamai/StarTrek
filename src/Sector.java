@@ -5,12 +5,11 @@ import java.util.ArrayList;
  */
 public class Sector {
 	private Game game;
-	/**
-	 * The game in which this entity exists
-	 */
+
+	protected Newtonian thisNewtonian = new Newtonian();		// This sectors newtonian physics collection
+
 	private int enemyCount = 0;
 	private int starbaseCount = 0;
-	private float starGravity = 0;
 	private int planetCount = 0;
 
 	private PlayerShipEntity ship;
@@ -26,8 +25,6 @@ public class Sector {
 		newEnemyCount();
 
 		starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
-
-		starGravity = (int) (Math.random() * (Constants.maxGravity + 1));
 
 		planetCount = (int) (Math.random() * (Constants.maxPlanets + 1));
 
@@ -55,10 +52,6 @@ public class Sector {
 		return starbaseCount;
 	}
 
-	public float getStarGravity() {
-		return starGravity;
-	}
-
 	public int getPlanetCount() {
 		return planetCount;
 	}
@@ -69,9 +62,12 @@ public class Sector {
 	 */
 	public void initEntities(int width, int height) {
 		Entity newEntity = null;
+		Newtonian.objectData newObject;
 
 		// Whack the star into the middle of the sector
 		newEntity = new StarEntity(game, Constants.FILE_IMG_STAR, width / 2, height / 2);
+		newObject = thisNewtonian.addObject("STAR", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 2E30);
+		newEntity.addNewtonianObject(newObject);
 		entities.add(newEntity);
 
 		// whack in a starbase if needed
@@ -79,10 +75,12 @@ public class Sector {
 		for (int i = 0; i < starbaseCount; i++) {
 			do {
 				if (newEntity != null) {
-					newEntity = null;
-				} // dispose of dud selection
+					newEntity = null;		// dispose of last attempt
+				}
 				newEntity = new FriendlyEntity(game, Constants.FILE_IMG_STARBASE, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
 			} while (checkEntityForOverlap(newEntity));
+			newObject = thisNewtonian.addObject("Starbase", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 2E10);
+			newEntity.addNewtonianObject(newObject);
 			entities.add(newEntity); // this ones a keeper
 		}
 
@@ -94,6 +92,8 @@ public class Sector {
 			} // dispose of dud selection
 			newEntity = new PlayerShipEntity(game, Constants.FILE_IMG_ENTERPRISE, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
 		} while (checkEntityForOverlap(newEntity));
+		newObject = thisNewtonian.addObject("Enterprise", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 2E5);
+		newEntity.addNewtonianObject(newObject);
 		entities.add(newEntity);
 		ship = (PlayerShipEntity) newEntity;
 
@@ -106,6 +106,8 @@ public class Sector {
 				} // dispose of dud selection
 				newEntity = new EnemyShipEntity(game, Constants.FILE_IMG_ROMULAN, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
 			} while (checkEntityForOverlap(newEntity));
+			newObject = thisNewtonian.addObject("Romulan", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 1E5); // heading and thrust default to zero
+			newEntity.addNewtonianObject(newObject);
 			entities.add(newEntity); // this ones a keeper
 		}
 	}
@@ -149,22 +151,16 @@ public class Sector {
 	public void notifyAlienKilled() {
 		// if there are still some aliens left then they all need to get faster, so
 		// speed up all the existing aliens
-		for (Entity entity : entities) {
-			if (entity instanceof EnemyShipEntity) {
-				// speed up by 2%
-				entity.setHorizontalMovement(entity.getHorizontalMovement() * 1.04f);
-			}
-		}
 
 		game.soundManager.playEffect(game.SOUND_HIT);
 	}
 
 	public void setShipHeading(float direction) {
-		ship.newHeading(direction);
+		ship.setHeading(direction);
 	}
 
-	public void setShipSpeed(float force) {
-		ship.setSpeed(force);
+	public void setShipThrust(float accel, float duration) {
+		ship.setThrust(accel, duration);
 	}
 
 	/**
@@ -175,7 +171,7 @@ public class Sector {
 	 */
 	public void tryToFire(float direction) {
 		int dx = 0, dy = 0;
-		int x = ship.getX(), y = ship.getY();
+//		int x = ship.getX(), y = ship.getY();
 //		int width = ship.sprite.getWidth() / 2, height = ship.sprite.getHeight() / 2;
 
 
@@ -186,7 +182,7 @@ public class Sector {
 //			dy = (int) Math.ceil((float) Math.sin(rads) * height);
 
 		TorpedoEntity shot = shots[shotIndex++ % shots.length];
-		shot.reinitialize(ship, x + dx, y + dy, direction);
+//		shot.reinitialize(ship, x + dx, y + dy, direction);
 		entities.add(shot);
 
 		game.soundManager.playEffect(game.SOUND_SHOT);
@@ -217,6 +213,7 @@ public class Sector {
 	}
 
 	public void move(long msElapsed) {
+		thisNewtonian.updateObjects(msElapsed / 1000);
 		// cycle round asking each entity to move itself
 		for (Entity entity : entities) {
 			entity.move(msElapsed);

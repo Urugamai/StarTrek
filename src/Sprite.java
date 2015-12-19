@@ -47,7 +47,7 @@ public class Sprite {
 	private int			height;						/** The height in pixels of this sprite */
 	private float		currentAngle = 0.0f
 						, targetAngle = 0.0f
-						, rotationSpeed = 0.2f;		// The rotation settings for the sprite
+						, rotationSpeed = 0.5f;		// The rotation settings for the sprite
 
 	/**
 	 * Create a new sprite from a specified image.
@@ -132,7 +132,8 @@ public class Sprite {
 		texture.bind();
 
 		// translate to the right location and prepare to draw
-		correctedAngle = (currentAngle+90) % 360;
+		// Rotation is clockwise in gl, change to anticlockwise to match trigonometry standard
+		correctedAngle = 360 - currentAngle;
 		glTranslatef(x+centreX, y+centreY, 0);
 		glRotatef(correctedAngle, 0.0f, 0.0f, 1.0f);
 		glTranslatef(-centreX, -centreY, 0);

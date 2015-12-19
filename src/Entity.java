@@ -32,26 +32,13 @@
 
 import java.awt.Rectangle;
 
-/**
- * An entity represents any element that appears in the game. The
- * entity is responsible for resolving collisions and movement
- * based on a set of properties defined either by subclass or externally.
- *
- * Note that doubles are used for positions. This may seem strange
- * given that pixels locations are integers. However, using double means
- * that an entity can move a partial pixel. It doesn't of course mean that
- * they will be display half way through a pixel but allows us not lose
- * accuracy as we move.
- *
- * @author Kevin Glass
- */
 public abstract class Entity {
+	protected Newtonian.objectData thisObject;
 
-	protected float		x;						/** The current x location of this entity */
-	protected float		y;						/** The current y location of this entity */
+	int x, y, z;
+
 	protected Sprite	sprite;					/** The sprite that represents this entity */
-	protected float		dx;						/** The current speed of this entity horizontally (pixels/sec) */
-	protected float		dy;						/** The current speed of this entity vertically (pixels/sec) */
+
 	private Rectangle	me	= new Rectangle();	/** The rectangle used for this entity during collisions  resolution */
 	private Rectangle	him	= new Rectangle();	/** The rectangle used for other entities during collision resolution */
 
@@ -59,14 +46,20 @@ public abstract class Entity {
 	 * Construct a entity based on a sprite image and a location.
 	 *
 	 * @param sprite The reference to the image to be displayed for this entity
-	 * @param x The initial x location of this entity
-	 * @param y The initial y location of this entity
 	 */
 	protected Entity(Sprite sprite, int x, int y) {
 		this.sprite = sprite;
 		this.x = x;
 		this.y = y;
 	}
+
+	public void addNewtonianObject(Newtonian.objectData theObject) {
+		thisObject = theObject;
+	}
+
+	public void setHeading(double newDegrees) { thisObject.heading = newDegrees;}
+
+	public void setThrust(double accel, double duration) { thisObject.thrustAcceleration = accel; thisObject.thrustDuration = duration; }
 
 	/**
 	 * Request that this entity move itself based on a certain amount
@@ -75,51 +68,16 @@ public abstract class Entity {
 	 * @param delta The amount of time that has passed in milliseconds
 	 */
 	public void move(long delta) {
-		x += (delta * dx) / 1000;
-		y += (delta * dy) / 1000;
-	}
-
-	/**
-	 * Set the horizontal speed of this entity
-	 *
-	 * @param dx The horizontal speed of this entity (pixels/sec)
-	 */
-	public void setHorizontalMovement(float dx) {
-		this.dx = dx;
-	}
-
-	/**
-	 * Set the vertical speed of this entity
-	 *
-	 * @param dy The vertical speed of this entity (pixels/sec)
-	 */
-	public void setVerticalMovement(float dy) {
-		this.dy = dy;
-	}
-
-	/**
-	 * Get the horizontal speed of this entity
-	 *
-	 * @return The horizontal speed of this entity (pixels/sec)
-	 */
-	public float getHorizontalMovement() {
-		return dx;
-	}
-
-	/**
-	 * Get the vertical speed of this entity
-	 *
-	 * @return The vertical speed of this entity (pixels/sec)
-	 */
-	public float getVerticalMovement() {
-		return dy;
+		this.x = (int)(thisObject.x / Constants.PixelSize);
+		this.y = (int)(thisObject.y / Constants.PixelSize);
+		this.z = (int)(thisObject.z / Constants.PixelSize);
 	}
 
 	/**
 	 * Draw this entity to the graphics context provided
 	 */
 	public void draw() {
-		sprite.draw((int) x, (int) y);
+		sprite.draw(x, y);
 	}
 
 	/**
@@ -135,7 +93,7 @@ public abstract class Entity {
 	 * @return The x location of this entity
 	 */
 	public int getX() {
-		return (int) x;
+		return x;
 	}
 
 	/**
@@ -144,7 +102,7 @@ public abstract class Entity {
 	 * @return The y location of this entity
 	 */
 	public int getY() {
-		return (int) y;
+		return y;
 	}
 
 	/**
@@ -154,8 +112,8 @@ public abstract class Entity {
 	 * @return True if the entities collide with each other
 	 */
 	public boolean collidesWith(Entity other) {
-		me.setBounds((int) x, (int) y, sprite.getWidth(), sprite.getHeight());
-		him.setBounds((int) other.x, (int) other.y, other.sprite.getWidth(), other.sprite.getHeight());
+		me.setBounds(x, y, sprite.getWidth(), sprite.getHeight());
+		him.setBounds( other.x, other.y, other.sprite.getWidth(), other.sprite.getHeight());
 
 		return me.intersects(him);
 	}

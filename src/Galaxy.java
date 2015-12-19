@@ -58,20 +58,20 @@ public class Galaxy {
 		galacticLocation gl = new galacticLocation();
 		int minEnemyCount = 99, enemyCount;
 		int minStarbaseCount = 99, starbaseCount;
-		float minGravity = 99, gravity;
+		//float minGravity = 99, gravity;
 		int bestX = (int)(sizeX/2), bestY = (int)(sizeY/2);  // default to (near) middle sector
 
 		for (int gx = 0; gx < sizeX; gx++) {
 			for (int gy = 0; gy < sizeY; gy++) {
 				enemyCount = sectorList[gx][gy].getEnemyCount();
 				starbaseCount = sectorList[gx][gy].getStarbaseCount();
-				gravity = sectorList[gx][gy].getStarGravity();
+				//gravity = sectorList[gx][gy].getStarGravity();
 
-				if (enemyCount <= minEnemyCount && starbaseCount <= minStarbaseCount && gravity <= minGravity) {
+				if (enemyCount <= minEnemyCount && starbaseCount <= minStarbaseCount ) {
 					bestX = gx; bestY = gy;
 					minEnemyCount = enemyCount;
 					minStarbaseCount = starbaseCount;
-					minGravity = gravity;
+					//minGravity = gravity;
 				}
 			}
 		}
@@ -85,20 +85,20 @@ public class Galaxy {
 		galacticLocation gl = new galacticLocation();
 		int maxEnemyCount = 0, enemyCount;
 		int minStarbaseCount = 99, starbaseCount;
-		float maxGravity = 0, gravity;
+		//float maxGravity = 0, gravity;
 		int bestX = (int)(sizeX/2), bestY = (int)(sizeY/2);  // default to (near) middle sector
 
 		for (int gx = 0; gx < sizeX; gx++) {
 			for (int gy = 0; gy < sizeY; gy++) {
 				enemyCount = sectorList[gx][gy].getEnemyCount();
 				starbaseCount = sectorList[gx][gy].getStarbaseCount();
-				gravity = sectorList[gx][gy].getStarGravity();
+				//gravity = sectorList[gx][gy].getStarGravity();
 
-				if (enemyCount >= maxEnemyCount && starbaseCount <= minStarbaseCount && gravity >= maxGravity) {
+				if (enemyCount >= maxEnemyCount && starbaseCount <= minStarbaseCount) {
 					bestX = gx; bestY = gy;
 					maxEnemyCount = enemyCount;
 					minStarbaseCount = starbaseCount;
-					maxGravity = gravity;
+					//maxGravity = gravity;
 				}
 			}
 		}
@@ -116,9 +116,9 @@ public class Galaxy {
 		return sectorList[sector.getGx()][sector.getGy()].getStarbaseCount();
 	}
 
-	public float getSectorGravity(galacticLocation sector) {
-		return sectorList[sector.getGx()][sector.getGy()].getStarGravity();
-	}
+//	public float getSectorGravity(galacticLocation sector) {
+//		return sectorList[sector.getGx()][sector.getGy()].getStarGravity();
+//	}
 
 	public Sector getSector(galacticLocation sector) {
 		return sectorList[sector.getGx()][sector.getGy()];

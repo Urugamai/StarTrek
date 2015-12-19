@@ -65,14 +65,14 @@ public class FriendlyEntity extends Entity {
 	public void move(long delta) {
 		// if we're moving left and have reached the left hand side
 		// of the screen, don't move
-		if ((dx < 0) && (x < LEFT_BORDER)) {
-			return;
-		}
+//		if ((dx < 0) && (x < LEFT_BORDER)) {
+//			return;
+//		}
 		// if we're moving right and have reached the right hand side
 		// of the screen, don't move
-		if ((dx > 0) && (x > RIGHT_BORDER)) {
-			return;
-		}
+//		if ((dx > 0) && (x > RIGHT_BORDER)) {
+//			return;
+//		}
 
 		super.move(delta);
 	}

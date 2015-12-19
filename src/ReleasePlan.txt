@@ -25,6 +25,17 @@ Version 0.3
 
 Version 0.4
 ===========
+- GRAVITY - Doing these calculations proves that... gravity sucks!
+    - For orbits, gravity, etc it may be worthwhile changing from x,y coordinates to Heading,Velocity.
+    - Need to add 'vector' class for direction of motion, gravitational calculations, etc
+    - Affect ships? (sucks them towards star)
+    - affects torpedo path (a lot?)
+    - affects phaser path (no - too light and fast and short range)
+    - does not affect starbase normally (maintains position itself until computer is 'damaged' item, then decay orbit)
+    - does not affect ships docked to starbase
+
+Version 0.x
+===========
 - Movement
     - WARP Drive!  Travel across sector boundary
         - Accelerate (currently instantaneous :-( ) to full impulse before enabling WARP drive
@@ -183,14 +194,6 @@ VERSION 1.2
 
 Version 1.2.x
 ===========
-- GRAVITY
-    - For orbits, gravity, etc it may be worthwhile changing from x,y coordinates to Heading,Velocity.
-    - Need to add 'vector' class for direction of motion, gravitational calculations, etc
-    - Affect ships? (sucks them towards star)
-    - affects torpedo path (a lot?)
-    - affects phaser path (no - too light and fast and short range)
-    - does not affect starbase normally (maintains position itself until computer is 'damaged' item, then decay orbit)
-    - does not affect ships docked to starbase
 
 Version 1.2.x
 ===========

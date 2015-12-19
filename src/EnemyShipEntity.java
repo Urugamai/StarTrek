@@ -88,14 +88,14 @@ public class EnemyShipEntity extends Entity {
 			accumulatedTime -= courseDuration;
 		}
 
-		if ((dx < 0) && (x < LEFT_BORDER)) { speed = 0; }
-		if ((dx > 0) && (x > RIGHT_BORDER)) { speed = 0; }
-		if ((dy < 0) && (y < TOP_BORDER)) { speed = 0; }
-		if ((dy > 0) && (y > BOTTOM_BORDER)) { speed = 0; }
-
-		float rads = (float)Math.toRadians(sprite.getCurrentAngle());
-		dx = (float)Math.cos(rads)*speed;
-		dy = (float)Math.sin(rads)*speed;
+//		if ((dx < 0) && (x < LEFT_BORDER)) { speed = 0; }
+//		if ((dx > 0) && (x > RIGHT_BORDER)) { speed = 0; }
+//		if ((dy < 0) && (y < TOP_BORDER)) { speed = 0; }
+//		if ((dy > 0) && (y > BOTTOM_BORDER)) { speed = 0; }
+//
+//		float rads = (float)Math.toRadians(sprite.getCurrentAngle());
+//		dx = (float)Math.cos(rads)*speed;
+//		dy = (float)Math.sin(rads)*speed;
 
 		// proceed with normal move
 		super.move(delta);

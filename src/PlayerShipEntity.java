@@ -39,9 +39,6 @@ public class PlayerShipEntity extends Entity {
 	private static int  BOTTOM_BORDER;
 	private Game game;									/** The game in which the ship exists */
 
-	private float heading = 0.0f;
-	private float speed = 0.0f;
-
 	/**
 	 * Create a new entity to represent the players ship
 	 *
@@ -61,20 +58,6 @@ public class PlayerShipEntity extends Entity {
 		BOTTOM_BORDER = game.getHeight() - 30;
 	}
 
-	public void newHeading(float direction) {
-
-		heading = direction;
-
-		sprite.setAngle(heading);
-		sprite.setRotationSpeed(0.2f);
-	}
-
-	public void setSpeed(float force) {
-		if (force < 0) force = 0;
-		if (force > 100) force = 100;
-		speed = force/100 * Constants.impulseSpeedMax * Constants.c;
-	}
-
 	/**
 	 * Request that the ship move itself based on an elapsed amount of
 	 * time
@@ -82,14 +65,6 @@ public class PlayerShipEntity extends Entity {
 	 * @param delta The time that has elapsed since last move (ms)
 	 */
 	public void move(long delta) {// TODO: in future we will NOT set the to zero but actually move into the next sector
-		if ((dx < 0) && (x < LEFT_BORDER)) { dx = 0; return; }
-		if ((dx > 0) && (x > RIGHT_BORDER)) { dx = 0; return; }
-		if ((dy < 0) && (y < TOP_BORDER)) { dy = 0; return; }
-		if ((dy > 0) && (y > BOTTOM_BORDER)) { dy = 0; return; }
-
-		float rads = (float)Math.toRadians(sprite.getCurrentAngle());
-		dx = (float)Math.cos(rads)*speed;
-		dy = (float)Math.sin(rads)*speed;
 
 		super.move(delta);
 	}

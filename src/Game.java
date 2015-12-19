@@ -380,8 +380,9 @@ public class Game {
 	private void processCommand(String cmd) {
 		float angle;
 		float force;
+		float seconds;
 		String[] pieces;
-		String direction = "", power = "";
+		String direction = "", power = "", duration = "";
 
 		pieces = cmd.trim().toUpperCase().split("[ ,\\t\\n\\x0B\\f\\r]");
 
@@ -404,30 +405,32 @@ public class Game {
 		}
 
 		if (pieces[0].compareToIgnoreCase("IMP") == 0 ) {
-			if ( pieces.length > 2 ) {
+			if ( pieces.length > 3 ) {
 				direction = pieces[1];
 				power = pieces[2];
+				duration = pieces[3];
 
 				try {
 					angle = Float.valueOf(direction);
 					force = Float.valueOf(power);
+					seconds = Float.valueOf(duration);
 				} catch (Exception e) {
-					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,force");
+					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
 					return; // no moving for you when you get the parameters wrong
 				}
 			} else {
-				textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,force");
+				textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,accel,duration");
 				return; // no moving for you when you get the parameters wrong
 			}
 
 			sector.setShipHeading(angle);
-			sector.setShipSpeed(force);
+			sector.setShipThrust(Math.abs(force) < 0 ? 0 : force > 100 ? 100 : force, seconds);
 
 			return;
 		}
 
 		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {
-			sector.setShipSpeed(0.0f);
+//			sector.setShipSpeed(0.0f);
 			return;
 		}
 
