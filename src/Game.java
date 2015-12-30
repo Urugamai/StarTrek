@@ -238,13 +238,14 @@ public class Game {
 	 * create a new set.
 	 */
 	private void startGame() {
-		// clear out any existing entities and intialise a new set
+		// clear out any existing entities and initialise a new set
 		//entities.clear();
 		galaxy = new Galaxy(this);
 		galaxy.initSectors( width, (height - textWindow.getHeight()) );
 //		currentSector = galaxy.getSafeSector();	// TODO: To become a 'player skill-level' based selection of initial sector
 		currentSector = galaxy.getLeastSafeSector();
 		sector = galaxy.getSector(currentSector);
+		sector.initPlayerShip(-1, -1);
 	}
 
 	/**
@@ -276,9 +277,6 @@ public class Game {
 
 			// let subsystem paint
 			frameRendering();
-
-			// update window contents
-			Display.update();
 		}
 
 		// clean up
@@ -354,14 +352,11 @@ public class Game {
 		}
 	}
 
-	/** THE MAIN GAME PROCESSOR, called every loop
-	 * ********************************************
-	 *
+	/**
 	 * Notification that a frame is being rendered. Responsible for
-	 * running game logic and rendering the scene.
+	 * running visual parts of game logic and rendering the scene.
 	 */
-	public void frameRendering() {	//
-
+	public void frameRendering() {
 		// clear non-visible screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
@@ -377,6 +372,9 @@ public class Game {
 			galaxy.draw();	// TODO: Change this to a picture showing the current ship damage status
 
 		textWindow.draw();
+
+		// update window contents	(Switch non-visible and visible frames)
+		Display.update();
 	}
 
 	private void processCommand(String cmd) {

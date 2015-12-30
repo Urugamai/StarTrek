@@ -31,11 +31,9 @@
  */
 
 public class PlayerShipEntity extends Entity {
-	private static int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
-	private static int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
-	private static int  TOP_BORDER;
-	private static int  BOTTOM_BORDER;
-	private Game game;									/** The game in which the ship exists */
+	private Game game;
+
+	private int torpedoCount = 0;
 
 	/**
 	 * Create a new entity to represent the players ship
@@ -50,10 +48,14 @@ public class PlayerShipEntity extends Entity {
 
 		this.game = game;
 
-		RIGHT_BORDER = game.getWidth() - 30;
-		LEFT_BORDER = 30;
-		TOP_BORDER = 30;
-		BOTTOM_BORDER = game.getHeight() - 30;
+		torpedoCount = 15;
+	}
+
+	public boolean fireTorpedo(double direction) {
+		// direction irrelevant at this level
+
+		if (torpedoCount > 0) { torpedoCount--; return true; }
+		return false;
 	}
 
 	/**

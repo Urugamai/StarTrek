@@ -29,6 +29,7 @@ Version 0.4
 - Remove Gravity
      - Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
        relevant super entities so that each can rotate at different rates
+- Fix broken torpedo capability
 
 Version 0.x
 ===========
@@ -277,9 +278,13 @@ Do well and you will be allocated better starships and be requested to explore s
 where no man has gone before.  Do badly and you will be demoted to lesser craft where it will be harder for
 you to redeem yourself and regain your status.
 
-Torpedo's are smart enough not to destroy the ship they start at but they will damage and possibly destroy anything
-else, even friendly units, as they assume you know what your are doing.  Dont get it wrong or you may make more
-enemies.
+The Federation Space map has been compressed, the empty space between sectors is not evident but if you travel out of
+current sector on impulse drive then you may find it difficult to get back.  Information in the sector is provided
+to you via probes that the federation has seeded throughout our space and as they are small and fast they cannot be
+found and/or destroyed but go out of their range and you are on your own.
+
+Torpedo's will damage and possibly destroy anything, even friendly units, as they assume you know what your are doing
+when sending one out.  Dont get it wrong or you may make more enemies.
 
 The visible sector on your main display covers a 10 by 10 light-second area of space.  Hence, even
 phaser fire can be seen travelling to the target.  Note that the phaser fire display is computer generated as you

@@ -89,12 +89,23 @@ public class Sector {
 	}
 
 	public void initPlayerShip(int x, int y) {
-		// Whack in the player ship
 		Entity newEntity = null;
+
+		// Whack in the player ship - try desired location first
+		if (x > 0 && y > 0) {
+			newEntity = new PlayerShipEntity(game, Constants.FILE_IMG_ENTERPRISE, x, y);
+			if (checkEntityForOverlap(newEntity)) {
+				// desired location is occupied
+				// TODO: Text message to captain that exit point is occupied, computer override to random location
+			} else {
+				entities.add(newEntity);
+				ship = (PlayerShipEntity) newEntity;
+
+				return;
+			}
+		}
+
 		do {
-			if (newEntity != null) {
-				newEntity = null;
-			} // dispose of dud selection
 			newEntity = new PlayerShipEntity(game, Constants.FILE_IMG_ENTERPRISE, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
 		} while (checkEntityForOverlap(newEntity));
 		entities.add(newEntity);
@@ -160,7 +171,9 @@ public class Sector {
 	 * since we must first check that the player can fire at this
 	 * point.
 	 */
-	public void tryToFire(float direction) {
+	public boolean tryToFire(float direction) {
+		if (!ship.fireTorpedo(direction)) return false;	// no torpedoes left
+
 		int dx = 0, dy = 0;
 //		int x = ship.getX(), y = ship.getY();
 //		int width = ship.sprite.getWidth() / 2, height = ship.sprite.getHeight() / 2;
@@ -177,6 +190,7 @@ public class Sector {
 //		entities.add(shot);
 
 //		game.soundManager.playEffect(game.SOUND_SHOT);
+		return true;
 	}
 
 	// TODO processHits needs to be a LOT smarter
