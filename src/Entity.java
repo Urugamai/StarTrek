@@ -33,11 +33,18 @@
 import java.awt.Rectangle;
 
 public abstract class Entity {
-	protected Newtonian.objectData thisObject;
+	public static enum entityType { STAR, STARBASE, FEDERATIONSHIP, ROMULANSHIP, TORPEDO, BORGSHIP };	// Who Am I
 
-	int x, y, z;
+	double x, y, z;												/** Where Am I */
+	float currentInclination, currentAngle, velocity = 0.0f;	/** Where Am I Going */
 
-	protected Sprite	sprite;					/** The sprite that represents this entity */
+	private float  targetAngle, targetInclination;				/** Where Do I Want To Go */
+
+	float rotationSpeed = 90.0f;						/** Degrees per second */
+	float thrustAcceleration = 0, thrustDuration = 0;
+
+	protected Sprite	sprite;					/** The sprite (graphics) that represents this entity */
+	protected entityType eType;
 
 	private Rectangle	me	= new Rectangle();	/** The rectangle used for this entity during collisions  resolution */
 	private Rectangle	him	= new Rectangle();	/** The rectangle used for other entities during collision resolution */
@@ -47,19 +54,77 @@ public abstract class Entity {
 	 *
 	 * @param sprite The reference to the image to be displayed for this entity
 	 */
-	protected Entity(Sprite sprite, int x, int y) {
+	protected Entity(entityType eType, Sprite sprite, int x, int y) {
+		this.eType = eType;
 		this.sprite = sprite;
 		this.x = x;
 		this.y = y;
+		currentAngle = 0;
+		currentInclination = 0;
+		targetAngle = 0;
+		targetInclination = 0;
 	}
 
-	public void addNewtonianObject(Newtonian.objectData theObject) {
-		thisObject = theObject;
+	public void setHeading(float newDegrees, float newInclination) {
+		targetAngle = newDegrees;
+		targetInclination = newInclination;
 	}
 
-	public void setHeading(double newDegrees) { thisObject.heading = newDegrees;}
+	public void setThrust(float accel, float duration) {
+		thrustAcceleration = accel;
+		thrustDuration = duration;
+	}
 
-	public void setThrust(double accel, double duration) { thisObject.thrustAcceleration = accel; thisObject.thrustDuration = duration; }
+	// Should only be used to implement 'all stop' command (velocity = 0)
+	public void setVelocity(float newVelocity) {
+		velocity = newVelocity;
+	}
+
+	private void Rotate(long delta) {
+		int f1, f2;
+
+		if (targetAngle >= 0 && currentAngle != targetAngle) {
+			if (Math.abs(currentAngle - targetAngle) > 180) f1 = -1; else f1 = 1;
+			if (currentAngle < targetAngle) f2 = 1; else f2 = -1;
+			currentAngle += rotationSpeed*f1*f2*delta;
+
+			// Standardise on positive angle between 0 and 360 degrees.
+			if (currentAngle < 0) currentAngle += 360;
+			currentAngle %= 360;
+			if ( Math.abs(currentAngle - targetAngle) <= (rotationSpeed)) currentAngle = targetAngle;
+
+		// PERMANENT rotations
+		} else if (targetAngle <= -2.0f) {		// Permanent anti-clockwise rotation
+			currentAngle -= rotationSpeed*delta;
+			if (currentAngle <= 0.0f) currentAngle += 360.0f;
+		} else if (targetAngle <= -1.0f) {		// Permanent clockwise rotation
+			currentAngle += rotationSpeed*delta;
+			currentAngle %= 360.0f;
+		}
+
+		// Add code for Z rotation when we implement a 3d screen, use same rotation speed for this
+		currentInclination = 0; //= targetInclination;	// just to stop the 'not in use' highlighting ;-)
+
+		sprite.setAngle(currentAngle, currentInclination);
+	}
+
+	private void Translate(long delta) {
+		double rAngle = Math.toRadians(currentAngle);
+
+		if (thrustDuration > 0) {
+			velocity += (thrustAcceleration * delta);
+			thrustDuration -= delta;
+			if (thrustDuration < delta) { thrustAcceleration = 0; thrustDuration = 0; }
+		}
+
+		double vx = velocity*Math.cos(rAngle);
+		double vy = -velocity*Math.sin(rAngle);
+		double vz = 0; //velocity*Math.sin(currentInclination);
+
+		x = (x + (vx * delta));
+		y = (y + (vy * delta));
+		z = (z + (vz * delta));
+	}
 
 	/**
 	 * Request that this entity move itself based on a certain amount
@@ -68,16 +133,17 @@ public abstract class Entity {
 	 * @param delta The amount of time that has passed in milliseconds
 	 */
 	public void move(long delta) {
-		this.x = (int)(thisObject.x / Constants.PixelSize);
-		this.y = (int)(thisObject.y / Constants.PixelSize);
-		this.z = (int)(thisObject.z / Constants.PixelSize);
+		System.out.println("MOVE: " + delta);
+		Rotate(delta/10);
+
+		Translate(delta/10);
 	}
 
 	/**
 	 * Draw this entity to the graphics context provided
 	 */
 	public void draw() {
-		sprite.draw(x, y);
+		sprite.draw((int)x, (int)y);
 	}
 
 	/**
@@ -93,7 +159,7 @@ public abstract class Entity {
 	 * @return The x location of this entity
 	 */
 	public int getX() {
-		return x;
+		return (int)x;
 	}
 
 	/**
@@ -102,18 +168,20 @@ public abstract class Entity {
 	 * @return The y location of this entity
 	 */
 	public int getY() {
-		return y;
+		return (int)y;
 	}
 
 	/**
-	 * Check if this entity collised with another.
+	 * Check if this entity collides with another.
+	 * TODO: Probably need collision detection to be smarter
+	 * 		- Take into account transparent part of rectangle (no collision)
 	 *
 	 * @param other The other entity to check collision against
 	 * @return True if the entities collide with each other
 	 */
 	public boolean collidesWith(Entity other) {
-		me.setBounds(x, y, sprite.getWidth(), sprite.getHeight());
-		him.setBounds( other.x, other.y, other.sprite.getWidth(), other.sprite.getHeight());
+		me.setBounds((int)x, (int)y, sprite.getWidth(), sprite.getHeight());
+		him.setBounds( (int)other.x, (int)other.y, other.sprite.getWidth(), other.sprite.getHeight());
 
 		return me.intersects(him);
 	}

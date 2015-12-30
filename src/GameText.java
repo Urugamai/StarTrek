@@ -59,7 +59,7 @@ public class GameText {
 
 	public void write( String line ) {
 		if (textRow[0] == null) textRow[0] = "";
-		textRow[0] += line.trim();
+		textRow[0] += line;
 	}
 
 	public void scroll() {

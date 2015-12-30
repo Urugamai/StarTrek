@@ -49,7 +49,7 @@ public class TorpedoEntity extends Entity {
 	 * @param y The initial y location of the shot
 	 */
 	public TorpedoEntity(Sector sector, String sprite, int x, int y) {
-		super(sector.getSprite(sprite), x, y);
+		super(entityType.TORPEDO, sector.getSprite(sprite), x, y);
 
 		this.sector = sector;
 //		dx = 0;
@@ -73,8 +73,8 @@ public class TorpedoEntity extends Entity {
 
 //		this.dx = (float)Math.cos(rads)*(Constants.c*Constants.torpedoSpeed);
 //		this.dy = (float)Math.sin(rads)*(Constants.c*Constants.torpedoSpeed);
-		sprite.setAngle(dir);
-		sprite.setRotationSpeed(100);	// effectively instant (OK, 3 to 4 FRAMES, it is usually hidden behind your ship for at least that long)
+		sprite.setAngle(dir, 0);
+//		sprite.setRotationSpeed(100);	// effectively instant (OK, 3 to 4 FRAMES, it is usually hidden behind your ship for at least that long)
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class TorpedoEntity extends Entity {
 		sector.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
 
 		// if we've hit an alien, kill it!
-		if (other instanceof EnemyShipEntity) {
+		if (other instanceof RomulanEntity) {
 			// remove the affected entities
 			sector.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
 

@@ -37,6 +37,8 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
+import java.util.Date;
+
 import static org.lwjgl.opengl.GL11.*;
 
 /**
@@ -111,6 +113,7 @@ public class Game {
 		// multiply by 1000 so our end result is in milliseconds
 		// then divide by the number of ticks in a second giving
 		// us a nice clear time in milliseconds
+		// Code is effectively return (Sys.getTime() * 1000) / Sys.getTimerResolution(); without all the calling overhead
 		return (Sys.getTime() * 1000) / timerTicksPerSecond;
 	}
 
@@ -264,6 +267,9 @@ public class Game {
 	private void gameLoop() {
 		soundManager.playEffect(SOUND_START);
 
+		//SystemTimer.sleep(lastLoopTime+10-SystemTimer.getTime());
+		Display.sync(60);
+
 		while (Game.gameRunning) {
 			// clear screen
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -283,12 +289,10 @@ public class Game {
 	}
 
 	private void setTimeDelta() {
-		//SystemTimer.sleep(lastLoopTime+10-SystemTimer.getTime());
-		Display.sync(60);
-
 		// work out how long its been since the last update, this
 		// will be used to calculate how far the entities should
 		// move this loop
+		//sleep(1);
 		long now = getTime();
 		msElapsed = now - lastLoopTime;
 		lastLoopTime = now;
@@ -323,13 +327,14 @@ public class Game {
 		textWindow.writeLine(4, "Currently in sector (" + currentSector.getGx() + "," + currentSector.getGy() + ")");
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GalacticMap;
+		else if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.DamageReport;
 		else displayMode = Constants.DisplayMode.Sector;
 
 		char key = getCurrentKey();
 
 		if (key != '\0') {
 			// do something with this key
-			if (key == 32) return;	// space ignored
+			//if (key == 32) return;	// space
 			if (key == 13) {
 				processCommand(userInput);
 				userInput = "";
@@ -367,6 +372,8 @@ public class Game {
 			sector.draw();
 		else if (displayMode == Constants.DisplayMode.GalacticMap)
 			galaxy.draw();
+		else if (displayMode == Constants.DisplayMode.DamageReport)
+			galaxy.draw();	// TODO: Change this to a picture showing the current ship damage status
 
 		sector.processHits();
 
@@ -423,14 +430,15 @@ public class Game {
 				return; // no moving for you when you get the parameters wrong
 			}
 
-			sector.setShipHeading(angle);
-			sector.setShipThrust(Math.abs(force) < 0 ? 0 : force > 100 ? 100 : force, seconds);
+			sector.setShipHeading(angle, 0);
+			sector.setShipThrust( force, seconds);
+			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + pieces[1] + " " + pieces[2] + " " + pieces[3]);
 
 			return;
 		}
 
 		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {
-//			sector.setShipSpeed(0.0f);
+			sector.setShipVelocity(0.0f);
 			return;
 		}
 

@@ -48,7 +48,8 @@ public class Sprite {
 	private float		currentAngle = 0.0f
 						, targetAngle = 0.0f
 						, rotationSpeed = 0.5f;		// The rotation settings for the sprite
-
+	private float		currentIncline = 0.0f
+						, targetIncline = 0.0f;
 	/**
 	 * Create a new sprite from a specified image.
 	 *
@@ -74,21 +75,17 @@ public class Sprite {
 		return texture.getImageHeight();
 	}
 
-	public void setAngle(float degrees) {
-		targetAngle = degrees % 360;
-	}
-
-	public void rotate(float degrees) {
-		targetAngle += degrees;
-		targetAngle %= 360;
-	}
-
-	public void setRotationSpeed(float degreesPerFrame) {
-		rotationSpeed = degreesPerFrame;
+	public void setAngle(float degrees, float inclination) {
+		currentAngle = ((degrees%360)+360) % 360;  // force positive angle
+		currentIncline = ((inclination%360)+360) % 360;  // force positive angle
 	}
 
 	public float getCurrentAngle() {
 		return currentAngle;
+	}
+
+	public float getCurrentIncline() {
+		return currentIncline;
 	}
 
 	/**
@@ -102,22 +99,6 @@ public class Sprite {
 		int f1=1, f2=1;
 
 		float maxYtex = texture.getHeight(), maxXtex = texture.getWidth(), centreYtex = maxYtex/2, centreXtex = maxXtex/2, centreY = height/2, centreX = width / 2;
-
-		if (targetAngle >= 0 && currentAngle != targetAngle) {
-			if (Math.abs(currentAngle - targetAngle) > 180) f1 = -1; else f1 = 1;
-			if (currentAngle < targetAngle) f2 = 1; else f2 = -1;
-			currentAngle += rotationSpeed*f1*f2;
-
-			if (currentAngle < 0) currentAngle += 360;
-			currentAngle %= 360;
-			if ( Math.abs(currentAngle - targetAngle) <= (rotationSpeed)) currentAngle = targetAngle;
-		} else if (targetAngle == -1.0f) {		// Permanent clockwise rotation
-			currentAngle += rotationSpeed;
-			currentAngle %= 360.0f;
-		} else if (targetAngle == -2.0f) {		// Permanent anti-clockwise rotation
-			currentAngle -= rotationSpeed;
-			if (currentAngle <= 0.0f) currentAngle += 360.0f;
-		}
 
 //		glMatrixMode(GL_TEXTURE);
 		glEnable(GL_TEXTURE_2D);
@@ -133,7 +114,7 @@ public class Sprite {
 
 		// translate to the right location and prepare to draw
 		// Rotation is clockwise in gl, change to anticlockwise to match trigonometry standard
-		correctedAngle = 360 - currentAngle;
+		correctedAngle = ((360 - currentAngle) + 90) % 360;
 		glTranslatef(x+centreX, y+centreY, 0);
 		glRotatef(correctedAngle, 0.0f, 0.0f, 1.0f);
 		glTranslatef(-centreX, -centreY, 0);
@@ -157,7 +138,7 @@ public class Sprite {
 
 		// restore the model view matrix to prevent contamination
 		glPopMatrix();
-		glDisable(GL_BLEND);
+		//glDisable(GL_BLEND);
 		glMatrixMode(GL_MODELVIEW);
 	}
 }

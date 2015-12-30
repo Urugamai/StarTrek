@@ -30,7 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class EnemyShipEntity extends Entity {
+public class RomulanEntity extends Entity {
 
 	private static int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
 	private static int  LEFT_BORDER       = 10;		/** Left border at which to disallow further movement */
@@ -52,8 +52,8 @@ public class EnemyShipEntity extends Entity {
 	 * @param x The intial x location of this alien
 	 * @param y The intial y location of this alien
 	 */
-	public EnemyShipEntity(Game game, String shipFile, int x, int y) {
-		super(game.getSprite(shipFile), x, y);
+	public RomulanEntity(Game game, String shipFile, int x, int y) {
+		super(entityType.ROMULANSHIP, game.getSprite(shipFile), x, y);
 
 		this.game = game;
 
@@ -67,8 +67,8 @@ public class EnemyShipEntity extends Entity {
 
 		heading = ((float)Math.random()*360.0f + 180 ) % 360;
 
-		sprite.setAngle(heading);
-		sprite.setRotationSpeed(0.2f);
+		sprite.setAngle(heading, 0);
+//		sprite.setRotationSpeed(0.2f);
 	}
 
 	public void newSpeed() {

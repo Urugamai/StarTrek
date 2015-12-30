@@ -30,8 +30,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
-
 public class PlayerShipEntity extends Entity {
 	private static int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
 	private static int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
@@ -48,7 +46,7 @@ public class PlayerShipEntity extends Entity {
 	 * @param y The initial y location of the player's ship
 	 */
 	public PlayerShipEntity(Game game,String ref,int x,int y) {
-		super(game.getSprite(ref), x, y);
+		super(entityType.FEDERATIONSHIP, game.getSprite(ref), x, y);
 
 		this.game = game;
 
@@ -64,8 +62,7 @@ public class PlayerShipEntity extends Entity {
 	 *
 	 * @param delta The time that has elapsed since last move (ms)
 	 */
-	public void move(long delta) {// TODO: in future we will NOT set the to zero but actually move into the next sector
-
+	public void move(long delta) {
 		super.move(delta);
 	}
 
@@ -76,7 +73,7 @@ public class PlayerShipEntity extends Entity {
 	 */
 	public void collidedWith(Entity other) {
 
-		if (other instanceof EnemyShipEntity) {
+		if (other instanceof RomulanEntity) {
 			//game.notifyDeath();
 		}
 	}

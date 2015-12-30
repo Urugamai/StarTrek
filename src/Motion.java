@@ -3,20 +3,20 @@ import java.util.ArrayList;
 /**
  * Created by Mark W. Watson on 13/12/2015.
  */
-public class Newtonian {
-	private static final double G = 6.67259E-11;	// The universal gravitational constant. M*M*M/Kg/s/s
-	private static final double c = 3E8;			// The speed of light
+public class Motion {
+	private static final double G = 1E-1;	// The universal gravitational constant in Pixel^3/Kg/s^2
+	private static final double c = 1000;			// The speed of light in pixels per second
 
 	private ArrayList<objectData> localObjects = new ArrayList<>();
 
-	public Newtonian() {
+	public Motion() {
 	}
 
 	public class objectData {
 		public int handle;
 		public String name;
-		public double x, y, z, heading, inclination, velocity, mass;
-		public double thrustAcceleration, thrustDuration;
+		public double x, y, z, heading, inclination, velocity, mass;		// Where we are and where we are going
+		public double thrustAcceleration, thrustDuration, thrustHeading, thrustInclination; // where we would like to head
 
 		public objectData(int handle, double x, double y, double z, double mass) {
 			this.handle = handle;
@@ -27,8 +27,8 @@ public class Newtonian {
 			this.heading = 0;
 			this.inclination = 0;
 			this.velocity = 0;
-			//this.thrustHeading = 0;
-			//this.thrustInclination = 0;
+			this.thrustHeading = 0;
+			this.thrustInclination = 0;
 			this.thrustAcceleration = 0;
 			this.thrustDuration = 0;
 		}
@@ -40,12 +40,16 @@ public class Newtonian {
 		}
 
 		public void setThrustData(double heading, double inclination, double acceleration, double duration) {
-			//this.thrustHeading = heading;
-			//this.thrustInclination = inclination;
+			this.thrustHeading = heading;
+			this.thrustInclination = inclination;
 			this.thrustAcceleration = acceleration;	// Metres/Second/Second
 			this.thrustDuration = duration;
 		}
-	}
+
+		public float getHeading() { return (float)heading; }
+		public float getInclination() { return (float)inclination; }
+
+	} // END ObjectData
 
 	public objectData addObject(String name, double x, double y, double z, double mass) {
 		objectData obj;
@@ -98,18 +102,17 @@ public class Newtonian {
 
 	// Update the object 1 based on current obj1 effects plus obj2 gravity
 	private void updateObject(objectData obj1, objectData obj2, double deltaTime) {
-		//System.out.println("DEBUG: updateObject " + obj1.name + " as affected by " + obj2.name);
-
-		//System.out.println("DEBUG: updateObject old location ( " + obj1.x + ", " + obj1.y + ", " + obj1.z + " )");
 		double oldX = obj1.x;
 		double oldY = obj1.y;
 		double oldZ = obj1.z;
 		double distance = separation(obj1, obj2);
 		double hdg = Math.toRadians(obj1.heading);
 		double inc = Math.toRadians(obj1.inclination);
+		double tHdg = Math.toRadians(obj1.thrustHeading);
+		double tInc = Math.toRadians(obj1.thrustInclination);
 
 		// GRAVITY  - calculate effect caused by object 2 on object 1
-		double gravity = G * obj2.mass / (distance*distance);	// M/s/s
+		double gravity = -G * obj2.mass / (distance*distance);	// M/s/s
 		double gHdg = getHeadingBetween(obj1, obj2);
 		double gInc = getInclinationBetween(obj1, obj2);
 
@@ -131,13 +134,17 @@ public class Newtonian {
 		double dz = vz * deltaTime;
 
 		// THRUST
-		double tvx = obj1.thrustAcceleration * deltaTime * Math.cos(hdg);
-		double tvy = obj1.thrustAcceleration * deltaTime * Math.sin(hdg);
-		double tvz = obj1.thrustAcceleration * deltaTime * Math.sin(inc);
+		double thrustTime = deltaTime;
+		if (deltaTime > obj1.thrustDuration) thrustTime = obj1.thrustDuration;
+		double tvx = obj1.thrustAcceleration * thrustTime * Math.cos(tHdg);
+		double tvy = obj1.thrustAcceleration * thrustTime * Math.sin(tHdg);
+		double tvz = obj1.thrustAcceleration * thrustTime * Math.sin(tInc);
 
-		double dtx = tvx * deltaTime;
-		double dty = tvy * deltaTime;
-		double dtz = tvz * deltaTime;
+		double dtx = tvx * thrustTime;
+		double dty = tvy * thrustTime;
+		double dtz = tvz * thrustTime;
+
+		obj1.thrustDuration -= thrustTime;
 
 		double newX = oldX + dgx + dx + dtx;
 		double newY = oldY + dgy + dy + dty;
@@ -158,19 +165,27 @@ public class Newtonian {
 		obj1.heading = Math.toDegrees(newHdg);
 		obj1.inclination = Math.toDegrees(newInc);
 		obj1.velocity = newVelocity;
-		//System.out.println("DEBUG: updateObject new location ( " + obj1.x + ", " + obj1.y + ", " + obj1.z + " )");
-		//System.out.println("DEBUG: updateObject done.");
+
+//		if ( deltaTime > 0 && obj1.name.startsWith("Enterprise") && obj2.name.startsWith("STAR") ) {
+//			System.out.println("DEBUG: updateObject (" + deltaTime + ")"
+//					+ " Source " + obj1.name + "(" + obj1.mass + ")"
+//					+ " relative to " + obj2.name + "(" + obj2.mass + ")"
+//					+ " at (" + obj1.x + "," + obj1.y + "," + obj1.z + ")"
+//					+ " hdg (" + obj1.heading + "," + obj1.inclination + ")"
+//					+ " thrust hdg (" + obj1.thrustHeading + "," + obj1.thrustInclination + ")"
+//					+ " force (" + obj1.thrustAcceleration + "," + obj1.thrustDuration + ")"
+//					+ " gravity hdg (" + gHdg + "," + gInc + ")"
+//					+ " force (" + gravity + ")"
+//			);
+//		}
 	}
 
 	public void updateObjects(double deltaTime) {
-		double gravity;
-
 		for (objectData obj1 : localObjects) {
 			for (objectData obj2 : localObjects) {
 				if (obj1 == obj2) continue;
 				updateObject(obj1, obj2, deltaTime);
 			}
 		}
-
 	}
 }

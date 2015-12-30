@@ -36,7 +36,7 @@
  * @author Kevin Glass
  * @author Brian Matzon
  */
-public class FriendlyEntity extends Entity {
+public class StarbaseEntity extends Entity {
 	private static final int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
 	private static final int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
 	private Game game;									/** The game in which the ship exists */
@@ -49,9 +49,9 @@ public class FriendlyEntity extends Entity {
 	 * @param x The initial x location of the player's ship
 	 * @param y The initial y location of the player's ship
 	 */
-	public FriendlyEntity(Game game, String ref, int x, int y) {
-		super(game.getSprite(ref), x, y);
-		sprite.setAngle(-2.0f);		// configure this sprite to rotate constantly anti-clockwise
+	public StarbaseEntity(Game game, String ref, int x, int y) {
+		super(entityType.STARBASE, game.getSprite(ref), x, y);
+		sprite.setAngle(-2.0f, 0);		// configure this sprite to rotate constantly anti-clockwise
 
 		this.game = game;
 	}
@@ -85,7 +85,7 @@ public class FriendlyEntity extends Entity {
 	public void collidedWith(Entity other) {
 		// if its an alien, notify the game that the player
 		// is dead
-//		if (other instanceof EnemyShipEntity) {
+//		if (other instanceof RomulanEntity) {
 //			game.notifyDeath();
 //		}
 	}

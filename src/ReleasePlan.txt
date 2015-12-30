@@ -25,14 +25,10 @@ Version 0.3
 
 Version 0.4
 ===========
-- GRAVITY - Doing these calculations proves that... gravity sucks!
-    - For orbits, gravity, etc it may be worthwhile changing from x,y coordinates to Heading,Velocity.
-    - Need to add 'vector' class for direction of motion, gravitational calculations, etc
-    - Affect ships? (sucks them towards star)
-    - affects torpedo path (a lot?)
-    - affects phaser path (no - too light and fast and short range)
-    - does not affect starbase normally (maintains position itself until computer is 'damaged' item, then decay orbit)
-    - does not affect ships docked to starbase
+- Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
+- Remove Gravity
+     - Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
+       relevant super entities so that each can rotate at different rates
 
 Version 0.x
 ===========
@@ -248,6 +244,15 @@ Version 2.0 BETA
 OTHER THOUGHTS
 ==============
 - Should we have a Mouse-click option for direction/target/move as well as commands?  Mouse could be a 'damageable' item!
+- GRAVITY - Doing these calculations proves that... gravity sucks!  Have implemented Motion class but need to
+            deactivate as sensible scaling is impractical.  Perhaps revisit one-day
+    - For orbits, gravity, etc it may be worthwhile changing from x,y coordinates to Heading,Velocity.
+    - Need to add 'vector' class for direction of motion, gravitational calculations, etc
+    - Affect ships? (sucks them towards star)
+    - affects torpedo path (a lot?)
+    - affects phaser path (no - too light and fast and short range)
+    - does not affect starbase normally (maintains position itself until computer is 'damaged' item, then decay orbit)
+    - does not affect ships docked to starbase
 
 BUGS
 =====
