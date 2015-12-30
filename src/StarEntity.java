@@ -53,7 +53,7 @@ public class StarEntity extends Entity {
 	}
 
 	/**
-	 * Update the game logic related to aliens
+	 * Update the game logic
 	 */
 	public void doLogic() {
 	}

@@ -31,7 +31,7 @@ Version 0.4
        relevant super entities so that each can rotate at different rates
 - Fix broken torpedo capability
 
-Version 0.x
+Version 0.5
 ===========
 - Movement
     - WARP Drive!  Travel across sector boundary

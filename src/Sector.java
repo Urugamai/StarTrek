@@ -174,22 +174,11 @@ public class Sector {
 	public boolean tryToFire(float direction) {
 		if (!ship.fireTorpedo(direction)) return false;	// no torpedoes left
 
-		int dx = 0, dy = 0;
-//		int x = ship.getX(), y = ship.getY();
-//		int width = ship.sprite.getWidth() / 2, height = ship.sprite.getHeight() / 2;
-
-
-		// TODO check if a torpedo tube has been [re]loaded and is available to shoot
-
-//			float rads = (float) Math.toRadians(direction);
-//			dx = (int) Math.ceil((float) Math.cos(rads) * width);
-//			dy = (int) Math.ceil((float) Math.sin(rads) * height);
-
-//		TorpedoEntity shot = shots[shotIndex++ % shots.length];
-//		shot.reinitialize(ship, x + dx, y + dy, direction);
-//		entities.add(shot);
-
-//		game.soundManager.playEffect(game.SOUND_SHOT);
+		TorpedoEntity shot = new TorpedoEntity(this, ship, Constants.FILE_IMG_TORPEDO);
+		shot.setImmediateHeading(direction, 0);
+		shot.setVelocity(Constants.torpedoSpeed);
+		entities.add(shot);
+		game.soundManager.playEffect(game.SOUND_SHOT);
 		return true;
 	}
 

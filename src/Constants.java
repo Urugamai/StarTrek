@@ -31,7 +31,7 @@ public class Constants {
 	public static final float		phaserSpeed			= 1.0f;		// multiple of light speed
 	public static final float		warpSpeedMax		= 8.0f;		// multiple of light speed
 	public static final float		impulseSpeedMax		= 0.1f;		// multiple of light speed
-	public static final float		torpedoSpeed		= 0.5f;		// multiple of light speed
+	public static final float		torpedoSpeed		= 100.0f;		// pixels per second
 	public static final float		c					= 500.0f;	// The speed of light, in pixels per second
 
 	public static enum DisplayMode { Sector, GalacticMap, DamageReport };

@@ -35,46 +35,24 @@
  *
  */
 public class TorpedoEntity extends Entity {
-	private static final int	TOP_BORDER	= -100;			/** Top border at which shots are outside */
 	private Sector				sector;						/** The sector in which this entity exists */
 	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
 	private Entity				Parent;						/** The parent entity for this torpedo - the only entity that cannot be 'hit' by the torpedo */
+	private int					Range;
 
 	/**
 	 * Create a new shot from the player
 	 *
 	 * @param sector The sector in which the shot has been created
-	 * @param sprite The sprite representing this shot
-	 * @param x The initial x location of the shot
-	 * @param y The initial y location of the shot
+	 * @param sourceShip The ship that fired the shot
+	 * @param sprite The sprite file to be used for this shot
 	 */
-	public TorpedoEntity(Sector sector, String sprite, int x, int y) {
-		super(entityType.TORPEDO, sector.getSprite(sprite), x, y);
+	public TorpedoEntity(Sector sector, Entity sourceShip, String sprite) {
+		super(entityType.TORPEDO, sector.getSprite(sprite), sourceShip.getX(), sourceShip.getY());
 
 		this.sector = sector;
-//		dx = 0;
-//		dy = 0;
-	}
-
-	/**
-	 * Reinitializes this entity, for reuse
-	 *
-	 * @param x new x coordinate
-	 * @param y new y coordinate
-	 */
-	public void reinitialize(Entity source, int x, int y, float direction) {
-//		this.x = x;
-//		this.y = y;
-		used = false;
-		Parent = source;
-
-		float rads = (float)Math.toRadians(direction);
-		float dir = direction;
-
-//		this.dx = (float)Math.cos(rads)*(Constants.c*Constants.torpedoSpeed);
-//		this.dy = (float)Math.sin(rads)*(Constants.c*Constants.torpedoSpeed);
-		sprite.setAngle(dir, 0);
-//		sprite.setRotationSpeed(100);	// effectively instant (OK, 3 to 4 FRAMES, it is usually hidden behind your ship for at least that long)
+		this.Parent = sourceShip;
+		this.Range = 2000; // Pixels
 	}
 
 	/**
@@ -82,14 +60,10 @@ public class TorpedoEntity extends Entity {
 	 *
 	 * @param delta The time that has elapsed since last move
 	 */
-	public void move(long delta) {
+	public void move(double delta) {
 		// proceed with normal move
 		super.move(delta);
-
-		// if we shot off the screen, remove ourselfs
-//		if (y < TOP_BORDER) {
-//			sector.removeEntity(this);
-//		}
+		if (this.x < 0 || this.x > Range || this.y < 0 || this.y > Range) { used=true; sector.removeEntity(this); }
 	}
 
 	/**
@@ -110,9 +84,9 @@ public class TorpedoEntity extends Entity {
 		sector.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
 
 		// if we've hit an alien, kill it!
-		if (other instanceof RomulanEntity) {
+		if (other != null) {
 			// remove the affected entities
-			sector.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
+			if (other instanceof RomulanEntity) sector.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
 
 			// notify the sector that the alien has been killed
 			sector.notifyAlienKilled();

@@ -70,6 +70,13 @@ public abstract class Entity {
 		targetInclination = newInclination;
 	}
 
+	public void setImmediateHeading(float newDegrees, float newInclination) {
+		setHeading(newDegrees, newInclination);
+		currentAngle = newDegrees;
+		currentInclination = newInclination;
+
+	}
+
 	public void setThrust(float accel, float duration) {
 		thrustAcceleration = accel;
 		thrustDuration = duration;
