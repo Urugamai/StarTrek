@@ -6,14 +6,13 @@ import java.util.ArrayList;
 public class Sector {
 	private Game game;
 
-	//protected Motion thisNewtonian = new Motion();		// This sectors newtonian physics collection
+	private int width, height;
 
 	private int enemyCount = 0;
 	private int starbaseCount = 0;
 	private int planetCount = 0;
 
 	private PlayerShipEntity ship;
-	private TorpedoEntity[] shots;
 	private int shotIndex;
 
 	private ArrayList<Entity> entities = new ArrayList<Entity>();
@@ -27,12 +26,6 @@ public class Sector {
 		starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
 
 		planetCount = (int) (Math.random() * (Constants.maxPlanets + 1));
-
-		// setup n shots
-		shots = new TorpedoEntity[15];
-		for (int i = 0; i < shots.length; i++) {
-			shots[i] = new TorpedoEntity(this, Constants.FILE_IMG_TORPEDO, 0, 0);
-		}
 	}
 
 	public Sprite getSprite(String ref) {
@@ -61,13 +54,13 @@ public class Sector {
 	 * entity will be added to the overall list of entities in the game.
 	 */
 	public void initEntities(int width, int height) {
+		this.width = width;
+		this.height = height;
+
 		Entity newEntity = null;
-		Motion.objectData newObject;
 
 		// Whack the star into the middle of the sector
 		newEntity = new StarEntity(game, Constants.FILE_IMG_STAR, width / 2, height / 2);
-//		newObject = thisNewtonian.addObject("STAR", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 2E30);
-//		newEntity.addNewtonianObject(newObject);
 		entities.add(newEntity);
 
 		// whack in a starbase if needed
@@ -79,23 +72,8 @@ public class Sector {
 				}
 				newEntity = new StarbaseEntity(game, Constants.FILE_IMG_STARBASE, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
 			} while (checkEntityForOverlap(newEntity));
-//			newObject = thisNewtonian.addObject("Starbase", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 2E10);
-//			newEntity.addNewtonianObject(newObject);
 			entities.add(newEntity); // this ones a keeper
 		}
-
-		// Whack in the player ship
-		newEntity = null;
-		do {
-			if (newEntity != null) {
-				newEntity = null;
-			} // dispose of dud selection
-			newEntity = new PlayerShipEntity(game, Constants.FILE_IMG_ENTERPRISE, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
-		} while (checkEntityForOverlap(newEntity));
-//		newObject = thisNewtonian.addObject("Enterprise", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 2E5);
-//		newEntity.addNewtonianObject(newObject);
-		entities.add(newEntity);
-		ship = (PlayerShipEntity) newEntity;
 
 		// Whack in the necessary number of enemy units
 		newEntity = null;
@@ -106,10 +84,21 @@ public class Sector {
 				} // dispose of dud selection
 				newEntity = new RomulanEntity(game, Constants.FILE_IMG_ROMULAN, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
 			} while (checkEntityForOverlap(newEntity));
-//			newObject = thisNewtonian.addObject("Romulan", newEntity.getX() * Constants.PixelSize, newEntity.getY() * Constants.PixelSize, 0, 1E5); // heading and thrust default to zero
-//			newEntity.addNewtonianObject(newObject);
 			entities.add(newEntity); // this ones a keeper
 		}
+	}
+
+	public void initPlayerShip(int x, int y) {
+		// Whack in the player ship
+		Entity newEntity = null;
+		do {
+			if (newEntity != null) {
+				newEntity = null;
+			} // dispose of dud selection
+			newEntity = new PlayerShipEntity(game, Constants.FILE_IMG_ENTERPRISE, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
+		} while (checkEntityForOverlap(newEntity));
+		entities.add(newEntity);
+		ship = (PlayerShipEntity) newEntity;
 	}
 
 	private boolean checkEntityForOverlap(Entity me) {
@@ -183,11 +172,11 @@ public class Sector {
 //			dx = (int) Math.ceil((float) Math.cos(rads) * width);
 //			dy = (int) Math.ceil((float) Math.sin(rads) * height);
 
-		TorpedoEntity shot = shots[shotIndex++ % shots.length];
+//		TorpedoEntity shot = shots[shotIndex++ % shots.length];
 //		shot.reinitialize(ship, x + dx, y + dy, direction);
-		entities.add(shot);
+//		entities.add(shot);
 
-		game.soundManager.playEffect(game.SOUND_SHOT);
+//		game.soundManager.playEffect(game.SOUND_SHOT);
 	}
 
 	// TODO processHits needs to be a LOT smarter
@@ -219,7 +208,7 @@ public class Sector {
 //		thisNewtonian.updateObjects((double)msElapsed / 1000.0);
 		// cycle round asking each entity to move itself
 		for (Entity entity : entities) {
-			entity.move(msElapsed);
+			entity.move(msElapsed / 1000.0);
 		}
 	}
 

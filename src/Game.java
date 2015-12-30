@@ -201,11 +201,6 @@ public class Game {
 			return;
 		}
 
-		// get our sprites
-//		gotYou = getSprite(Constants.FILE_IMG_LOSE);
-//		pressAnyKey = getSprite(Constants.FILE_IMG_START);
-//		youWin = getSprite(Constants.FILE_IMG_WIN);
-
 		textWindow = new GameText(0, height, 5);
 		textWindow.setTextColour( org.newdawn.slick.Color.green);
 		textWindow.write( "Star Trekking across the universe...");
@@ -221,12 +216,12 @@ public class Game {
 	private boolean setDisplayMode() {
 		try {
 			// get modes
-			DisplayMode[] dm = org.lwjgl.util.Display.getAvailableDisplayModes(width, height, -1, -1, -1, -1, 60, 60);
+			DisplayMode[] dm = org.lwjgl.util.Display.getAvailableDisplayModes(width, height, -1, -1, -1, -1, Constants.FramesPerSecond, Constants.FramesPerSecond);
 
 			org.lwjgl.util.Display.setDisplayMode(dm, new String[] {
 					"width=" + width,
 					"height=" + height,
-					"freq=" + 60,
+					"freq=" + Constants.FramesPerSecond,
 					"bpp=" + org.lwjgl.opengl.Display.getDisplayMode().getBitsPerPixel()
 			});
 			return true;
@@ -247,7 +242,7 @@ public class Game {
 		//entities.clear();
 		galaxy = new Galaxy(this);
 		galaxy.initSectors( width, (height - textWindow.getHeight()) );
-//		currentSector = galaxy.getSafeSector();
+//		currentSector = galaxy.getSafeSector();	// TODO: To become a 'player skill-level' based selection of initial sector
 		currentSector = galaxy.getLeastSafeSector();
 		sector = galaxy.getSector(currentSector);
 	}
@@ -268,13 +263,16 @@ public class Game {
 		soundManager.playEffect(SOUND_START);
 
 		//SystemTimer.sleep(lastLoopTime+10-SystemTimer.getTime());
-		Display.sync(60);
+//		Display.sync(60);	// Causes this loop to stop until the next 60th of a second is ready
 
 		while (Game.gameRunning) {
-			// clear screen
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
+			setTimeDelta();
+
+			userInteractions();
+
+			sector.processHits();
+
+			sector.doLogic();
 
 			// let subsystem paint
 			frameRendering();
@@ -364,7 +362,10 @@ public class Game {
 	 */
 	public void frameRendering() {	//
 
-		setTimeDelta();
+		// clear non-visible screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 
 		sector.move(msElapsed);
 
@@ -374,12 +375,6 @@ public class Game {
 			galaxy.draw();
 		else if (displayMode == Constants.DisplayMode.DamageReport)
 			galaxy.draw();	// TODO: Change this to a picture showing the current ship damage status
-
-		sector.processHits();
-
-		sector.doLogic();
-
-		userInteractions();
 
 		textWindow.draw();
 	}

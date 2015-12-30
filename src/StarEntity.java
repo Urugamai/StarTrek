@@ -53,16 +53,6 @@ public class StarEntity extends Entity {
 	}
 
 	/**
-	 * Request that this alien moved based on time elapsed
-	 *
-	 * @param delta The time that has elapsed since last move
-	 */
-	public void move(long delta) {
-		// STARS do not move.
-		// TODO: Version >2: implement some two-star systems (maybe even 3?) where the stars orbit each other
-	}
-
-	/**
 	 * Update the game logic related to aliens
 	 */
 	public void doLogic() {
@@ -74,6 +64,6 @@ public class StarEntity extends Entity {
 	 * @param other The other entity
 	 */
 	public void collidedWith(Entity other) {
-		// collisions with stars handle elsewhere
+		// collisions with stars have no effect on the star!
 	}
 }

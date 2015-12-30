@@ -40,7 +40,7 @@ public abstract class Entity {
 
 	private float  targetAngle, targetInclination;				/** Where Do I Want To Go */
 
-	float rotationSpeed = 90.0f;						/** Degrees per second */
+	float rotationSpeed = 30.0f;						/** Degrees per second */
 	float thrustAcceleration = 0, thrustDuration = 0;
 
 	protected Sprite	sprite;					/** The sprite (graphics) that represents this entity */
@@ -80,7 +80,7 @@ public abstract class Entity {
 		velocity = newVelocity;
 	}
 
-	private void Rotate(long delta) {
+	private void Rotate(double delta) {
 		int f1, f2;
 
 		if (targetAngle >= 0 && currentAngle != targetAngle) {
@@ -108,7 +108,7 @@ public abstract class Entity {
 		sprite.setAngle(currentAngle, currentInclination);
 	}
 
-	private void Translate(long delta) {
+	private void Translate(double delta) {
 		double rAngle = Math.toRadians(currentAngle);
 
 		if (thrustDuration > 0) {
@@ -130,13 +130,11 @@ public abstract class Entity {
 	 * Request that this entity move itself based on a certain amount
 	 * of time passing.
 	 *
-	 * @param delta The amount of time that has passed in milliseconds
+	 * @param delta The amount of time that has passed in seconds
 	 */
-	public void move(long delta) {
-		System.out.println("MOVE: " + delta);
-		Rotate(delta/10);
-
-		Translate(delta/10);
+	public void move(double delta) {
+		Rotate(delta);
+		Translate(delta);
 	}
 
 	/**
