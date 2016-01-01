@@ -239,12 +239,12 @@ public class Game {
 	 */
 	private void startGame() {
 		// clear out any existing entities and initialise a new set
-		//entities.clear();
+		//entities.clear();	//MWW: sector function, not galactic
 		galaxy = new Galaxy(this);
-		galaxy.initSectors( width, (height - textWindow.getHeight()) );
-//		currentSector = galaxy.getSafeSector();	// TODO: To become a 'player skill-level' based selection of initial sector
-		currentSector = galaxy.getLeastSafeSector();
-		sector = galaxy.getSector(currentSector);
+		galaxy.initSectors( width, height );
+//		currentSector = galaxy.getSafeSector();	// TODO: Start sector to be based on 'player skill-level'
+//		currentSector = galaxy.getLeastSafeSector();
+		setCurrentSector(5,5);
 		sector.initPlayerShip(-1, -1);
 	}
 
@@ -254,6 +254,11 @@ public class Game {
 	 * game event)
 	 */
 	public void updateLogic() {
+	}
+
+	public void setCurrentSector(int gx, int gy) {
+		currentSector = galaxy.getGalacticLocation(gx,gy);	// start in the middle
+		sector = galaxy.getSector(currentSector);
 	}
 
 	/**
@@ -266,6 +271,11 @@ public class Game {
 		//SystemTimer.sleep(lastLoopTime+10-SystemTimer.getTime());
 //		Display.sync(60);	// Causes this loop to stop until the next 60th of a second is ready
 
+		textWindow.write( "There are " + galaxy.getEnemyCount() + " enemy ships currently in federation space");
+		textWindow.scroll();
+		textWindow.write( "You currently have " + galaxy.getStarbaseCount() + " starbases available");
+		textWindow.scroll();
+
 		while (Game.gameRunning) {
 			setTimeDelta();
 
@@ -273,7 +283,7 @@ public class Game {
 
 			sector.processHits();
 
-			sector.doLogic();
+			galaxy.doLogic(msElapsed / 1000.0);
 
 			// let subsystem paint
 			frameRendering();
@@ -361,8 +371,6 @@ public class Game {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-
-		sector.move(msElapsed);
 
 		if (displayMode == Constants.DisplayMode.Sector)
 			sector.draw();

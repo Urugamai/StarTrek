@@ -35,10 +35,9 @@
  *
  */
 public class TorpedoEntity extends Entity {
-	private Sector				sector;						/** The sector in which this entity exists */
 	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
 	private Entity				Parent;						/** The parent entity for this torpedo - the only entity that cannot be 'hit' by the torpedo */
-	private int					Range;
+	private double				Range;
 
 	/**
 	 * Create a new shot from the player
@@ -50,9 +49,9 @@ public class TorpedoEntity extends Entity {
 	public TorpedoEntity(Sector sector, Entity sourceShip, String sprite) {
 		super(entityType.TORPEDO, sector.getSprite(sprite), sourceShip.getX(), sourceShip.getY());
 
-		this.sector = sector;
+		setSector(sector);
 		this.Parent = sourceShip;
-		this.Range = 2000; // Pixels
+		this.Range = 4.5; // seconds
 	}
 
 	/**
@@ -63,7 +62,8 @@ public class TorpedoEntity extends Entity {
 	public void move(double delta) {
 		// proceed with normal move
 		super.move(delta);
-		if (this.x < 0 || this.x > Range || this.y < 0 || this.y > Range) { used=true; sector.removeEntity(this); }
+		Range -= delta;
+		if (Range <= 0) { used=true; super.currentSector.removeEntity(this); }  // suicide
 	}
 
 	/**
@@ -81,15 +81,15 @@ public class TorpedoEntity extends Entity {
 
 		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
 
-		sector.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
+		super.currentSector.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
 
 		// if we've hit an alien, kill it!
 		if (other != null) {
 			// remove the affected entities
-			if (other instanceof RomulanEntity) sector.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
+			if (other instanceof RomulanEntity) super.currentSector.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
 
 			// notify the sector that the alien has been killed
-			sector.notifyAlienKilled();
+			super.currentSector.notifyAlienKilled();
 			used = true;
 		}
 	}

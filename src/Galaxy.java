@@ -3,8 +3,8 @@
  */
 public class Galaxy {
 	private Game				game;						/** The game in which this entity exists */
-	private static final int sizeX = 10;
-	private static final int sizeY = 10;
+	private static final int sizeX = 10;					// Width of galaxy
+	private static final int sizeY = 10;					// Height of galaxy
 	private int alienCount = 0;
 	private int starbaseCount = 0;
 	private GameText galacticMap;
@@ -16,6 +16,8 @@ public class Galaxy {
 		private int gx;
 		private int gy;
 
+		public galacticLocation() {}
+		public galacticLocation(int x, int y) { gx = x; gy = y; }
 		public int getGx() { return gx; }
 		public int getGy() { return gy; }
 		public void setGx(int X) { if (X <= sizeX && X >= 0 ) gx = X; }
@@ -110,17 +112,18 @@ public class Galaxy {
 		return gl;
 	}
 
-	public int getSectorEnemyCount(galacticLocation sector) {
-		return sectorList[sector.getGx()][sector.getGy()].getEnemyCount();
+	public galacticLocation getGalacticLocation(int x, int y) {
+		galacticLocation gl = new galacticLocation(x,y);
+		return gl;
 	}
 
-	public int getSectorStarbaseCount(galacticLocation sector) {
-		return sectorList[sector.getGx()][sector.getGy()].getStarbaseCount();
+	public int getEnemyCount() {
+		return alienCount;
 	}
 
-//	public float getSectorGravity(galacticLocation sector) {
-//		return sectorList[sector.getGx()][sector.getGy()].getStarGravity();
-//	}
+	public int getStarbaseCount() {
+		return starbaseCount;
+	}
 
 	public Sector getSector(galacticLocation sector) {
 		return sectorList[sector.getGx()][sector.getGy()];
@@ -162,9 +165,91 @@ public class Galaxy {
 			currentLine = "";
 		}
 
-		galacticMap.writeLine(22 + 6, "FEDERATION SPACE GALACTIC MAP");
+		galacticMap.writeLine(sizeY*2 + 5 + 6, "FEDERATION SPACE GALACTIC MAP");
+		galacticMap.writeLine(sizeY*2 + 3 + 6, "There are " + alienCount + " enemy ships currently in federation space");
+		galacticMap.writeLine(sizeY*2 + 2 + 6, "You currently have " + starbaseCount + " starbases available");
 		galacticMap.draw();
 		galacticMap.writeLine(0 + 6, "Only updated after Long Range Scan performed.");
+	}
+
+	// Galactic logic implemented here and passed down the classes
+	public void doLogic(double delta) {
+		Entity entity;
+
+		for (int gy = 0; gy < sizeY; gy++) {
+			for (int gx = 0; gx < sizeX; gx++) {
+				sectorList[gx][gy].doLogic(delta);
+				while ( (entity = sectorList[gx][gy].getEntityLeavingSector()) != null) {
+					transferEntity(entity, gx, gy);
+				}
+			}
+		}
+	}
+
+	// Transfer entity from current sector to the one they just travelled into (boundary crossing)
+	// OR stop at boundary if it is the galactic edge
+	private void transferEntity(Entity entity, int currentGx, int currentGy) {
+		int gx = currentGx, gy = currentGy;
+		int newX = entity.getX(), newY = entity.getY();
+		int sectorWidth = sectorList[currentGx][currentGy].getSectorWidth();
+		int sectorHeight = sectorList[currentGx][currentGy].getSectorHeight();
+		int spriteWidth = entity.sprite.getWidth();
+		int spriteHeight = entity.sprite.getHeight();
+
+		if (newX < 0) {
+			gx--;
+			newX = sectorWidth - spriteWidth;
+		} else if (newX >= sectorWidth) {
+			gx++;
+			newX = entity.sprite.getWidth();
+		}
+		if (newY < 0) {
+			gy--;
+			newY = sectorHeight - spriteHeight;
+		} else if (newY >= sectorList[currentGx][currentGy].getSectorHeight()) {
+			gy++;
+			newY = entity.sprite.getHeight();
+		}
+
+		if (gx < 0) {
+			gx = 0;
+			newY = spriteWidth;
+			entity.setVelocity(0);
+			entity.setThrust(0, 0);    // all stop
+		} else if (gx >= sizeX) {
+			gx = sizeX;
+			newX = sectorWidth - spriteWidth;
+			entity.setVelocity(0);
+			entity.setThrust(0, 0);    // all stop
+		}
+
+		if (gy < 0) {
+			gy = 0;
+			newY = spriteHeight;
+			entity.setVelocity(0);
+			entity.setThrust(0, 0);    // all stop
+		}
+		if (gy >= sizeY) {
+			gy = sizeY;
+			newY = sectorHeight - spriteHeight;
+			entity.setVelocity(0);
+			entity.setThrust(0, 0);    // all stop
+		}
+
+		// Move entity from currentGx/currentGy to new gx/gy
+		if (sectorList[currentGx][currentGy].takeEntity(entity)) {
+			if (sectorList[gx][gy].putEntity(entity)) {
+				// transfer successful
+				if (entity instanceof PlayerShipEntity) game.setCurrentSector(gx,gy);
+				entity.setLocation(newX, newY, 0);
+				entity.setSector(sectorList[gx][gy]);
+			} else {
+				// application failure: report it as 'ship hit a mine between sectors, destroyed'
+			}
+		} else {
+			// Hotel California - you can never leave...  Dont know why this would happen (yet)
+			// report it as 'warp drive failure, ship is stuck in this sector'
+		}
 	}
 }
 

@@ -25,17 +25,18 @@ Version 0.3
 
 Version 0.4
 ===========
-- Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
-- Remove Gravity
-     - Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
-       relevant super entities so that each can rotate at different rates
-- Fix broken torpedo capability
+- DONE: Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
+- DONE: Remove Gravity
+     - DONE: Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
+             relevant super entities so that each can rotate at different rates
+- DONE: Fix broken torpedo capability
 
 Version 0.5
 ===========
 - Movement
+    - DONE: Need sectors to be joined? - currently it is just the 'void' between solar systems that never ends-think about it
     - WARP Drive!  Travel across sector boundary
-        - Accelerate (currently instantaneous :-( ) to full impulse before enabling WARP drive
+        - Accelerate to full impulse before enabling WARP drive
         - WARP still travels through space, just a LOT faster, can hit stuff, etc.
             - i.e. long trips travel 'through' the intervening sectors
             - collision detection to eject ship from warp just before hitting
@@ -65,13 +66,13 @@ Version 0.x
 
 Version 0.x
 ===========
-- Warp drive (to new sector)
-    - Sucked out of warp if crossing a sector with high concentration of enemy vessels
+- STOP command to 'slow down to zero' rather than instantly stop.
 
 Version 0.x
 ===========
 - Enemies fight back
     - Torpedo and Phaser capabilities
+    - 'Follow you' capability - even across sectors
 
 Version 0.x
 ===========
@@ -272,16 +273,18 @@ Sector scale is ~10 light seconds? (about the most people will wait for a phaser
 Opening Address
 ================
 
-You are Captain of the Starship Enterprise.  Your mission is to save the Federation from the Romulan invasion
-currently underway.  Due to the significance of this attack, you will be promoted or demoted as you progress.
-Do well and you will be allocated better starships and be requested to explore strange new worlds and to go
-where no man has gone before.  Do badly and you will be demoted to lesser craft where it will be harder for
-you to redeem yourself and regain your status.
+You are the Captain of the Starship Enterprise.  Your mission is to save the Federation from the Romulan invasion.
+Do well and you will be allocated better starships and be requested to explore strange new worlds
+and to boldly go where no man has gone before.  Do badly and you will be demoted to lesser craft where it will be
+harder for you to redeem yourself and regain your status.
 
 The Federation Space map has been compressed, the empty space between sectors is not evident but if you travel out of
-current sector on impulse drive then you may find it difficult to get back.  Information in the sector is provided
+current sector on impulse drive then automated systems will activate the Warp Drive to get you to the next sector
+in a very short time.
+
+Information in the sector is provided
 to you via probes that the federation has seeded throughout our space and as they are small and fast they cannot be
-found and/or destroyed but go out of their range and you are on your own.
+found and/or destroyed but if you go out of their range then you are on your own.
 
 Torpedo's will damage and possibly destroy anything, even friendly units, as they assume you know what your are doing
 when sending one out.  Dont get it wrong or you may make more enemies.
@@ -303,28 +306,30 @@ commands are;
 
 DONE
 ====
-TOR,direction           -   direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
-                            computer to get assistance in generating the coordinate but bear in mind that gravitational
-                            effects are far to complicated and variable for the computer to predict.
-IMP,direction,power     -   Impulse engines used to move around within a star system.  Does not stop until ordered.
-                            power is % of full (0 - 100).
-                            Moving can be good as it makes you harder to hit, but also makes it harder for you to
-                            hit the enemy.
-SRS                     -   Add current sector details to the galactic map.
-LRS                     -   Add the current and 8 surrounding sectors to the galactic map.
-STOP                    -   Computer calculates and implements impulse forces necessary to effective stop in space
-EXIT                    -   Quit game.  ESC Key is also meant to work.
+TOR,direction               -   direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
+                                computer to get assistance in generating the coordinate but bear in mind that gravitational
+                                effects are far to complicated and variable for the computer to predict.
+IMP,direction,power,duration -   Impulse engines used to move around within a star system.  Does not stop until ordered.
+                                power is % of full (0 - 100), duration is in seconds.  Ship will accelerate for the
+                                duration given and then coast at the velocity arrived at.
+SRS                         -   Add current sector details to the galactic map.
+LRS                         -   Add the current and 8 surrounding sectors to the galactic map.
+STOP                        -   Computer calculates and implements impulse forces necessary to come to a full stop
+EXIT                        -   Quit game.  ESC Key is also meant to work.
 
 TODO
 ====
-WARP,direction,range    -   Turn in the direction indicated and activate warp drive. Range is roughly the number of
-                            sectors travelled over.  Note that travelling at an angle will not necessary cross as
-                            many sectors as you have entered.  Get out your trigonometry and pythagoras notes to
-                            understand the distance travelled.
-ORB,range               -   go into orbit of the star at a distance of 'range' light-seconds
-DOCK                    -   connect with starbase - you must be reasonably close for this to work as the starbase
-                            autopilot uses bluetooth to reduce detection by the enemy
-AS                      -   ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
-PHA,direction,power     -   fire Phasers in the direction indicated with start power at the level indicated.  Power
-                            will decrease by 1% (10%?) per lightsecond travelled.
-COMP,
+WARP,direction,range        -   Turn in the direction indicated and activate warp drive. Range is roughly the number of
+                                sectors travelled over.  Note that travelling at an angle will not necessary cross as
+                                many sectors as you have entered.  Get out your trigonometry and pythagoras notes to
+                                understand the distance travelled.
+DOCK                        -   connect with starbase - you must be reasonably close for this to work as the starbase
+                                autopilot uses bluetooth to reduce detection by the enemy
+AS                          -   ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
+PHA,direction,power         -   fire Phasers in the direction indicated with start power at the level indicated.  Power
+                                will decrease by 1% (10%?) per lightsecond travelled.
+COMP                        -   To COMPUTER which can calculate some values to assist travel, targeting, etc.
+
+PROBABLY WONT NEED
+==================
+ORB,range                   -   go into orbit of the star at a distance of 'range' light-seconds (Needs GRAVITY implemented)

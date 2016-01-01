@@ -35,6 +35,7 @@ import java.awt.Rectangle;
 public abstract class Entity {
 	public static enum entityType { STAR, STARBASE, FEDERATIONSHIP, ROMULANSHIP, TORPEDO, BORGSHIP };	// Who Am I
 
+	protected Sector	currentSector;								/** The sector in which this entity is located */
 	double x, y, z;												/** Where Am I */
 	float currentInclination, currentAngle, velocity = 0.0f;	/** Where Am I Going */
 
@@ -64,6 +65,8 @@ public abstract class Entity {
 		targetAngle = 0;
 		targetInclination = 0;
 	}
+
+	public void setSector(Sector newSector) {currentSector = newSector; }
 
 	public void setHeading(float newDegrees, float newInclination) {
 		targetAngle = newDegrees;
@@ -144,6 +147,12 @@ public abstract class Entity {
 		Translate(delta);
 	}
 
+	public void setLocation(int x, int y, int z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
 	/**
 	 * Draw this entity to the graphics context provided
 	 */
@@ -155,7 +164,8 @@ public abstract class Entity {
 	 * Do the logic associated with this entity. This method
 	 * will be called periodically based on game events
 	 */
-	public void doLogic() {
+	public void doLogic(double delta) {
+		move(delta);
 	}
 
 	/**

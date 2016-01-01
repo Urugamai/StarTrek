@@ -6,7 +6,7 @@ import java.util.ArrayList;
 public class Sector {
 	private Game game;
 
-	private int width, height;
+	private int sectorWidth, sectorHeight;
 
 	private int enemyCount = 0;
 	private int starbaseCount = 0;
@@ -32,6 +32,9 @@ public class Sector {
 		return game.getSprite(ref);
 	}
 
+	public int getSectorWidth() { return sectorWidth; }
+	public int getSectorHeight() { return sectorHeight; }
+
 	public int getEnemyCount() {
 		return enemyCount;
 	}
@@ -54,8 +57,8 @@ public class Sector {
 	 * entity will be added to the overall list of entities in the game.
 	 */
 	public void initEntities(int width, int height) {
-		this.width = width;
-		this.height = height;
+		this.sectorWidth = width;
+		this.sectorHeight = height;
 
 		Entity newEntity = null;
 
@@ -106,7 +109,7 @@ public class Sector {
 		}
 
 		do {
-			newEntity = new PlayerShipEntity(game, Constants.FILE_IMG_ENTERPRISE, (int) (Math.random() * (width - 50)), (int) (Math.random() * (height - 50)));
+			newEntity = new PlayerShipEntity(game, Constants.FILE_IMG_ENTERPRISE, (int) (Math.random() * (sectorWidth - 50)), (int) (Math.random() * (sectorHeight - 50)));
 		} while (checkEntityForOverlap(newEntity));
 		entities.add(newEntity);
 		ship = (PlayerShipEntity) newEntity;
@@ -128,6 +131,14 @@ public class Sector {
 	 */
 	public void removeEntity(Entity entity) {
 		removeList.add(entity);
+	}
+
+	public boolean takeEntity(Entity entity) {
+		return entities.remove(entity);
+	}
+
+	public boolean putEntity(Entity entity) {
+		return entities.add(entity);
 	}
 
 	/**
@@ -206,13 +217,11 @@ public class Sector {
 		removeList.clear();
 	}
 
-	public void move(long msElapsed) {
-		//ship.setHeading(ship.sprite.getCurrentAngle(), ship.sprite.getCurrentIncline());
-//		thisNewtonian.updateObjects((double)msElapsed / 1000.0);
-		// cycle round asking each entity to move itself
+	public Entity getEntityLeavingSector() {
 		for (Entity entity : entities) {
-			entity.move(msElapsed / 1000.0);
+			if (entity.getX() < 0 || entity.getY() < 0 || entity.getX() > sectorWidth || entity.getY() > sectorHeight ) return entity;
 		}
+		return null;
 	}
 
 	public void draw() {
@@ -222,13 +231,13 @@ public class Sector {
 		}
 	}
 
-	public void doLogic() {
+	public void doLogic(double delta) {
 		// TODO: This probably needs to change
 
 		// cycle round every entity requesting that
 		// their personal logic should be considered.
 		for (Entity entity : entities) {
-			entity.doLogic();
+			entity.doLogic(delta);
 		}
 	}
 }
