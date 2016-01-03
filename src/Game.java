@@ -37,8 +37,6 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
-import java.util.Date;
-
 import static org.lwjgl.opengl.GL11.*;
 
 /**
@@ -57,9 +55,7 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class Game {
 
-	private Galaxy galaxy;
-	private Galaxy.galacticLocation currentSector;
-	private Sector sector;
+	private Galaxy 				galaxy;
 
 	private int					width				= 1000;
 	private int					height				= 1000;
@@ -233,6 +229,10 @@ public class Game {
 		return false;
 	}
 
+	public void setPlayerSector(Sector sector) {
+		galaxy.setPlayerSector(sector);
+	}
+
 	/**
 	 * Start a fresh game, this should clear out any old data and
 	 * create a new set.
@@ -242,10 +242,7 @@ public class Game {
 		//entities.clear();	//MWW: sector function, not galactic
 		galaxy = new Galaxy(this);
 		galaxy.initSectors( width, height );
-//		currentSector = galaxy.getSafeSector();	// TODO: Start sector to be based on 'player skill-level'
-//		currentSector = galaxy.getLeastSafeSector();
-		setCurrentSector(5,5);
-		sector.initPlayerShip(-1, -1);
+		galaxy.initPlayerShip();
 	}
 
 	/**
@@ -256,15 +253,10 @@ public class Game {
 	public void updateLogic() {
 	}
 
-	public void setCurrentSector(int gx, int gy) {
-		currentSector = galaxy.getGalacticLocation(gx,gy);	// start in the middle
-		sector = galaxy.getSector(currentSector);
-	}
-
-	/**
+	/*****************************************************************
 	 * Run the main game loop. This method keeps rendering the scene
 	 * and requesting that the callback update its screen.
-	 */
+	 *****************************************************************/
 	private void gameLoop() {
 		soundManager.playEffect(SOUND_START);
 
@@ -281,11 +273,8 @@ public class Game {
 
 			userInteractions();
 
-			sector.processHits();
-
 			galaxy.doLogic(msElapsed / 1000.0);
 
-			// let subsystem paint
 			frameRendering();
 		}
 
@@ -330,7 +319,7 @@ public class Game {
 
 	private void userInteractions() {
 
-		textWindow.writeLine(4, "Currently in sector (" + currentSector.getGx() + "," + currentSector.getGy() + ")");
+		textWindow.writeLine(4, "Currently in sector (" + galaxy.playerSector.getGalacticX() + "," + galaxy.playerSector.getGalacticY() + ")");
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GalacticMap;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.DamageReport;
@@ -373,11 +362,11 @@ public class Game {
 		glLoadIdentity();
 
 		if (displayMode == Constants.DisplayMode.Sector)
-			sector.draw();
+			galaxy.drawSector();
 		else if (displayMode == Constants.DisplayMode.GalacticMap)
-			galaxy.draw();
+			galaxy.drawGalaxy();
 		else if (displayMode == Constants.DisplayMode.DamageReport)
-			galaxy.draw();	// TODO: Change this to a picture showing the current ship damage status
+			galaxy.drawGalaxy();	// TODO: Change this to a picture showing the current ship damage status
 
 		textWindow.draw();
 
@@ -403,7 +392,7 @@ public class Game {
 					textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
 					return;  // no firing for you when you get the parameter wrong
 				}
-				sector.tryToFire(angle);
+				galaxy.playerFired(angle);
 			} else {
 				textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
 				return;  // no firing for you when you get the parameter wrong
@@ -431,25 +420,27 @@ public class Game {
 				return; // no moving for you when you get the parameters wrong
 			}
 
-			sector.setShipHeading(angle, 0);
-			sector.setShipThrust( force, seconds);
+			galaxy.setPlayerHeading(angle, 0);
+			galaxy.setPlayerThrust( force, seconds);
+
 			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + pieces[1] + " " + pieces[2] + " " + pieces[3]);
 
 			return;
 		}
 
 		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {
-			sector.setShipVelocity(0.0f);
+			galaxy.setPlayerVelocity(0.0f);
+			galaxy.setPlayerThrust(0, 0);
 			return;
 		}
 
 		if (pieces[0].compareToIgnoreCase("LRS") == 0 ) {
-			galaxy.doLRS(currentSector);
+			galaxy.doLRS();
 			return;
 		}
 
 		if (pieces[0].compareToIgnoreCase("SRS") == 0 ) {
-			galaxy.doSRS(currentSector);
+			galaxy.doSRS();
 			return;
 		}
 

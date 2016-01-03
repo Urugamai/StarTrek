@@ -36,13 +36,13 @@ public abstract class Entity {
 	public static enum entityType { STAR, STARBASE, FEDERATIONSHIP, ROMULANSHIP, TORPEDO, BORGSHIP };	// Who Am I
 
 	protected Sector	currentSector;								/** The sector in which this entity is located */
-	double x, y, z;												/** Where Am I */
-	float currentInclination, currentAngle, velocity = 0.0f;	/** Where Am I Going */
+	private double x, y, z;												/** Where Am I */
+	private float currentInclination, currentAngle, velocity = 0.0f;	/** Where Am I Going */
 
 	private float  targetAngle, targetInclination;				/** Where Do I Want To Go */
 
-	float rotationSpeed = 30.0f;						/** Degrees per second */
-	float thrustAcceleration = 0, thrustDuration = 0;
+	private float rotationSpeed = 30.0f;						/** Degrees per second */
+	private float thrustAcceleration = 0, thrustDuration = 0;
 
 	protected Sprite	sprite;					/** The sprite (graphics) that represents this entity */
 	protected entityType eType;
@@ -184,6 +184,10 @@ public abstract class Entity {
 	 */
 	public int getY() {
 		return (int)y;
+	}
+
+	public int getZ() {
+		return (int)z;
 	}
 
 	/**

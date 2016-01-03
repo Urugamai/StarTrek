@@ -42,20 +42,21 @@ public class TorpedoEntity extends Entity {
 	/**
 	 * Create a new shot from the player
 	 *
+	 * @param game The parent of all the universe(s?)
 	 * @param sector The sector in which the shot has been created
 	 * @param sourceShip The ship that fired the shot
-	 * @param sprite The sprite file to be used for this shot
+	 * @param spriteFile The sprite file to be used for this shot
 	 */
-	public TorpedoEntity(Sector sector, Entity sourceShip, String sprite) {
-		super(entityType.TORPEDO, sector.getSprite(sprite), sourceShip.getX(), sourceShip.getY());
+	public TorpedoEntity(Game game, Sector sector, Entity sourceShip, String spriteFile) {
+		super(entityType.TORPEDO, game.getSprite(spriteFile), sourceShip.getX(), sourceShip.getY());
 
 		setSector(sector);
 		this.Parent = sourceShip;
-		this.Range = 4.5; // seconds
+		this.Range = 5.1; // seconds
 	}
 
 	/**
-	 * Request that this shot moved based on time elapsed
+	 * Request that this shot move based on time elapsed
 	 *
 	 * @param delta The time that has elapsed since last move
 	 */
@@ -63,7 +64,7 @@ public class TorpedoEntity extends Entity {
 		// proceed with normal move
 		super.move(delta);
 		Range -= delta;
-		if (Range <= 0) { used=true; super.currentSector.removeEntity(this); }  // suicide
+		if (Range <= 0) { used=true; super.currentSector.takeEntity(this); }  // suicide
 	}
 
 	/**
@@ -81,12 +82,12 @@ public class TorpedoEntity extends Entity {
 
 		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
 
-		super.currentSector.removeEntity(this);	// Torpedo ALWAYS dies on hitting something
+		super.currentSector.takeEntity(this);	// Torpedo ALWAYS dies on hitting something
 
 		// if we've hit an alien, kill it!
 		if (other != null) {
 			// remove the affected entities
-			if (other instanceof RomulanEntity) super.currentSector.removeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
+			if (other instanceof RomulanEntity) super.currentSector.takeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
 
 			// notify the sector that the alien has been killed
 			super.currentSector.notifyAlienKilled();

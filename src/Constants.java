@@ -21,6 +21,7 @@ public class Constants {
 	/** Game Parameters */
 	public static final String		WINDOW_TITLE		= "Star Trek - TNG";
 	public static final int			FramesPerSecond		= 60;
+	public static final int			screenLines			= 40;		// Number of text lines to provide on the screen
 
 	public static final int			maxEnemy			= 5;		// Per sector
 	public static final float		starbaseProbability = 0.1f;
@@ -35,6 +36,7 @@ public class Constants {
 	public static final float		c					= 500.0f;	// The speed of light, in pixels per second
 
 	public static enum DisplayMode { Sector, GalacticMap, DamageReport };
+	public static enum jumpDirection { LeftTop, Top, RightTop, Left, here, Right, LeftBottom, Bottom, RightBottom };
 	public static enum LRSItems {
 		Enemy(0), Starbases(1), Planets(2);
 		private final int value;

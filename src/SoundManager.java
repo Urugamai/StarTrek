@@ -116,25 +116,28 @@ public class SoundManager {
 	 * @param channels Number of channels to create
 	 */
 	public void initialize(int channels) {
-		try {
-			AL.create();
+		while (true) {
+			try {
+				AL.create();
 
-			// allocate sources
-			scratchBuffer.limit(channels);
-			AL10.alGenSources(scratchBuffer);
-			scratchBuffer.rewind();
-			scratchBuffer.get(sources = new int[channels]);
+				// allocate sources
+				scratchBuffer.limit(channels);
+				AL10.alGenSources(scratchBuffer);
+				scratchBuffer.rewind();
+				scratchBuffer.get(sources = new int[channels]);
 
-			// could we allocate all channels?
-			if(AL10.alGetError() != AL10.AL_NO_ERROR) {
-				throw new LWJGLException("Unable to allocate " + channels + " sources");
+				// could we allocate all channels?
+				if (AL10.alGetError() != AL10.AL_NO_ERROR) {
+					throw new LWJGLException("Unable to allocate " + channels + " sources");
+				}
+
+				// we have sound
+				soundOutput = true;
+				break;
+			} catch (LWJGLException le) {
+				le.printStackTrace();
+				System.err.println("Sound disabled");
 			}
-
-			// we have sound
-			soundOutput = true;
-		} catch (LWJGLException le) {
-			le.printStackTrace();
-			System.out.println("Sound disabled");
 		}
 	}
 
