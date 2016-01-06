@@ -105,24 +105,42 @@ public class Galaxy {
 		playerSector.draw();
 	}
 
+	// Draw a section of the galaxy with the players current sector in the centre
 	public void drawGalaxy() {
-		int currentRow, currentCol;
-		int mapLines = Constants.screenLines - 5;
+		int mapLines = Constants.screenLines - 10;
+		int halfScreen = mapLines / 2;
+		int mapCols = 20;
+		int halfMapCols = mapCols / 2;
 
+		int centreX = playerSector.getGalacticX(), startX = centreX - halfMapCols, endX = centreX + halfMapCols;
+		int centreY = playerSector.getGalacticY(), startY = centreY - halfScreen, endY = centreY + halfScreen;
+		int currentX, currentY;
+
+		int currentRow, currentCol;
+
+		// Fill the map as an empty display
 		StringBuilder currentLine[] = new StringBuilder[mapLines];
 		String sectorText = "[   ]";
 		String numbers = "0123456789";
-		int halfScreen = Constants.screenLines / 2;
 		for(int row = 0; row < mapLines; row++) {
-			currentLine[row].delete(0, currentLine[row].length());	// empty
-			for (int col = 0; col < mapLines; col++) {
+			currentLine[row] = new StringBuilder();	// empty
+			for (int col = 0; col < mapCols; col++) {
 				currentLine[row].append(sectorText);
 			}
 		}
 
 		for ( Sector aSector = headSector; aSector != null; aSector = aSector.Next) {
-			currentRow = aSector.getGalacticY()+halfScreen;
-			currentCol = aSector.getGalacticX()*(sectorText.length());
+			if ( !(	startX <= aSector.getGalacticX() && aSector.getGalacticX() <= endX
+				&&	startY <= aSector.getGalacticY() && aSector.getGalacticY() <= endY ) ) continue;	// not on the map
+
+			currentX = aSector.getGalacticX(); currentY = aSector.getGalacticY();
+			currentRow = mapLines - (currentY - startY);
+			currentCol = (currentX - startX)*sectorText.length();
+			assert(currentRow>=0);
+			assert(currentCol>=0);
+			assert(currentRow<=mapLines);
+			assert(currentCol<=mapCols*sectorText.length());
+
 			int eCount = aSector.LRS_EnemyCount;
 			int sCount = aSector.LRS_StarbaseCount;
 			int pCount = aSector.LRS_PlanetCount;
@@ -147,13 +165,13 @@ public class Galaxy {
 		}
 
 		for(int row = 0; row < mapLines; row++) {
-			galacticMap.writeLine(row, currentLine[row].toString());
+			galacticMap.writeLine(row+5, currentLine[row].toString());
 //			System.out.println(currentLine);
 		}
 
-		galacticMap.writeLine(mapLines + 5, "FEDERATION SPACE GALACTIC MAP");
-		galacticMap.writeLine(mapLines + 3, "There are " + alienCount + " enemy ships known to be in federation space");
-		galacticMap.writeLine(mapLines + 2, "You currently have " + starbaseCount + " starbases available");
+		galacticMap.writeLine(mapLines + 9, "FEDERATION SPACE GALACTIC MAP");
+		galacticMap.writeLine(mapLines + 8, "There are " + alienCount + " enemy ships known to be in federation space");
+		galacticMap.writeLine(mapLines + 7, "You currently have " + starbaseCount + " starbases available");
 		galacticMap.draw();
 //		galacticMap.writeLine(0, "Only updated after Long Range Scan performed.");
 	}

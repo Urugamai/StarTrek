@@ -82,12 +82,12 @@ public class TorpedoEntity extends Entity {
 
 		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
 
-		super.currentSector.takeEntity(this);	// Torpedo ALWAYS dies on hitting something
+		super.currentSector.queueRemoveEntity(this);	// Torpedo ALWAYS dies on hitting something
 
 		// if we've hit an alien, kill it!
 		if (other != null) {
 			// remove the affected entities
-			if (other instanceof RomulanEntity) super.currentSector.takeEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call removeEntity
+			if (other instanceof RomulanEntity) super.currentSector.queueRemoveEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call queueRemoveEntity
 
 			// notify the sector that the alien has been killed
 			super.currentSector.notifyAlienKilled();

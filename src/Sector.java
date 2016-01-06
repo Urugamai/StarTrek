@@ -6,9 +6,11 @@ import java.util.ArrayList;
 public class Sector {
 	private Game game; // For calling backup up the tree
 
+	protected static Sector lastNewSector = null;  // There can only be one
+
 	protected Sector LeftTop, Top, RightTop, Left, Right, LeftBottom, Bottom, RightBottom;
 	protected Sector Previous, Next;
-	private int screenWidth = 0, screenHeight = 0;
+	private int sectorWidth = 0, sectorHeight = 0;
 
 	private int galacticX, galacticY, galacticZ;
 
@@ -18,13 +20,11 @@ public class Sector {
 	public int LRS_StarbaseCount = -1;
 	public int LRS_PlanetCount = -1;
 
-	private int sectorWidth, sectorHeight;
-
 	private int enemyCount = 0;
 	private int starbaseCount = 0;
 	private int planetCount = 0;
 
-	private PlayerShipEntity ship;
+	private static PlayerShipEntity ship;
 
 	private ArrayList<Entity> entities = new ArrayList<Entity>();
 	private ArrayList<Entity> removeList = new ArrayList<Entity>();
@@ -32,99 +32,22 @@ public class Sector {
 	public Sector(Game game, int scale, int gx, int gy, Sector LT, Sector T, Sector RT, Sector L, Sector R, Sector LB, Sector B, Sector RB) {
 		this.game = game;
 
-		screenWidth = game.getWidth();
-		screenHeight = game.getHeight();
+		sectorWidth = game.getWidth();
+		sectorHeight = game.getHeight();
 
 		// scale: how far out we are going to build from this sector (sector build is recursive)
 		galacticX = gx;	// Where are we
 		galacticY = gy;	// where are we
 		galacticZ = 0;
 		LeftTop = LT; Top = T; RightTop = RT; Left = L; Right = R; LeftBottom = LB; Bottom = B; RightBottom = RB;
+		Previous = lastNewSector; Next = null;
+		if (lastNewSector != null) lastNewSector.Next = this;
+		lastNewSector = this;
 
 		if (gx < galacticXMin) galacticXMin = gx;
 		if (gy < galacticYMin) galacticYMin = gy;
 		if (gx > galacticXMax) galacticXMax = gx;
 		if (gy > galacticYMax) galacticYMax = gy;
-
-		if ( scale > 0 && Top == null) {
-			Top = createSector(Constants.jumpDirection.Top, scale-1);
-			this.Next = Top;
-			Top.Previous = this;
-			Top.LeftBottom = Left;
-			Top.Bottom = this;
-			Top.RightBottom = Right;
-			Top.Left = LeftTop;
-			Top.Right = RightTop;
-		}
-
-		if (scale > 0 && Right == null) {
-			Right = createSector(Constants.jumpDirection.Right, scale-1);
-			this.Next = Right;
-			Right.Previous = this;
-			Right.LeftTop = Top;
-			Right.Left = this;
-			Right.LeftBottom = Bottom;
-			Right.Top = RightTop;
-			Right.Bottom = RightBottom;
-		}
-
-		if (scale > 0 && Bottom == null) {
-			Bottom = createSector(Constants.jumpDirection.Bottom, scale-1);
-			this.Next = Bottom;
-			Bottom.Previous = this;
-			Bottom.LeftTop = Left;
-			Bottom.Top = this;
-			Bottom.RightTop = Right;
-			Bottom.Left = LeftBottom;
-			Bottom.Right = RightBottom;
-		}
-
-		if (scale > 0 && Left == null) {
-			Left = createSector(Constants.jumpDirection.Left, scale-1);
-			this.Next = Left;
-			Left.Previous = this;
-			Left.RightTop = Top;
-			Left.Right = this;
-			Left.RightBottom = Bottom;
-			Left.Top = LeftTop;
-			Left.Bottom = LeftBottom;
-		}
-
-		if (scale > 0 && LeftTop == null) {
-			LeftTop = createSector(Constants.jumpDirection.LeftTop, scale-1);
-			this.Next = LeftTop;
-			LeftTop.Previous = this;
-			LeftTop.Right = Top;
-			LeftTop.RightBottom = this;
-			LeftTop.Bottom = Left;
-		}
-
-		if (scale > 0 && LeftBottom == null) {
-			LeftBottom = createSector(Constants.jumpDirection.LeftBottom, scale-1);
-			this.Next = LeftBottom;
-			LeftBottom.Previous = this;
-			LeftBottom.Top = Left;
-			LeftBottom.RightTop = this;
-			LeftBottom.Right = Bottom;
-		}
-
-		if (scale > 0 && RightTop == null) {
-			RightTop = createSector(Constants.jumpDirection.RightTop, scale-1);
-			this.Next = RightTop;
-			RightTop.Previous = this;
-			RightTop.Left = Top;
-			RightTop.LeftBottom = this;
-			RightTop.Bottom = Right;
-		}
-
-		if (scale > 0 && RightBottom == null) {
-			RightBottom = createSector(Constants.jumpDirection.RightBottom, scale-1);
-			this.Next = RightBottom;
-			RightBottom.Previous = this;
-			RightBottom.Top = Right;
-			RightBottom.LeftTop = this;
-			RightBottom.Left = Bottom;
-		}
 
 		// Counters
 		newEnemyCount();
@@ -132,6 +55,42 @@ public class Sector {
 		planetCount = (int) (Math.random() * (Constants.maxPlanets + 1));
 
 		initEntities();
+
+		if (scale > 0) {
+
+			// Surround us with valid sectors
+			if (Top == null) {
+				Top = createSector(Constants.jumpDirection.Top, scale - 1);
+			}
+
+			if (Right == null) {
+				Right = createSector(Constants.jumpDirection.Right, scale - 1);
+			}
+
+			if (Bottom == null) {
+				Bottom = createSector(Constants.jumpDirection.Bottom, scale - 1);
+			}
+
+			if (Left == null) {
+				Left = createSector(Constants.jumpDirection.Left, scale - 1);
+			}
+
+			if (LeftTop == null) {
+				LeftTop = createSector(Constants.jumpDirection.LeftTop, scale - 1);
+			}
+
+			if (LeftBottom == null) {
+				LeftBottom = createSector(Constants.jumpDirection.LeftBottom, scale - 1);
+			}
+
+			if (RightTop == null) {
+				RightTop = createSector(Constants.jumpDirection.RightTop, scale - 1);
+			}
+
+			if (RightBottom == null) {
+				RightBottom = createSector(Constants.jumpDirection.RightBottom, scale - 1);
+			}
+		}
 	}
 
 	public int newEnemyCount() {
@@ -139,17 +98,17 @@ public class Sector {
 		return enemyCount;
 	}
 
-	private Sector createSector(Constants.jumpDirection dir, int distance) {
+	private Sector createSector(Constants.jumpDirection dir, int scale) {
 		Sector newSector = null;
-		if 		(dir == Constants.jumpDirection.LeftTop)	newSector = new Sector(game, distance-1, galacticX-1, 	galacticY-1, 	null, 	LeftTop, 	Top, 	null, 		this, 		null, 	LeftBottom,	Bottom );
-		else if (dir == Constants.jumpDirection.Left)		newSector = new Sector(game, distance-1, galacticX-1, 	galacticY, 		null,	LeftTop,	Top,	null,		this,		null,	LeftBottom,	Bottom);
-		else if (dir == Constants.jumpDirection.LeftBottom)	newSector = new Sector(game, distance-1, galacticX-1,	galacticY+1, 	null, 	LeftTop, 	Top, 	null, 		this, 		null, 	LeftBottom,	Bottom );
-		else if (dir == Constants.jumpDirection.Top)		newSector = new Sector(game, distance-1, galacticX, 	galacticY-1, 	null,	null,		null,	LeftTop,	RightTop,	Left, 	this,		Right);
+		if 		(dir == Constants.jumpDirection.LeftTop)	{newSector = new Sector(game, scale-1, galacticX-1, 	galacticY-1, 	null, 	null, 		null, 	null, 		Top, 		null, 	Left,		this);}
+		else if (dir == Constants.jumpDirection.Left)		{newSector = new Sector(game, scale-1, galacticX-1, 	galacticY, 		null,	LeftTop,	Top,	null,		this,		null,	LeftBottom,	Bottom);}
+		else if (dir == Constants.jumpDirection.LeftBottom)	{newSector = new Sector(game, scale-1, galacticX-1,	galacticY+1, 	null, 	Left,	 	this, 	null, 		Bottom,		null, 	null,		null);}
+		else if (dir == Constants.jumpDirection.Top)		{newSector = new Sector(game, scale-1, galacticX, 	galacticY-1, 	null,	null,		null,	LeftTop,	RightTop,	Left, 	this,		Right);}
 		// Here
-		else if (dir == Constants.jumpDirection.Bottom)		newSector = new Sector(game, distance-1, galacticX, 	galacticY+1, 	Left,	this,		Right,	LeftBottom,	RightBottom,null,	null,		null);
-		else if (dir == Constants.jumpDirection.RightTop)	newSector = new Sector(game, distance-1, galacticX+1,	galacticY-1,	null,	LeftTop,	Top,	null,		this,		null,	LeftBottom, Bottom );
-		else if (dir == Constants.jumpDirection.Right)		newSector = new Sector(game, distance-1, galacticX+1, 	galacticY, 		Top,	RightTop,	null,	this,		null,		Bottom,	RightBottom,null);
-		else if (dir == Constants.jumpDirection.RightBottom)newSector = new Sector(game, distance-1, galacticX+1,	galacticY+1,	null,	LeftTop,	Top,	null,		this,		null,	LeftBottom, Bottom );
+		else if (dir == Constants.jumpDirection.Bottom)		{newSector = new Sector(game, scale-1, galacticX, 	galacticY+1, 	Left,	this,		Right,	LeftBottom,	RightBottom,null,	null,		null);}
+		else if (dir == Constants.jumpDirection.RightTop)	{newSector = new Sector(game, scale-1, galacticX+1,	galacticY-1,	null,	null,		null,	Top,		null,		this,	Right,	 	null);}
+		else if (dir == Constants.jumpDirection.Right)		{newSector = new Sector(game, scale-1, galacticX+1, 	galacticY, 		Top,	RightTop,	null,	this,		null,		Bottom,	RightBottom,null);}
+		else if (dir == Constants.jumpDirection.RightBottom){newSector = new Sector(game, scale-1, galacticX+1,	galacticY+1,	this,	Right,		null,	Bottom,		null,		null,	null, 		null);}
 
 		return newSector;
 	}
@@ -180,31 +139,31 @@ public class Sector {
 	 */
 	public void initEntities() {
 		Entity newEntity = null;
+		int x = sectorWidth / 2;
+		int y = sectorHeight / 2;
 
 		// Whack the star into the middle of the sector
-		newEntity = new StarEntity(game, Constants.FILE_IMG_STAR, screenWidth / 2, screenHeight / 2);
+		newEntity = new StarEntity(game, Constants.FILE_IMG_STAR, x, y);
 		entities.add(newEntity);
 
 		// whack in a starbase if needed
-		newEntity = null;
 		for (int i = 0; i < starbaseCount; i++) {
 			do {
-				if (newEntity != null) {
-					newEntity = null;		// dispose of last attempt
-				}
-				newEntity = new StarbaseEntity(game, Constants.FILE_IMG_STARBASE, (int) (Math.random() * (screenWidth - 50)), (int) (Math.random() * (screenHeight - 50)));
+				newEntity = null;		// dispose of last attempt
+				x = (int) (Math.random() * (sectorWidth - 50));
+				y = (int) (Math.random() * (sectorHeight - 50));
+				newEntity = new StarbaseEntity(game, Constants.FILE_IMG_STARBASE, x, y);
 			} while (checkEntityForOverlap(newEntity));
 			entities.add(newEntity); // this ones a keeper
 		}
 
 		// Whack in the necessary number of enemy units
-		newEntity = null;
 		for (int i = 0; i < enemyCount; i++) {
 			do {
-				if (newEntity != null) {
-					newEntity = null;
-				} // dispose of dud selection
-				newEntity = new RomulanEntity(game, Constants.FILE_IMG_ROMULAN, (int) (Math.random() * (screenWidth - 50)), (int) (Math.random() * (screenHeight - 50)));
+				newEntity = null;
+				x = (int) (Math.random() * (sectorWidth - 50));
+				y = (int) (Math.random() * (sectorHeight - 50));
+				newEntity = new RomulanEntity(game, Constants.FILE_IMG_ROMULAN, x, y);
 			} while (checkEntityForOverlap(newEntity));
 			entities.add(newEntity); // this ones a keeper
 		}
@@ -229,6 +188,15 @@ public class Sector {
 	}
 
 	public void doLRS() {
+		if (LeftTop == null) LeftTop = createSector(Constants.jumpDirection.LeftTop, 0);
+		if (Top == null) Top = createSector(Constants.jumpDirection.Top, 0);
+		if (Left == null) Left = createSector(Constants.jumpDirection.Left, 0);
+		if (RightTop == null) RightTop = createSector(Constants.jumpDirection.RightTop, 0);
+		if (LeftBottom == null) LeftBottom = createSector(Constants.jumpDirection.LeftBottom, 0);
+		if (Bottom == null) Bottom = createSector(Constants.jumpDirection.Bottom, 0);
+		if (RightBottom == null) RightBottom = createSector(Constants.jumpDirection.RightBottom, 0);
+		if (Right == null) Right = createSector(Constants.jumpDirection.Right, 0);
+
 		doLRSfor(LeftTop);
 		doLRSfor(Top);
 		doLRSfor(RightTop);
@@ -257,15 +225,17 @@ public class Sector {
 			if (me == entity) continue;
 			if (me.collidesWith(entity)) return true;
 		}
-		return false;
+		return false;	// No entities overlap me
 	}
 
+	public void queueRemoveEntity(Entity entity) {
+		removeList.add(entity);		// Delay remove as list iterator gets upset about its list being modified
+	}
 	public boolean takeEntity(Entity entity) {
 		return entities.remove(entity);
 	}
 
 	public boolean putEntity(Entity entity) {
-		if (entity instanceof PlayerShipEntity) ship = (PlayerShipEntity)entity;
 		return entities.add(entity);
 	}
 
@@ -355,10 +325,10 @@ public class Sector {
 		Sector newSector = null;
 
 		// Are we at the border?
-		if (x < spriteWidth)	{ newSector = jump(Constants.jumpDirection.Left, entity, Left); Left = newSector; x = maxWidth; }
-		if (x > maxWidth )		{ newSector = jump(Constants.jumpDirection.Right, entity, Right); Right = newSector; x = spriteWidth; }
-		if (y < spriteHeight)	{ newSector = jump(Constants.jumpDirection.Top, entity, Top); Top = newSector; y = maxHeight; }
-		if (y > maxHeight)		{ newSector = jump(Constants.jumpDirection.Bottom, entity, Bottom); Bottom = newSector; y = spriteHeight; }
+		if (x < spriteWidth)	{ newSector = jump(Constants.jumpDirection.Left, entity, Left); Left = newSector; x = maxWidth-1; }
+		if (x > maxWidth )		{ newSector = jump(Constants.jumpDirection.Right, entity, Right); Right = newSector; x = spriteWidth+1; }
+		if (y < spriteHeight)	{ newSector = jump(Constants.jumpDirection.Top, entity, Top); Top = newSector; y = maxHeight-1; }
+		if (y > maxHeight)		{ newSector = jump(Constants.jumpDirection.Bottom, entity, Bottom); Bottom = newSector; y = spriteHeight+1; }
 
 		if (newSector != null) { game.setPlayerSector(newSector); entity.setLocation(x, y, z); }
 	}
@@ -371,7 +341,7 @@ public class Sector {
 		}
 
 		newSector.putEntity(entity);
-		removeList.add(entity);		// Delay remove as list iterator gets upset about its list being modified
+		queueRemoveEntity(entity);
 
 		return newSector;
 	}

@@ -68,7 +68,7 @@ public class Game {
 	private String				userInput = "";
 	private boolean				returnDown;
 
-	private Constants.DisplayMode displayMode;
+	private Constants.DisplayMode displayMode = Constants.DisplayMode.Sector;
 
 	private long				lastLoopTime		= getTime();
 	private long				lastFpsTime;
@@ -321,9 +321,9 @@ public class Game {
 
 		textWindow.writeLine(4, "Currently in sector (" + galaxy.playerSector.getGalacticX() + "," + galaxy.playerSector.getGalacticY() + ")");
 
-		if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GalacticMap;
-		else if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.DamageReport;
-		else displayMode = Constants.DisplayMode.Sector;
+		if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.DamageReport;
+		else if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GalacticMap;
+		else if (Keyboard.isKeyDown(Keyboard.KEY_F3)) displayMode = Constants.DisplayMode.Sector;
 
 		char key = getCurrentKey();
 

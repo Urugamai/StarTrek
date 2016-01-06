@@ -136,7 +136,7 @@ public class SoundManager {
 				break;
 			} catch (LWJGLException le) {
 				le.printStackTrace();
-				System.err.println("Sound disabled");
+				System.err.println("Sound problems, trying again...");
 			}
 		}
 	}
