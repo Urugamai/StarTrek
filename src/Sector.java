@@ -29,7 +29,7 @@ public class Sector {
 	private ArrayList<Entity> entities = new ArrayList<Entity>();
 	private ArrayList<Entity> removeList = new ArrayList<Entity>();
 
-	public Sector(Game game, int scale, int gx, int gy, Sector LT, Sector T, Sector RT, Sector L, Sector R, Sector LB, Sector B, Sector RB) {
+	public Sector(Game game, int scale, int gx, int gy) {
 		this.game = game;
 
 		sectorWidth = game.getWidth();
@@ -39,7 +39,7 @@ public class Sector {
 		galacticX = gx;	// Where are we
 		galacticY = gy;	// where are we
 		galacticZ = 0;
-		LeftTop = LT; Top = T; RightTop = RT; Left = L; Right = R; LeftBottom = LB; Bottom = B; RightBottom = RB;
+
 		Previous = lastNewSector; Next = null;
 		if (lastNewSector != null) lastNewSector.Next = this;
 		lastNewSector = this;
@@ -57,39 +57,14 @@ public class Sector {
 		initEntities();
 
 		if (scale > 0) {
-
-			// Surround us with valid sectors
-			if (Top == null) {
-				Top = createSector(Constants.jumpDirection.Top, scale - 1);
-			}
-
-			if (Right == null) {
-				Right = createSector(Constants.jumpDirection.Right, scale - 1);
-			}
-
-			if (Bottom == null) {
-				Bottom = createSector(Constants.jumpDirection.Bottom, scale - 1);
-			}
-
-			if (Left == null) {
-				Left = createSector(Constants.jumpDirection.Left, scale - 1);
-			}
-
-			if (LeftTop == null) {
-				LeftTop = createSector(Constants.jumpDirection.LeftTop, scale - 1);
-			}
-
-			if (LeftBottom == null) {
-				LeftBottom = createSector(Constants.jumpDirection.LeftBottom, scale - 1);
-			}
-
-			if (RightTop == null) {
-				RightTop = createSector(Constants.jumpDirection.RightTop, scale - 1);
-			}
-
-			if (RightBottom == null) {
-				RightBottom = createSector(Constants.jumpDirection.RightBottom, scale - 1);
-			}
+			LeftTop =		createSector(Constants.jumpDirection.LeftTop, scale - 1);
+			Top =			createSector(Constants.jumpDirection.Top, scale - 1);
+			RightTop =		createSector(Constants.jumpDirection.RightTop, scale - 1);
+			Left = 			createSector(Constants.jumpDirection.Left, scale - 1);
+			Right = 		createSector(Constants.jumpDirection.Right, scale - 1);
+			LeftBottom =	createSector(Constants.jumpDirection.LeftBottom, scale - 1);
+			Bottom =		createSector(Constants.jumpDirection.Bottom, scale - 1);
+			RightBottom =	createSector(Constants.jumpDirection.RightBottom, scale - 1);
 		}
 	}
 
@@ -98,17 +73,52 @@ public class Sector {
 		return enemyCount;
 	}
 
-	private Sector createSector(Constants.jumpDirection dir, int scale) {
-		Sector newSector = null;
-		if 		(dir == Constants.jumpDirection.LeftTop)	{newSector = new Sector(game, scale-1, galacticX-1, 	galacticY-1, 	null, 	null, 		null, 	null, 		Top, 		null, 	Left,		this);}
-		else if (dir == Constants.jumpDirection.Left)		{newSector = new Sector(game, scale-1, galacticX-1, 	galacticY, 		null,	LeftTop,	Top,	null,		this,		null,	LeftBottom,	Bottom);}
-		else if (dir == Constants.jumpDirection.LeftBottom)	{newSector = new Sector(game, scale-1, galacticX-1,	galacticY+1, 	null, 	Left,	 	this, 	null, 		Bottom,		null, 	null,		null);}
-		else if (dir == Constants.jumpDirection.Top)		{newSector = new Sector(game, scale-1, galacticX, 	galacticY-1, 	null,	null,		null,	LeftTop,	RightTop,	Left, 	this,		Right);}
+	private Galaxy.galacticLocation whatSectorIs(Constants.jumpDirection dir) {
+		int gx, gy;
+
+		if 		(dir == Constants.jumpDirection.LeftTop)	{gx = galacticX-1;	gy = galacticY-1;}
+		else if (dir == Constants.jumpDirection.Left)		{gx = galacticX-1;	gy = galacticY;}
+		else if (dir == Constants.jumpDirection.LeftBottom)	{gx = galacticX-1;	gy = galacticY+1;}
+		else if (dir == Constants.jumpDirection.Top)		{gx = galacticX;	gy = galacticY-1;}
 		// Here
-		else if (dir == Constants.jumpDirection.Bottom)		{newSector = new Sector(game, scale-1, galacticX, 	galacticY+1, 	Left,	this,		Right,	LeftBottom,	RightBottom,null,	null,		null);}
-		else if (dir == Constants.jumpDirection.RightTop)	{newSector = new Sector(game, scale-1, galacticX+1,	galacticY-1,	null,	null,		null,	Top,		null,		this,	Right,	 	null);}
-		else if (dir == Constants.jumpDirection.Right)		{newSector = new Sector(game, scale-1, galacticX+1, 	galacticY, 		Top,	RightTop,	null,	this,		null,		Bottom,	RightBottom,null);}
-		else if (dir == Constants.jumpDirection.RightBottom){newSector = new Sector(game, scale-1, galacticX+1,	galacticY+1,	this,	Right,		null,	Bottom,		null,		null,	null, 		null);}
+		else if (dir == Constants.jumpDirection.Bottom)		{gx = galacticX;	gy = galacticY+1;}
+		else if (dir == Constants.jumpDirection.RightTop)	{gx = galacticX+1;	gy = galacticY-1;}
+		else if (dir == Constants.jumpDirection.Right)		{gx = galacticX+1;	gy = galacticY;}
+		else if (dir == Constants.jumpDirection.RightBottom){gx = galacticX+1;	gy = galacticY+1;}
+		else return null;
+
+		Galaxy.galacticLocation jumpTo = new Galaxy.galacticLocation(gx, gy, 0);
+		jumpTo.setGx(gx);
+		jumpTo.setGy(gy);
+		jumpTo.setGz(0);
+
+		return jumpTo;
+	}
+
+	private Sector findSector(int gx, int gy) {
+		Sector aSector;
+
+		for (aSector = Next; aSector != null; aSector = aSector.Next) {
+			if (aSector.galacticX == gx && aSector.galacticY == gy) return aSector;
+		}
+		for (aSector = Previous; aSector != null; aSector = aSector.Previous) {
+			if (aSector.galacticX == gx && aSector.galacticY == gy) return aSector;
+		}
+		return null;	// not found
+	}
+
+	private Sector findSector(Galaxy.galacticLocation location) {
+		return findSector(location.getGx(), location.getGy());
+	}
+
+	private Sector createSector(Constants.jumpDirection dir, int scale) {
+		Galaxy.galacticLocation newLocation;
+		Sector newSector = null;
+
+		newLocation = whatSectorIs(dir);
+		if ((newSector = findSector(newLocation)) != null) return newSector;
+
+		newSector = new Sector(game, scale-1, newLocation.getGx(), newLocation.getGy());
 
 		return newSector;
 	}

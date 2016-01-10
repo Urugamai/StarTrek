@@ -16,26 +16,26 @@ public class Galaxy {
 	private Sector headSector = null;
 	public Sector playerSector = null;
 
-	public class galacticLocation {
+	public static class galacticLocation {
 		private int gx;
 		private int gy;
 		private int gz;
 
 		public galacticLocation() {}
-		public galacticLocation(int x, int y) { gx = x; gy = y; }
+		public galacticLocation(int x, int y) { gx = x; gy = y; gz = 0; }
 		public galacticLocation(int x, int y, int z) { gx = x; gy = y; gz = z; }
 		public int getGx() { return gx; }
 		public int getGy() { return gy; }
 		public int getGz() { return gz; }
-		public void setGx(int X) { if (X <= sizeX && X >= 0 ) gx = X; }
-		public void setGy(int Y) { if (Y <= sizeY && Y >= 0 ) gy = Y; }
-		public void setGz(int Z) { if (Z <= sizeZ && Z >= 0 ) gz = Z; }
+		public void setGx(int X) { gx = X; }
+		public void setGy(int Y) { gy = Y; }
+		public void setGz(int Z) { gz = Z; }
 	}
 
 	public Galaxy(Game game) {
 		this.game = game;
 
-		headSector = new Sector(game, 1, 0, 0, null, null, null, null, null, null, null, null);
+		headSector = new Sector(game, 1, 0, 0);
 		galacticMap = new GameText(10, game.getHeight(), Constants.screenLines);
 	}
 
@@ -119,12 +119,12 @@ public class Galaxy {
 		int currentRow, currentCol;
 
 		// Fill the map as an empty display
-		StringBuilder currentLine[] = new StringBuilder[mapLines];
+		StringBuilder currentLine[] = new StringBuilder[mapLines+1];
 		String sectorText = "[   ]";
 		String numbers = "0123456789";
-		for(int row = 0; row < mapLines; row++) {
+		for(int row = 0; row <= mapLines; row++) {
 			currentLine[row] = new StringBuilder();	// empty
-			for (int col = 0; col < mapCols; col++) {
+			for (int col = 0; col <= mapCols+1; col++) {
 				currentLine[row].append(sectorText);
 			}
 		}
@@ -136,14 +136,19 @@ public class Galaxy {
 			currentX = aSector.getGalacticX(); currentY = aSector.getGalacticY();
 			currentRow = mapLines - (currentY - startY);
 			currentCol = (currentX - startX)*sectorText.length();
-			assert(currentRow>=0);
-			assert(currentCol>=0);
-			assert(currentRow<=mapLines);
-			assert(currentCol<=mapCols*sectorText.length());
+			assert(currentRow >= 0);
+			assert(currentCol >= 0);
+			assert(currentRow <= mapLines);
+			assert(currentCol <= mapCols*sectorText.length());
 
 			int eCount = aSector.LRS_EnemyCount;
 			int sCount = aSector.LRS_StarbaseCount;
 			int pCount = aSector.LRS_PlanetCount;
+			if (aSector == playerSector) {
+				eCount = 10;
+				sCount = 10;
+				pCount = 10;
+			}
 
 			if (eCount > 9) {
 				currentLine[currentRow].setCharAt(currentCol+1, '*');

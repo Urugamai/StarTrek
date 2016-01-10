@@ -35,11 +35,13 @@ Version 0.5
 ===========
 - Movement
     - DONE: Need sectors to be joined? - currently it is just the 'void' between solar systems that never ends-think about it
+    - DONE: Other fixes:
+        - Made galaxy dynamically sized.
+        - impulse travel now crosses sector boundaries
     - WARP Drive!  Travel across sector boundary
         - Accelerate to full impulse before enabling WARP drive
-        - WARP still travels through space, just a LOT faster, can hit stuff, etc.
-            - i.e. long trips travel 'through' the intervening sectors
-            - collision detection to eject ship from warp just before hitting
+        - WARP jumps sectors AND TIME
+            - i.e. long trips are quick in elapsed user time but take a number of 'days' to do
 
 Version 0.x
 ===========
