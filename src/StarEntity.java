@@ -45,11 +45,11 @@ public class StarEntity extends Entity {
 	 * @param x The intial x location of this alien
 	 * @param y The intial y location of this alien
 	 */
-	public StarEntity(Game game,String ref, int x, int y) {
-		super(entityType.STAR, game.getSprite(ref), x, y);
+	public StarEntity(Sector thisSector, String ref, int x, int y) {
+		super(entityType.STAR, ref, x, y);
 		this.setHeading(-1.0f, 0);		// set this sprite to constantly rotate clockwise
 
-		this.game = game;
+		currentSector = thisSector;
 	}
 
 	/**

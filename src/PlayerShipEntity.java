@@ -40,9 +40,9 @@ public class PlayerShipEntity extends Entity {
 	 * @param x The initial x location of the player's ship
 	 * @param y The initial y location of the player's ship
 	 */
-	public PlayerShipEntity(Game game, String ref,int x,int y) {
-		super(entityType.FEDERATIONSHIP, game.getSprite(ref), x, y);
-
+	public PlayerShipEntity(Sector thisSector, String ref,int x,int y) {
+		super(entityType.FEDERATIONSHIP, ref, x, y);
+		currentSector = thisSector;
 
 		torpedoCount = 15;
 	}

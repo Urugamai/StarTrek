@@ -40,27 +40,23 @@ public class RomulanEntity extends Entity {
 	private long		accumulatedTime		= 0;
 	private static long	courseDuration = 10000;
 
-	private Game		game;						/** The game in which the entity exists */
-
 	private float heading = 0.0f;
 	private float speed = 0.0f;
 
 	/**
 	 * Create a new alien entity
 	 *
-	 * @param game The game in which this entity is being created
 	 * @param x The intial x location of this alien
 	 * @param y The intial y location of this alien
 	 */
-	public RomulanEntity(Game game, String shipFile, int x, int y) {
-		super(entityType.ROMULANSHIP, game.getSprite(shipFile), x, y);
+	public RomulanEntity(Sector thisSector, String shipFile, int x, int y) {
+		super(entityType.ROMULANSHIP, shipFile, x, y);
+		currentSector = thisSector;
 
-		this.game = game;
-
-		RIGHT_BORDER = game.getWidth() - 30;
+		RIGHT_BORDER = currentSector.getScreenWidth() - 30;
 		LEFT_BORDER = 30;
 		TOP_BORDER = 30;
-		BOTTOM_BORDER = game.getHeight() - 30;
+		BOTTOM_BORDER = currentSector.getScreenHeight() - 30;
 	}
 
 	public void newHeading() {
@@ -68,7 +64,6 @@ public class RomulanEntity extends Entity {
 		heading = ((float)Math.random()*360.0f + 180 ) % 360;
 
 		sprite.setAngle(heading, 0);
-//		sprite.setRotationSpeed(0.2f);
 	}
 
 	public void newSpeed() {
@@ -87,15 +82,6 @@ public class RomulanEntity extends Entity {
 			newSpeed();
 			accumulatedTime -= courseDuration;
 		}
-
-//		if ((dx < 0) && (x < LEFT_BORDER)) { speed = 0; }
-//		if ((dx > 0) && (x > RIGHT_BORDER)) { speed = 0; }
-//		if ((dy < 0) && (y < TOP_BORDER)) { speed = 0; }
-//		if ((dy > 0) && (y > BOTTOM_BORDER)) { speed = 0; }
-//
-//		float rads = (float)Math.toRadians(sprite.getCurrentAngle());
-//		dx = (float)Math.cos(rads)*speed;
-//		dy = (float)Math.sin(rads)*speed;
 
 		// proceed with normal move
 		super.move(delta);

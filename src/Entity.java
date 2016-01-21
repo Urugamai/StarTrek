@@ -35,29 +35,35 @@ import java.awt.Rectangle;
 public abstract class Entity {
 	public static enum entityType { STAR, STARBASE, FEDERATIONSHIP, ROMULANSHIP, TORPEDO, BORGSHIP };	// Who Am I
 
-	protected Sector	currentSector;								/** The sector in which this entity is located */
-	private double x, y, z;												/** Where Am I */
-	private float currentInclination, currentAngle, velocity = 0.0f;	/** Where Am I Going */
+	// Its all about ME
+	protected Sector	currentSector;											/** The sector in which this entity is located */
+	private double 		x, y, z;												/** Where Am I */
+	private float 		currentInclination, currentAngle, velocity = 0.0f;		/** Where Am I Going */
+	private float		energyLevel;											// How much energy am I carrying (explosive force)
+	private float		shieldPercent;											// how much of my energy is diverted to shields
+	private float		solidity;												// structural strength
 
-	private float  targetAngle, targetInclination;				/** Where Do I Want To Go */
+	private float  		targetAngle, targetInclination;							/** Where Do I Want To Go */
 
-	private float rotationSpeed = 30.0f;						/** Degrees per second */
-	private float thrustAcceleration = 0, thrustDuration = 0;
+	private float 		rotationSpeed = 30.0f;									/** Degrees per second */
+	private float 		thrustAcceleration = 0, thrustDuration = 0;
 
-	protected Sprite	sprite;					/** The sprite (graphics) that represents this entity */
+	private static TextureLoader		textureLoader;
+	protected Sprite	sprite;													/** The sprite (graphics) that represents this entity */
 	protected entityType eType;
 
-	private Rectangle	me	= new Rectangle();	/** The rectangle used for this entity during collisions  resolution */
-	private Rectangle	him	= new Rectangle();	/** The rectangle used for other entities during collision resolution */
+	// What about others?
+	private Rectangle	me	= new Rectangle();									/** The rectangle used for this entity during collisions  resolution */
+	private Rectangle	him	= new Rectangle();									/** The rectangle used for other entities during collision resolution */
 
 	/**
 	 * Construct a entity based on a sprite image and a location.
 	 *
-	 * @param sprite The reference to the image to be displayed for this entity
 	 */
-	protected Entity(entityType eType, Sprite sprite, int x, int y) {
+	protected Entity(entityType eType, String spriteFile, int x, int y) {
+		if (textureLoader == null) textureLoader = new TextureLoader();
 		this.eType = eType;
-		this.sprite = sprite;
+		this.sprite = getSprite(spriteFile);
 		this.x = x;
 		this.y = y;
 		currentAngle = 0;
@@ -66,7 +72,9 @@ public abstract class Entity {
 		targetInclination = 0;
 	}
 
-	public void setSector(Sector newSector) {currentSector = newSector; }
+	public Sprite getSprite(String ref) {
+		return new Sprite(textureLoader, ref);
+	}
 
 	public void setHeading(float newDegrees, float newInclination) {
 		targetAngle = newDegrees;
@@ -88,6 +96,12 @@ public abstract class Entity {
 	// Should only be used to implement 'all stop' command (velocity = 0)
 	public void setVelocity(float newVelocity) {
 		velocity = newVelocity;
+	}
+
+	public void setLocation(int x, int y, int z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
 	}
 
 	private void Rotate(double delta) {
@@ -147,12 +161,6 @@ public abstract class Entity {
 		Translate(delta);
 	}
 
-	public void setLocation(int x, int y, int z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
 	/**
 	 * Draw this entity to the graphics context provided
 	 */
@@ -168,20 +176,10 @@ public abstract class Entity {
 		move(delta);
 	}
 
-	/**
-	 * Get the x location of this entity
-	 *
-	 * @return The x location of this entity
-	 */
 	public int getX() {
 		return (int)x;
 	}
 
-	/**
-	 * Get the y location of this entity
-	 *
-	 * @return The y location of this entity
-	 */
 	public int getY() {
 		return (int)y;
 	}
@@ -189,6 +187,12 @@ public abstract class Entity {
 	public int getZ() {
 		return (int)z;
 	}
+
+	public void setX(int newValue) { x = newValue; }
+
+	public void setY(int newValue) { y = newValue; }
+
+	public void setZ(int newValue) { z = newValue; }
 
 	/**
 	 * Check if this entity collides with another.

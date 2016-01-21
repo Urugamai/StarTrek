@@ -36,7 +36,7 @@ public class Constants {
 	public static final float		c					= 500.0f;	// The speed of light, in pixels per second
 
 	public static enum DisplayMode { Sector, GalacticMap, DamageReport };
-	public static enum jumpDirection { LeftTop, Top, RightTop, Left, here, Right, LeftBottom, Bottom, RightBottom };
+	public static enum sectorDirection { LeftTop, Top, RightTop, Left, here, Right, LeftBottom, Bottom, RightBottom };
 	public static enum LRSItems {
 		Enemy(0), Starbases(1), Planets(2);
 		private final int value;
@@ -44,6 +44,7 @@ public class Constants {
 		public int value() { return value; }
 		public static final int Size = LRSItems.values().length;
 	};
+	public static enum listType { add, remove };
 
 	// Prevent construction call
 	private Constants(){ }

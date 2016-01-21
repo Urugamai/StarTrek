@@ -46,6 +46,15 @@ Version 0.5
 Version 0.x
 ===========
 - Add energy capacity to all ships (Enterprise, Romulans, StarBase)
+- Torpedo Enhancements
+    - FUEL
+        - The destructive power of a torpedo is purely based on the fuel it carries at time of impact
+        - as the fuel is used the destructive force reduces
+        - once out of fuel the torpedo self destructs using the primer charge that would have detonated the fuel
+    - life of a torpedo can be reduced by setting it on the launch command
+    - torpedoes will NOT create new sectors, they self destruct on entering the unknown.
+    - Arming Delay (2 seconds) - once armed it can destroy YOU too!  Cannot use torpedo on a ship that is less than
+      2 seconds travel from you.
 
 Version 0.x
 ===========
@@ -262,7 +271,15 @@ BUGS
 =====
 1.  For some reason the lwjgl audio library crashes on initialisation sometimes.  Restart the application is the
     work-around until the cause can be identified.  Possibly find a way to detect failure before app crash and try again?
-2.  next...
+    INTERIM FIX: Detect failure and keep trying - infinite loop bug however ;-).  Add loop counter to give up at some point.
+2.  Appears to be a concurrency bug in sector dologic
+    INTERIM FIX: Move add and remove to lists
+3.  Appears to be an issue in draw Galaxy that causes array boundaries to be crossed occasionally
+    INTERIM FIX: Made rows and columns of the text map for galaxy 1 wider/higher than should be needed.
+4.  Travelling across sectors occassionally sets the 'playerSector' to the wrong sector and then back to the correct one
+    after the next boundary crossing
+5.  Impulse drive just keeps accelerating - set a MAXIMUM SPEED.
+6.  Torpedoes travel too slow and not long enough.
 
 NOTES
 =====
@@ -308,9 +325,10 @@ commands are;
 
 DONE
 ====
-TOR,direction               -   direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
+TOR,direction[,maxlife]      -   direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
                                 computer to get assistance in generating the coordinate but bear in mind that gravitational
                                 effects are far to complicated and variable for the computer to predict.
+                                Max life is in seconds and cannot be over the max life of a torpedo.
 IMP,direction,power,duration -   Impulse engines used to move around within a star system.  Does not stop until ordered.
                                 power is % of full (0 - 100), duration is in seconds.  Ship will accelerate for the
                                 duration given and then coast at the velocity arrived at.
@@ -331,6 +349,8 @@ AS                          -   ABANDON SHIP.  Everyone into life pods to fight 
 PHA,direction,power         -   fire Phasers in the direction indicated with start power at the level indicated.  Power
                                 will decrease by 1% (10%?) per lightsecond travelled.
 COMP                        -   To COMPUTER which can calculate some values to assist travel, targeting, etc.
+MINE                        -   Places a mine at the location of the ship - make sure you are moving as it will
+                                damage you after 10 seconds (arming delay).
 
 PROBABLY WONT NEED
 ==================

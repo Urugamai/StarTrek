@@ -1,29 +1,29 @@
+import java.util.ArrayList;
+
 /**
  * Created by Mark on 8/12/2015.
  */
 public class Galaxy {
 	private Game	game;						/** The game in which this entity exists */
-
-	private int 	sizeX = 0;					// current Width of galaxy
-	private int 	sizeY = 0;					// current Height of galaxy
-	private int 	sizeZ = 0;					// current Depth of galaxy
+	private int screenWidth = 0, screenHeight = 0;
 
 	private int alienCount = 0;					// Galactic count of found aliens
 	private int starbaseCount = 0;				// Galactic allocation of starbases
 
 	private GameText galacticMap;
 
-	private Sector headSector = null;
-	public Sector playerSector = null;
+	private ArrayList<Sector> sectorListHead = new ArrayList<Sector>();
 
-	public static class galacticLocation {
+	protected Sector playerSector = null;
+
+	public static class locationSpec {
 		private int gx;
 		private int gy;
 		private int gz;
 
-		public galacticLocation() {}
-		public galacticLocation(int x, int y) { gx = x; gy = y; gz = 0; }
-		public galacticLocation(int x, int y, int z) { gx = x; gy = y; gz = z; }
+		public locationSpec() {}
+		public locationSpec(int x, int y) { gx = x; gy = y; gz = 0; }
+		public locationSpec(int x, int y, int z) { gx = x; gy = y; gz = z; }
 		public int getGx() { return gx; }
 		public int getGy() { return gy; }
 		public int getGz() { return gz; }
@@ -34,31 +34,62 @@ public class Galaxy {
 
 	public Galaxy(Game game) {
 		this.game = game;
+		screenWidth = this.game.getWidth();
+		screenHeight = this.game.getHeight();
 
-		headSector = new Sector(game, 1, 0, 0);
-		galacticMap = new GameText(10, game.getHeight(), Constants.screenLines);
+		playerSector = new Sector(this, 0, 0, 0, screenWidth, screenHeight);
+		sectorListHead.add(playerSector);
+
+		galacticMap = new GameText(10, screenHeight, Constants.screenLines);
 	}
 
-	public void initSectors(int width, int height) {
-		alienCount = 0;
-		starbaseCount = 0;
-		for ( Sector aSector = headSector; aSector != null; aSector = aSector.Next) {
-			alienCount += aSector.getEnemyCount();
-			starbaseCount += aSector.getStarbaseCount();
+	public Sector findSector(locationSpec loc) {
+		return findSector(loc.getGx(), loc.getGy(), loc.getGz());
+	}
+
+	public Sector findSector(int X, int Y, int Z) {
+		for (Sector loc : sectorListHead) {
+			if (loc.getGalacticX() != X) continue;
+			if (loc.getGalacticY() != Y) continue;
+			if (loc.getGalacticZ() != Z) continue;
+
+			return loc;
 		}
+
+		return null;
+	}
+
+	public Sector addSector(locationSpec loc) {
+		return addSector(loc.getGx(), loc.getGy(), loc.getGz());
+	}
+
+	public Sector addSector(int X, int Y, int Z) {
+		Sector theSector = findSector(X, Y, Z);
+		if ( theSector != null) return theSector;
+
+		theSector = new Sector(this, X, Y, Z, screenWidth, screenHeight);
+		sectorListHead.add(theSector);
+
+		return theSector;
+	}
+
+	public Sector getSector(locationSpec loc) {
+		Sector req;
+		req = findSector(loc);
+		if (req == null) req = addSector(loc);
+		return req;
+	}
+
+	public void initSectors() {
+
 	}
 
 	public void initPlayerShip() {
-		headSector.initPlayerShip();
-		setPlayerSector(headSector);
+		playerSector.initPlayerShip();
 	}
 
-	public void setPlayerSector(Sector sector) {
-		playerSector = sector;
-	}
-
-	public galacticLocation getGalacticLocation(int x, int y) {
-		galacticLocation gl = new galacticLocation(x,y);
+	public locationSpec getGalacticLocation(int x, int y, int z) {
+		locationSpec gl = new locationSpec(x,y,z);
 		return gl;
 	}
 
@@ -86,15 +117,20 @@ public class Galaxy {
 		return starbaseCount;
 	}
 
-	public Sector getSector(galacticLocation sector) {
-		for ( Sector aSector = headSector; aSector != null; aSector = aSector.Next) {
-			if (sector.getGx() == aSector.getGalacticX() && sector.getGy() == aSector.getGalacticY() && sector.getGz() == aSector.getGalacticZ()) return aSector;
-		}
-		return null;
-	}
-
 	public void doLRS() {
-		playerSector.doLRS();
+		int Xstart = playerSector.getGalacticX() - 1;
+		int Xend = playerSector.getGalacticX() + 1;
+		int Ystart = playerSector.getGalacticY() - 1;
+		int Yend = playerSector.getGalacticY() + 1;
+		int Zstart = playerSector.getGalacticZ() - 1;
+		int Zend = playerSector.getGalacticZ() + 1;
+
+		for (Sector loc : sectorListHead) {
+			if (   Xstart <= loc.getGalacticX() && loc.getGalacticX() <= Xend
+				&& Ystart <= loc.getGalacticY() && loc.getGalacticY() <= Yend
+				&& Zstart <= loc.getGalacticZ() && loc.getGalacticZ() <= Zend
+				) loc.doSRS();
+		}
 	}
 
 	public void doSRS() {
@@ -129,40 +165,56 @@ public class Galaxy {
 			}
 		}
 
-		for ( Sector aSector = headSector; aSector != null; aSector = aSector.Next) {
-			if ( !(	startX <= aSector.getGalacticX() && aSector.getGalacticX() <= endX
-				&&	startY <= aSector.getGalacticY() && aSector.getGalacticY() <= endY ) ) continue;	// not on the map
+		doLRS();	// TODO Remove this in final version, debug only
+
+		int eCount;
+		int sCount;
+		int pCount;
+		alienCount = 0;
+		starbaseCount = 0;
+		for ( Sector aSector : sectorListHead) {
+			eCount = aSector.LRS_EnemyCount;
+			sCount = aSector.LRS_StarbaseCount;
+			pCount = aSector.LRS_PlanetCount;
+			alienCount += (eCount >= 0 ? eCount : 0);
+			starbaseCount += (sCount >= 0 ? sCount : 0);
 
 			currentX = aSector.getGalacticX(); currentY = aSector.getGalacticY();
+			if ( !(	startX <= currentX && currentX <= endX
+				&&	startY <= currentY && currentY <= endY ) ) continue;	// not on the map
+
 			currentRow = mapLines - (currentY - startY);
 			currentCol = (currentX - startX)*sectorText.length();
+
 			assert(currentRow >= 0);
 			assert(currentCol >= 0);
 			assert(currentRow <= mapLines);
 			assert(currentCol <= mapCols*sectorText.length());
 
-			int eCount = aSector.LRS_EnemyCount;
-			int sCount = aSector.LRS_StarbaseCount;
-			int pCount = aSector.LRS_PlanetCount;
 			if (aSector == playerSector) {
-				eCount = 10;
-				sCount = 10;
-				pCount = 10;
+				currentLine[currentRow].setCharAt(currentCol+0, '!');
+				currentLine[currentRow].setCharAt(currentCol+4, '!');
 			}
 
-			if (eCount > 9) {
+			if (eCount < 0) {
+				currentLine[currentRow].setCharAt(currentCol+1, '?');
+			} else if (eCount > 9) {
 				currentLine[currentRow].setCharAt(currentCol+1, '*');
 			} else if(eCount >= 0) {
 				currentLine[currentRow].setCharAt(currentCol+1, numbers.charAt(eCount));
 			}
 
-			if (sCount > 9) {
+			if (sCount < 0) {
+				currentLine[currentRow].setCharAt(currentCol+2, '?');
+			} else if (sCount > 9) {
 				currentLine[currentRow].setCharAt(currentCol+2, '*');
 			} else if(sCount >= 0) {
 				currentLine[currentRow].setCharAt(currentCol+2, numbers.charAt(sCount));
 			}
 
-			if (pCount > 9) {
+			if (pCount < 0) {
+				currentLine[currentRow].setCharAt(currentCol+3, '?');
+			} else if (pCount > 9) {
 				currentLine[currentRow].setCharAt(currentCol+3, '*');
 			} else if(pCount >= 0) {
 				currentLine[currentRow].setCharAt(currentCol+3, numbers.charAt(pCount));
@@ -183,8 +235,14 @@ public class Galaxy {
 
 	// Galactic logic implemented here and passed down the classes
 	public void doLogic(double delta) {
-		for ( Sector aSector = headSector; aSector != null; aSector = aSector.Next) {
+		for ( Sector aSector : sectorListHead) {
 			aSector.doLogic(delta);
+		}
+		for ( Sector aSector : sectorListHead) {
+			aSector.doAdd();
+		}
+		for ( Sector aSector : sectorListHead) {
+			aSector.doRemove();
 		}
 	}
 }

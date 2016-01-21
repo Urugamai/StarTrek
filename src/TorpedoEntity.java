@@ -30,6 +30,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
+
 /**
  * An entity representing a shot fired
  *
@@ -42,15 +44,13 @@ public class TorpedoEntity extends Entity {
 	/**
 	 * Create a new shot from the player
 	 *
-	 * @param game The parent of all the universe(s?)
-	 * @param sector The sector in which the shot has been created
 	 * @param sourceShip The ship that fired the shot
 	 * @param spriteFile The sprite file to be used for this shot
 	 */
-	public TorpedoEntity(Game game, Sector sector, Entity sourceShip, String spriteFile) {
-		super(entityType.TORPEDO, game.getSprite(spriteFile), sourceShip.getX(), sourceShip.getY());
+	public TorpedoEntity(Sector thisSector, Entity sourceShip, String spriteFile) {
+		super(entityType.TORPEDO, spriteFile, sourceShip.getX(), sourceShip.getY());
+		currentSector = thisSector;
 
-		setSector(sector);
 		this.Parent = sourceShip;
 		this.Range = 5.1; // seconds
 	}
@@ -82,12 +82,12 @@ public class TorpedoEntity extends Entity {
 
 		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
 
-		super.currentSector.queueRemoveEntity(this);	// Torpedo ALWAYS dies on hitting something
+		super.currentSector.queueEntity(Constants.listType.remove, this);	// Torpedo ALWAYS dies on hitting something
 
 		// if we've hit an alien, kill it!
 		if (other != null) {
 			// remove the affected entities
-			if (other instanceof RomulanEntity) super.currentSector.queueRemoveEntity(other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call queueRemoveEntity
+			if (other instanceof RomulanEntity) super.currentSector.queueEntity(Constants.listType.remove, other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call queueRemoveEntity
 
 			// notify the sector that the alien has been killed
 			super.currentSector.notifyAlienKilled();

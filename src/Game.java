@@ -30,6 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.sun.org.apache.xerces.internal.impl.dv.xs.DayDV;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -56,6 +57,7 @@ import static org.lwjgl.opengl.GL11.*;
 public class Game {
 
 	private Galaxy 				galaxy;
+	private float				starDate 			= 12345;
 
 	private int					width				= 1000;
 	private int					height				= 1000;
@@ -65,10 +67,10 @@ public class Game {
 	private TextureLoader		textureLoader;
 
 	private GameText 			textWindow;
-	private String				userInput = "";
+	private String				userInput 			= "";
 	private boolean				returnDown;
 
-	private Constants.DisplayMode displayMode = Constants.DisplayMode.Sector;
+	private Constants.DisplayMode displayMode 		= Constants.DisplayMode.Sector;
 
 	private long				lastLoopTime		= getTime();
 	private long				lastFpsTime;
@@ -119,17 +121,6 @@ public class Game {
 
 	public int getHeight() {
 		return height;
-	}
-
-	/**
-	 * Create or get a sprite which displays the image that is pointed
-	 * to in the classpath by "ref"
-	 *
-	 * @param ref A reference to the image to load
-	 * @return A sprite that can be drawn onto the current graphics context.
-	 */
-	public Sprite getSprite(String ref) {
-		return new Sprite(textureLoader, ref);
 	}
 
 	/**
@@ -229,19 +220,13 @@ public class Game {
 		return false;
 	}
 
-	public void setPlayerSector(Sector sector) {
-		galaxy.setPlayerSector(sector);
-	}
-
 	/**
 	 * Start a fresh game, this should clear out any old data and
 	 * create a new set.
 	 */
 	private void startGame() {
 		// clear out any existing entities and initialise a new set
-		//entities.clear();	//MWW: sector function, not galactic
 		galaxy = new Galaxy(this);
-		galaxy.initSectors( width, height );
 		galaxy.initPlayerShip();
 	}
 
@@ -426,6 +411,28 @@ public class Game {
 			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + pieces[1] + " " + pieces[2] + " " + pieces[3]);
 
 			return;
+		}
+
+		if (pieces[0].compareToIgnoreCase("WARP") == 0 ) {
+			if ( pieces.length > 3 ) {
+				direction = pieces[1];
+				power = pieces[2];
+				duration = pieces[3];
+
+				try {
+					angle = Float.valueOf(direction);
+					force = Float.valueOf(power);
+					seconds = Float.valueOf(duration);
+				} catch (Exception e) {
+					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
+					return; // no moving for you when you get the parameters wrong
+				}
+			} else {
+				textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,accel,duration");
+				return; // no moving for you when you get the parameters wrong
+			}
+
+
 		}
 
 		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {
