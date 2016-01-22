@@ -20,7 +20,7 @@ public class Sector {
 	private int starbaseCount = 0;
 	private int planetCount = 0;
 
-	private static PlayerShipEntity ship;
+	public static PlayerShipEntity ship;
 
 	private ArrayList<Entity> entities = new ArrayList<Entity>();
 
@@ -220,6 +220,10 @@ public class Sector {
 		ship.setHeading(direction, inclination);
 	}
 
+	public float getShipHeading() {
+		return ship.getHeading();
+	}
+
 	public void setShipThrust(float accel, float duration) {
 		ship.setThrust(accel, duration);
 	}
@@ -260,7 +264,7 @@ public class Sector {
 		}
 	}
 
-	private void leavingSector(Entity entity){
+	private boolean leavingSector(Entity entity){
 		// Entity location
 		int x = entity.getX();
 		int y = entity.getY();
@@ -285,6 +289,8 @@ public class Sector {
 		if (newSector != null && entity instanceof PlayerShipEntity) {
 			galaxy.playerSector = newSector;
 		}
+
+		return (newSector != null);
 	}
 
 	private Sector jump(Constants.sectorDirection dir, Entity entity) {
@@ -309,7 +315,17 @@ public class Sector {
 		// cycle round every entity doing personal logic and other interactions
 		for (Entity entity : entities) {
 			entity.doLogic(delta);
-			leavingSector(entity);
+		}
+	}
+	public boolean checkLeaving() {
+		for (Entity entity : entities) {
+			if (leavingSector(entity)) return true;	// concurrent update errors means we must exit and restart sector list processing
+		}
+		return false;
+	}
+
+	public void checkHits() {
+		for (Entity entity : entities) {
 			processHits(entity);
 		}
 	}

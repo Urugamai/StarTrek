@@ -424,15 +424,20 @@ public class Game {
 					force = Float.valueOf(power);
 					seconds = Float.valueOf(duration);
 				} catch (Exception e) {
-					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
+					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
 					return; // no moving for you when you get the parameters wrong
 				}
 			} else {
-				textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,accel,duration");
+				textWindow.writeLine(1, "Syntax Error: Command format should be: WARP,direction,Speed,duration");
 				return; // no moving for you when you get the parameters wrong
 			}
 
+			galaxy.setPlayerHeading(angle, 0);
+			galaxy.setPlayerThrust( 0, 6);	// Turn in the desired direction, it takes 6 seconds to do 180 degrees
 
+			galaxy.warp(force, seconds);
+
+			return;
 		}
 
 		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {

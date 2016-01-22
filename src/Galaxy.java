@@ -74,9 +74,12 @@ public class Galaxy {
 	}
 
 	public Sector getSector(locationSpec loc) {
-		Sector req;
-		req = findSector(loc);
-		if (req == null) req = addSector(loc);
+		return getSector(loc.getGx(), loc.getGy(), loc.getGz());
+	}
+
+	public Sector getSector( int X, int Y, int Z) {
+		Sector req = findSector(X, Y, Z);
+		if (req == null) req = addSector(X, Y, Z);
 		return req;
 	}
 
@@ -115,6 +118,29 @@ public class Galaxy {
 
 	public int getStarbaseCount() {
 		return starbaseCount;
+	}
+
+	public void warp(float warpSpeed, float duration) {
+		//		energy = Math.pow(warpSpeed, 2)*duration * energyFactor
+
+		int gx = playerSector.getGalacticX();
+		int gy = playerSector.getGalacticY();
+		int gz = playerSector.getGalacticZ();
+
+		double rAngle = Math.toRadians(playerSector.getShipHeading() );
+
+		double dx = warpSpeed*duration*Math.cos(rAngle);
+		double dy = -warpSpeed*duration*Math.sin(rAngle);
+		double dz = 0; //warpSpeed*duration*Math.sin(currentInclination);
+
+		gx += dx;
+		gy += dy;
+		gz += dz;
+
+		Sector newSector = getSector(gx, gy, gz);
+		newSector.queueEntity(Constants.listType.add, playerSector.ship);
+		playerSector.queueEntity(Constants.listType.remove, playerSector.ship);
+		playerSector = newSector;
 	}
 
 	public void doLRS() {
@@ -237,12 +263,20 @@ public class Galaxy {
 	public void doLogic(double delta) {
 		for ( Sector aSector : sectorListHead) {
 			aSector.doLogic(delta);
+			aSector.checkHits();
 		}
-		for ( Sector aSector : sectorListHead) {
-			aSector.doAdd();
+
+		boolean leaving = true;
+		while (leaving) {
+			leaving = false;
+			for (Sector aSector : sectorListHead) {
+				if (aSector.checkLeaving()) { leaving = true; break; }
+			}
 		}
+
 		for ( Sector aSector : sectorListHead) {
 			aSector.doRemove();
+			aSector.doAdd();
 		}
 	}
 }

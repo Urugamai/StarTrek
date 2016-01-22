@@ -81,6 +81,10 @@ public abstract class Entity {
 		targetInclination = newInclination;
 	}
 
+	public float getHeading() {
+		return currentAngle;
+	}
+
 	public void setImmediateHeading(float newDegrees, float newInclination) {
 		setHeading(newDegrees, newInclination);
 		currentAngle = newDegrees;

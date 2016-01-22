@@ -76,22 +76,22 @@ public class TorpedoEntity extends Entity {
 	public void collidedWith(Entity other) {
 		// prevents double kills, if we've already hit something,
 		// don't collide
-		if (used) {
-			return;
-		}
-
-		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
-
-		super.currentSector.queueEntity(Constants.listType.remove, this);	// Torpedo ALWAYS dies on hitting something
-
-		// if we've hit an alien, kill it!
-		if (other != null) {
-			// remove the affected entities
-			if (other instanceof RomulanEntity) super.currentSector.queueEntity(Constants.listType.remove, other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call queueRemoveEntity
-
-			// notify the sector that the alien has been killed
-			super.currentSector.notifyAlienKilled();
-			used = true;
-		}
+//		if (used) {
+//			return;
+//		}
+//
+//		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
+//
+//		super.currentSector.queueEntity(Constants.listType.remove, this);	// Torpedo ALWAYS dies on hitting something
+//
+//		// if we've hit an alien, kill it!
+//		if (other != null) {
+//			// remove the affected entities
+//			if (other instanceof RomulanEntity) super.currentSector.queueEntity(Constants.listType.remove, other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call queueRemoveEntity
+//
+//			// notify the sector that the alien has been killed
+//			super.currentSector.notifyAlienKilled();
+//			used = true;
+//		}
 	}
 }

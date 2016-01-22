@@ -41,7 +41,7 @@ Version 0.5
     - WARP Drive!  Travel across sector boundary
         - Accelerate to full impulse before enabling WARP drive
         - WARP jumps sectors AND TIME
-            - i.e. long trips are quick in elapsed user time but take a number of 'days' to do
+            - i.e. long trips are quick in elapsed user time but take a number of 'days' to do (stardate update)
 
 Version 0.x
 ===========
