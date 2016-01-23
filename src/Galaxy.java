@@ -108,6 +108,10 @@ public class Galaxy {
 		playerSector.setShipVelocity(velocity);
 	}
 
+	public float getPlayerVelocity() {
+		return playerSector.getShipVelocity();
+	}
+
 	public void playerFired(float direction) {
 		playerSector.tryToFire(direction);
 	}
@@ -120,27 +124,8 @@ public class Galaxy {
 		return starbaseCount;
 	}
 
-	public void warp(float warpSpeed, float duration) {
-		//		energy = Math.pow(warpSpeed, 2)*duration * energyFactor
-
-		int gx = playerSector.getGalacticX();
-		int gy = playerSector.getGalacticY();
-		int gz = playerSector.getGalacticZ();
-
-		double rAngle = Math.toRadians(playerSector.getShipHeading() );
-
-		double dx = warpSpeed*duration*Math.cos(rAngle);
-		double dy = -warpSpeed*duration*Math.sin(rAngle);
-		double dz = 0; //warpSpeed*duration*Math.sin(currentInclination);
-
-		gx += dx;
-		gy += dy;
-		gz += dz;
-
-		Sector newSector = getSector(gx, gy, gz);
-		newSector.queueEntity(Constants.listType.add, playerSector.ship);
-		playerSector.queueEntity(Constants.listType.remove, playerSector.ship);
-		playerSector = newSector;
+	public void setPlayerWarp(float warpSpeed, float duration) {
+		playerSector.setShipWarp(warpSpeed, duration);
 	}
 
 	public void doLRS() {
@@ -270,6 +255,7 @@ public class Galaxy {
 		while (leaving) {
 			leaving = false;
 			for (Sector aSector : sectorListHead) {
+				if (aSector.doJumps(delta) ) { leaving = true; break; }
 				if (aSector.checkLeaving()) { leaving = true; break; }
 			}
 		}

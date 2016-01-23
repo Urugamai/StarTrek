@@ -38,15 +38,21 @@ public abstract class Entity {
 	// Its all about ME
 	protected Sector	currentSector;											/** The sector in which this entity is located */
 	private double 		x, y, z;												/** Where Am I */
-	private float 		currentInclination, currentAngle, velocity = 0.0f;		/** Where Am I Going */
 	private float		energyLevel;											// How much energy am I carrying (explosive force)
 	private float		shieldPercent;											// how much of my energy is diverted to shields
 	private float		solidity;												// structural strength
 
 	private float  		targetAngle, targetInclination;							/** Where Do I Want To Go */
+	private float 		currentInclination, currentAngle;
+
+	private float 		thrustAcceleration = 0, thrustDuration = 0;
+	private float		velocity = 0.0f;
+
+	private float		warpSpeed = 0, warpDuration = 0;
+	private double		warpDelay = 0;
+	private boolean		warpJump = false;
 
 	private float 		rotationSpeed = 30.0f;									/** Degrees per second */
-	private float 		thrustAcceleration = 0, thrustDuration = 0;
 
 	private static TextureLoader		textureLoader;
 	protected Sprite	sprite;													/** The sprite (graphics) that represents this entity */
@@ -70,6 +76,7 @@ public abstract class Entity {
 		currentInclination = 0;
 		targetAngle = 0;
 		targetInclination = 0;
+//		currentSector = super.this;
 	}
 
 	public Sprite getSprite(String ref) {
@@ -97,9 +104,49 @@ public abstract class Entity {
 		thrustDuration = duration;
 	}
 
+	public float getVelocity() {
+		return velocity;
+	}
+
 	// Should only be used to implement 'all stop' command (velocity = 0)
 	public void setVelocity(float newVelocity) {
 		velocity = newVelocity;
+	}
+
+	public boolean doWarpJump() {
+		return warpJump;
+	}
+
+	public void setWarp(float warpSpeed, float duration) {
+
+		this.warpSpeed = warpSpeed;
+		warpDuration = duration;
+		warpDelay = 6;    // Maximum time to rotate to correct heading
+		warpJump = false;
+	}
+
+	public void warpMove(double delta) {
+		if (warpSpeed <= 0) return;
+
+		double energy = Math.pow(warpSpeed, 2)*delta;
+		warpDelay -= delta;
+		if (warpDelay < 0) {
+			warpDelay = 1;
+			warpDuration -= 1;
+			warpJump = true;	// we jump once per second, warpSpeed distance
+		}
+	}
+
+	public void warpJumpDone() {
+		warpJump = false;
+		if (warpDuration <= 0) {	// jump complete
+			warpDuration = 0;
+			warpSpeed = 0;
+		}
+	}
+
+	public float getWarpSpeed() {
+		return warpSpeed;
 	}
 
 	public void setLocation(int x, int y, int z) {
@@ -119,7 +166,7 @@ public abstract class Entity {
 			// Standardise on positive angle between 0 and 360 degrees.
 			if (currentAngle < 0) currentAngle += 360;
 			currentAngle %= 360;
-			if ( Math.abs(currentAngle - targetAngle) <= (rotationSpeed)) currentAngle = targetAngle;
+			if ( Math.abs(currentAngle - targetAngle) <= (rotationSpeed*delta)) currentAngle = targetAngle;
 
 		// PERMANENT rotations
 		} else if (targetAngle <= -2.0f) {		// Permanent anti-clockwise rotation
@@ -141,6 +188,8 @@ public abstract class Entity {
 
 		if (thrustDuration > 0) {
 			velocity += (thrustAcceleration * delta);
+			if (velocity < 0) { velocity = 0; thrustDuration = 0; return; }
+
 			thrustDuration -= delta;
 			if (thrustDuration < delta) { thrustAcceleration = 0; thrustDuration = 0; }
 		}
@@ -163,6 +212,7 @@ public abstract class Entity {
 	public void move(double delta) {
 		Rotate(delta);
 		Translate(delta);
+		warpMove(delta);
 	}
 
 	/**

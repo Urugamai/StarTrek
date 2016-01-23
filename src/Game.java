@@ -435,14 +435,19 @@ public class Game {
 			galaxy.setPlayerHeading(angle, 0);
 			galaxy.setPlayerThrust( 0, 6);	// Turn in the desired direction, it takes 6 seconds to do 180 degrees
 
-			galaxy.warp(force, seconds);
+			galaxy.setPlayerWarp(force, seconds);
+
+			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + pieces[1] + " " + pieces[2] + " " + pieces[3]);
 
 			return;
 		}
 
 		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {
-			galaxy.setPlayerVelocity(0.0f);
-			galaxy.setPlayerThrust(0, 0);
+
+			float currentVelocity = galaxy.getPlayerVelocity();
+			if (currentVelocity > 0) {
+				galaxy.setPlayerThrust(-50, currentVelocity / 50.0f);
+			}
 			return;
 		}
 

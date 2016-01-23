@@ -230,6 +230,12 @@ public class Sector {
 
 	public void setShipVelocity( float velocity) { ship.setVelocity( velocity ); }
 
+	public float getShipVelocity( ) { return ship.getVelocity(  ); }
+
+	public void setShipWarp(float warpSpeed, float duration) {
+		ship.setWarp(warpSpeed, duration);
+	}
+
 	/**
 	 * Attempt to fire a shot from the player in the direction provided.
 	 * Its called "try"
@@ -304,6 +310,34 @@ public class Sector {
 		return newSector;
 	}
 
+	private boolean warpJump(Entity entity) {
+		if (! entity.doWarpJump()) return false;
+
+		int gx = getGalacticX();
+		int gy = getGalacticY();
+		int gz = getGalacticZ();
+
+		double rAngle = Math.toRadians(getShipHeading());
+
+		double dx = entity.getWarpSpeed() * 1 * Math.cos(rAngle);
+		double dy = -entity.getWarpSpeed() * 1 * Math.sin(rAngle);
+		double dz = 0; //warpSpeed * 1 * Math.sin(currentInclination);
+
+		gx += dx;
+		gy += dy;
+		gz += dz;
+
+		Sector newSector = galaxy.getSector(gx, gy, gz);
+		newSector.queueEntity(Constants.listType.add, entity);
+		queueEntity(Constants.listType.remove, entity);
+		if (newSector != null && entity instanceof PlayerShipEntity) {
+			galaxy.playerSector = newSector;
+		}
+
+		entity.warpJumpDone();
+		return true;
+	}
+
 	public void draw() {
 		// cycle round drawing all the entities we have in the game
 		for (Entity entity : entities) {
@@ -317,6 +351,14 @@ public class Sector {
 			entity.doLogic(delta);
 		}
 	}
+
+	public boolean doJumps(double delta){
+		for (Entity entity : entities) {
+			if (warpJump(entity)) return true;
+		}
+		return false;
+	}
+
 	public boolean checkLeaving() {
 		for (Entity entity : entities) {
 			if (leavingSector(entity)) return true;	// concurrent update errors means we must exit and restart sector list processing
