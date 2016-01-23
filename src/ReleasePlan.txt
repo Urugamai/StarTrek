@@ -38,35 +38,32 @@ Version 0.5
     - DONE: Other fixes:
         - Made galaxy dynamically sized.
         - impulse travel now crosses sector boundaries
-    - WARP Drive!  Travel across sector boundary
-        - Accelerate to full impulse before enabling WARP drive
-        - WARP jumps sectors AND TIME
-            - i.e. long trips are quick in elapsed user time but take a number of 'days' to do (stardate update)
+        - STOP command now SLOWS to zero rather than instantaneous halt ;-)
+    - DONE: WARP Drive!  Travel across sector boundary
+        - NOT DOING: Accelerate to full impulse before enabling WARP drive
 
-Version 0.x
+Version 0.6
 ===========
-- Add energy capacity to all ships (Enterprise, Romulans, StarBase)
-- Torpedo Enhancements
-    - FUEL
-        - The destructive power of a torpedo is purely based on the fuel it carries at time of impact
-        - as the fuel is used the destructive force reduces
-        - once out of fuel the torpedo self destructs using the primer charge that would have detonated the fuel
-    - life of a torpedo can be reduced by setting it on the launch command
-    - torpedoes will NOT create new sectors, they self destruct on entering the unknown.
-    - Arming Delay (2 seconds) - once armed it can destroy YOU too!  Cannot use torpedo on a ship that is less than
-      2 seconds travel from you.
+- DONE: Add energy capability to all ships (Enterprise, Romulans, StarBase)
+    - DONE: add new Entity Types and superset of Entity (ShipEntity, ObjectEntity)
+        - DONE: move Warp and other movement parameters to ShipEntity so Objects do not have movement capability
+    - energy display (structural integrity and shields too)
 
 Version 0.x
 ===========
 - Phasers
     - Lightspeed travel of beam
-    - Straight line for now, gravity later
+    - Straight line
     - Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
     - cannot shoot into other quadrants - there is interstellar 'space' between the sectors within which the beam degrades to zero
 
 Version 0.x
 ===========
 - Add STARDATE
+    - WARP jumps sectors
+        - i.e. long trips are quick in elapsed user time but take a number of 'days' to do (stardate update)
+    - Crossing sector boundaries adds a 'chunk of time' to the date to illustrate there is 'space' between sectors.
+        - What does this mean for torpedoes crossing the boundary?
 
 Version 0.x
 ===========
@@ -77,13 +74,14 @@ Version 0.x
 
 Version 0.x
 ===========
-- STOP command to 'slow down to zero' rather than instantly stop.
+- DONE: STOP command to 'slow down to zero' rather than instantly stop.
+- Enemies 'Follow you' - even across sectors. Once you have been seen they will track you until you are more than 2
+  sectors away, (then they will continue on the path they were on?)
 
 Version 0.x
 ===========
 - Enemies fight back
     - Torpedo and Phaser capabilities
-    - 'Follow you' capability - even across sectors
 
 Version 0.x
 ===========
@@ -91,11 +89,19 @@ Version 0.x
 
 Version 0.x
 ===========
-- ship status view (down right side.  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
+- ship status view (down right side or a new screen?  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
 
 Version 0.x
 ===========
-- Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
+- DONE: Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
+- Torpedo Enhancements
+    - FUEL
+        - The destructive power of a torpedo is purely based on the fuel it carries at time of impact
+        - as the fuel is used the destructive force reduces
+        - once out of fuel the torpedo self destructs using the primer charge that would have detonated the fuel
+    - life of a torpedo can be reduced by setting it on the launch command
+    - torpedoes will NOT create new sectors, they self destruct on entering the unknown.
+    - Arming Delay (1 seconds) - once armed it can destroy YOU too!  Theory is you could get killed by same explosion.
 
 Version 0.x
 ===========
@@ -147,8 +153,8 @@ Version 0.x
         - warp nacelles
         - Physical ship damage
 
-Version 1.0 BETA
-================
+Version 1.0 ALPHA
+=================
 
 Version 1.0.x
 =============
@@ -177,16 +183,20 @@ Version 1.0.x
 
 VERSION 1.1
 ===========
-- RELEASE
+- BETA RELEASE
 
 Version 1.1.x
 =============
 - Demotion vessels
+    - BattleBridge (Split Enterprise) (110% of Enterprise but harder to hit (smaller))
     - Spaceship (50% of Enterprise)
     - Cruiser (35%)
     - Shuttle (20% of Enterprise)
     - Saucer Section (10% of Enterprise, moves SLOWLY, a torpedo tube, a phaser, not much energy, strong shields)
     - Garbage Scow (5% of Enterprise)
+    - Escape Pod ( 2% of Enterprise)
+    - space suit (0% of Enterprise, you have a hand phaser)
+    - Holloween version - Space Zombie - cant DO anything but watch as the enemy destroy starbases, etc. Can scare the enemy into leaving the sector?
 
 Version 1.1.x
 =============
@@ -196,6 +206,7 @@ Version 1.1.x
             - BORG can be introduced earlier by
                 - crossing out of 'federation' space
                 - High 'Kill to StarBase visit' ratio (strong player)
+                - time limit (i.e. dont clear out the romulans within n-stardates then the Borg also appear)
 
 VERSION 1.2
 ===========
@@ -229,7 +240,7 @@ Version 1.2.x
 ===========
 - Commands to split/join the Enterprise
     - BattleBridge (110% of Enterprise but less staff (repair crews, etc))
-    - Saucer Section (10% of Enterprise but 200% sheilds)
+    - Saucer Section (10% of Enterprise but 200% shields)
 
 VERSION 1.3
 ===========
@@ -276,9 +287,9 @@ BUGS
     INTERIM FIX: Move add and remove to lists
 3.  Appears to be an issue in draw Galaxy that causes array boundaries to be crossed occasionally
     INTERIM FIX: Made rows and columns of the text map for galaxy 1 wider/higher than should be needed.
-4.  Travelling across sectors occassionally sets the 'playerSector' to the wrong sector and then back to the correct one
+4.  FIXED?: Travelling across sectors occasionally sets the 'playerSector' to the wrong sector and then back to the correct one
     after the next boundary crossing
-5.  Impulse drive just keeps accelerating - set a MAXIMUM SPEED.
+5.  Impulse drive just keeps accelerating - set a MAXIMUM SPEED. (or Energy consumption might also help)
 6.  Torpedoes travel too slow and not long enough.
 
 NOTES
@@ -332,6 +343,10 @@ TOR,direction[,maxlife]      -   direction is a decimal number of degrees at whi
 IMP,direction,power,duration -   Impulse engines used to move around within a star system.  Does not stop until ordered.
                                 power is % of full (0 - 100), duration is in seconds.  Ship will accelerate for the
                                 duration given and then coast at the velocity arrived at.
+WARP,direction,range        -   Turn in the direction indicated and activate warp drive. Range is roughly the number of
+                                sectors travelled over.  Note that travelling at an angle will not necessary cross as
+                                many sectors as you have entered.  Get out your trigonometry and pythagoras notes to
+                                understand the distance travelled.
 SRS                         -   Add current sector details to the galactic map.
 LRS                         -   Add the current and 8 surrounding sectors to the galactic map.
 STOP                        -   Computer calculates and implements impulse forces necessary to come to a full stop
@@ -339,12 +354,9 @@ EXIT                        -   Quit game.  ESC Key is also meant to work.
 
 TODO
 ====
-WARP,direction,range        -   Turn in the direction indicated and activate warp drive. Range is roughly the number of
-                                sectors travelled over.  Note that travelling at an angle will not necessary cross as
-                                many sectors as you have entered.  Get out your trigonometry and pythagoras notes to
-                                understand the distance travelled.
-DOCK                        -   connect with starbase - you must be reasonably close for this to work as the starbase
-                                autopilot uses bluetooth to reduce detection by the enemy
+SH,percent                  -   Transfer energy from main banks to bring shields up to selected percentage
+SHUP                        -   Turn ON shields
+SHDOWN                      -   Turn OFF Shields
 AS                          -   ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
 PHA,direction,power         -   fire Phasers in the direction indicated with start power at the level indicated.  Power
                                 will decrease by 1% (10%?) per lightsecond travelled.
@@ -354,4 +366,8 @@ MINE                        -   Places a mine at the location of the ship - make
 
 PROBABLY WONT NEED
 ==================
+- Not doing orbits
 ORB,range                   -   go into orbit of the star at a distance of 'range' light-seconds (Needs GRAVITY implemented)
+- decided to auto-dock at slow enough velocity
+DOCK                        -   connect with starbase - you must be reasonably close for this to work as the starbase
+                                autopilot uses bluetooth to reduce detection by the enemy

@@ -31,11 +31,11 @@ public class Constants {
 	// All speeds are % of lightspeed?
 	public static final float		phaserSpeed			= 1.0f;		// multiple of light speed
 	public static final float		warpSpeedMax		= 8.0f;		// multiple of light speed
-	public static final float		impulseSpeedMax		= 0.1f;		// multiple of light speed
+	public static final float IMPULSE_MAX = 0.1f;		// multiple of light speed
 	public static final float		torpedoSpeed		= 100.0f;		// pixels per second
 	public static final float		c					= 500.0f;	// The speed of light, in pixels per second
 
-	public static enum DisplayMode { Sector, GalacticMap, DamageReport };
+	public static enum DisplayMode {DISPLAY_SECTOR, GALACTIC_MAP, SHIP_STATUS};
 	public static enum sectorDirection { LeftTop, Top, RightTop, Left, here, Right, LeftBottom, Bottom, RightBottom };
 	public static enum LRSItems {
 		Enemy(0), Starbases(1), Planets(2);

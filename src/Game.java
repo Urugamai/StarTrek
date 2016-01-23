@@ -30,7 +30,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.sun.org.apache.xerces.internal.impl.dv.xs.DayDV;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -70,7 +69,7 @@ public class Game {
 	private String				userInput 			= "";
 	private boolean				returnDown;
 
-	private Constants.DisplayMode displayMode 		= Constants.DisplayMode.Sector;
+	private Constants.DisplayMode displayMode 		= Constants.DisplayMode.DISPLAY_SECTOR;
 
 	private long				lastLoopTime		= getTime();
 	private long				lastFpsTime;
@@ -140,7 +139,7 @@ public class Game {
 	 */
 	public void initialize() {
 		// initialize the window beforehand
-		displayMode = Constants.DisplayMode.Sector;
+		displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
 		try {
 			setDisplayMode();
 			Display.setTitle(Constants.WINDOW_TITLE);
@@ -306,15 +305,14 @@ public class Game {
 
 		textWindow.writeLine(4, "Currently in sector (" + galaxy.playerSector.getGalacticX() + "," + galaxy.playerSector.getGalacticY() + ")");
 
-		if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.DamageReport;
-		else if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GalacticMap;
-		else if (Keyboard.isKeyDown(Keyboard.KEY_F3)) displayMode = Constants.DisplayMode.Sector;
+		if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.SHIP_STATUS;
+		else if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GALACTIC_MAP;
+		else if (Keyboard.isKeyDown(Keyboard.KEY_F3)) displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
 
 		char key = getCurrentKey();
 
 		if (key != '\0') {
 			// do something with this key
-			//if (key == 32) return;	// space
 			if (key == 13) {
 				processCommand(userInput);
 				userInput = "";
@@ -346,12 +344,12 @@ public class Game {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		if (displayMode == Constants.DisplayMode.Sector)
+		if (displayMode == Constants.DisplayMode.DISPLAY_SECTOR)
 			galaxy.drawSector();
-		else if (displayMode == Constants.DisplayMode.GalacticMap)
+		else if (displayMode == Constants.DisplayMode.GALACTIC_MAP)
 			galaxy.drawGalaxy();
-		else if (displayMode == Constants.DisplayMode.DamageReport)
-			galaxy.drawGalaxy();	// TODO: Change this to a picture showing the current ship damage status
+		else if (displayMode == Constants.DisplayMode.SHIP_STATUS)
+			galaxy.drawShipStatus();	// TODO: Change this to a picture and text showing the current ship status
 
 		textWindow.draw();
 
@@ -393,9 +391,10 @@ public class Game {
 				duration = pieces[3];
 
 				try {
-					angle = Float.valueOf(direction);
-					force = Float.valueOf(power);
-					seconds = Float.valueOf(duration);
+					angle = Float.valueOf(direction) % 360;
+					if (angle < 0) angle += 360;
+					force = Float.valueOf(power); if (force > 20) force = 20;	// technically could make the energy requirements exponential and so preclude the need for a limit
+					seconds = Float.valueOf(duration);							// Dont need time limit as energy reserves will expire and stop progress anyway
 				} catch (Exception e) {
 					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
 					return; // no moving for you when you get the parameters wrong
@@ -405,10 +404,11 @@ public class Game {
 				return; // no moving for you when you get the parameters wrong
 			}
 
+
 			galaxy.setPlayerHeading(angle, 0);
 			galaxy.setPlayerThrust( force, seconds);
 
-			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + pieces[1] + " " + pieces[2] + " " + pieces[3]);
+			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds);
 
 			return;
 		}
@@ -420,8 +420,9 @@ public class Game {
 				duration = pieces[3];
 
 				try {
-					angle = Float.valueOf(direction);
-					force = Float.valueOf(power);
+					angle = Float.valueOf(direction) % 360;
+					if (angle < 0) angle += 360;
+					force = Float.valueOf(power); if (force > 10) force = 10; // again, energy requirements will preclude this limit in the future
 					seconds = Float.valueOf(duration);
 				} catch (Exception e) {
 					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
@@ -437,7 +438,7 @@ public class Game {
 
 			galaxy.setPlayerWarp(force, seconds);
 
-			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + pieces[1] + " " + pieces[2] + " " + pieces[3]);
+			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds );
 
 			return;
 		}
@@ -446,7 +447,7 @@ public class Game {
 
 			float currentVelocity = galaxy.getPlayerVelocity();
 			if (currentVelocity > 0) {
-				galaxy.setPlayerThrust(-50, currentVelocity / 50.0f);
+				galaxy.setPlayerThrust(-50, currentVelocity / 50.0f + 1);
 			}
 			return;
 		}

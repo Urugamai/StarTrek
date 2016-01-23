@@ -11,6 +11,8 @@ public class Galaxy {
 	private int starbaseCount = 0;				// Galactic allocation of starbases
 
 	private GameText galacticMap;
+	private GameText shipStatusDisplay;
+	private PlayerShipEntity playerShip = null;
 
 	private ArrayList<Sector> sectorListHead = new ArrayList<Sector>();
 
@@ -30,6 +32,9 @@ public class Galaxy {
 		public void setGx(int X) { gx = X; }
 		public void setGy(int Y) { gy = Y; }
 		public void setGz(int Z) { gz = Z; }
+		public void addGx(int dx) { gx += dx; }
+		public void addGy(int dy) { gy += dy; }
+		public void addGz(int dz) { gz += dz; }
 	}
 
 	public Galaxy(Game game) {
@@ -41,6 +46,7 @@ public class Galaxy {
 		sectorListHead.add(playerSector);
 
 		galacticMap = new GameText(10, screenHeight, Constants.screenLines);
+		shipStatusDisplay = new GameText(10, screenHeight, Constants.screenLines);
 	}
 
 	public Sector findSector(locationSpec loc) {
@@ -88,7 +94,7 @@ public class Galaxy {
 	}
 
 	public void initPlayerShip() {
-		playerSector.initPlayerShip();
+		playerShip = playerSector.initPlayerShip();
 	}
 
 	public locationSpec getGalacticLocation(int x, int y, int z) {
@@ -129,6 +135,8 @@ public class Galaxy {
 	}
 
 	public void doLRS() {
+		Sector loc;
+
 		int Xstart = playerSector.getGalacticX() - 1;
 		int Xend = playerSector.getGalacticX() + 1;
 		int Ystart = playerSector.getGalacticY() - 1;
@@ -136,11 +144,13 @@ public class Galaxy {
 		int Zstart = playerSector.getGalacticZ() - 1;
 		int Zend = playerSector.getGalacticZ() + 1;
 
-		for (Sector loc : sectorListHead) {
-			if (   Xstart <= loc.getGalacticX() && loc.getGalacticX() <= Xend
-				&& Ystart <= loc.getGalacticY() && loc.getGalacticY() <= Yend
-				&& Zstart <= loc.getGalacticZ() && loc.getGalacticZ() <= Zend
-				) loc.doSRS();
+		for (int x = Xstart; x <= Xend; x++) {
+			for (int y = Ystart; y <= Yend; y++) {
+				for (int z = Zstart; z <= Zend; z++) {
+					loc = getSector(x, y, z);
+					loc.doSRS();
+				}
+			}
 		}
 	}
 
@@ -150,6 +160,38 @@ public class Galaxy {
 
 	public void drawSector() {
 		playerSector.draw();
+	}
+
+	public void drawShipStatus() {
+		if (playerShip == null) return;
+
+		int currentLine = 6;
+
+		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+		shipStatusDisplay.writeLine(currentLine++, "Torpedoes: " + playerShip.torpedoCount);
+		shipStatusDisplay.writeLine(currentLine++, "Shields: " + playerShip.shieldPercent + "%");
+		shipStatusDisplay.writeLine(currentLine++, "Structural Integrity: " + playerShip.solidity + "%");
+		shipStatusDisplay.writeLine(currentLine++, "Docked: " + playerShip.isDocked());
+		shipStatusDisplay.writeLine(currentLine++, "Heading: " + playerShip.getHeading() + " Mark 0" );	// inclination not used yet
+		shipStatusDisplay.writeLine(currentLine++, "Velocity: " + playerShip.velocity);
+		shipStatusDisplay.writeLine(currentLine++, "Impulse: " + playerShip.getThrust());
+		shipStatusDisplay.writeLine(currentLine++, "Warp: " + playerShip.getWarpSpeed());
+		shipStatusDisplay.writeLine(currentLine++, "Current Sector: (" + playerSector.getGalacticX() + ", " + playerSector.getGalacticY() + ", " + playerSector.getGalacticZ() + ")" );
+		shipStatusDisplay.writeLine(currentLine++, "Current Location: (" + playerShip.getX() + ", " + playerShip.getY() + ", " + playerShip.getZ() + ")" );
+
+		for (Entity ent : playerSector.entities) {
+			if (ent instanceof RomulanEntity) {
+				shipStatusDisplay.writeLine(currentLine++, "Enemy Location: ("  + ent.getX() + ", " + ent.getY() + ", " + ent.getZ() + ")" );
+			}
+		}
+//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+
+		shipStatusDisplay.draw();
 	}
 
 	// Draw a section of the galaxy with the players current sector in the centre
@@ -176,7 +218,7 @@ public class Galaxy {
 			}
 		}
 
-		doLRS();	// TODO Remove this in final version, debug only
+		doLRS();	// TODO: Remove this in final version, debug only
 
 		int eCount;
 		int sCount;

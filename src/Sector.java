@@ -22,7 +22,7 @@ public class Sector {
 
 	public static PlayerShipEntity ship;
 
-	private ArrayList<Entity> entities = new ArrayList<Entity>();
+	protected ArrayList<Entity> entities = new ArrayList<Entity>();
 
 	private ArrayList<Entity> removeList = new ArrayList<Entity>();
 	private ArrayList<Entity> addList = new ArrayList<Entity>();
@@ -135,7 +135,7 @@ public class Sector {
 		}
 	}
 
-	public void initPlayerShip() {
+	public PlayerShipEntity initPlayerShip() {
 		Entity newEntity = null;
 		int x;
 		int y;
@@ -151,6 +151,8 @@ public class Sector {
 		} while (checkEntityForOverlap(newEntity));
 		entities.add(newEntity);
 		ship = (PlayerShipEntity) newEntity;
+
+		return ship;
 	}
 
 	public void doSRS() {
@@ -236,12 +238,6 @@ public class Sector {
 		ship.setWarp(warpSpeed, duration);
 	}
 
-	/**
-	 * Attempt to fire a shot from the player in the direction provided.
-	 * Its called "try"
-	 * since we must first check that the player can fire at this
-	 * point.
-	 */
 	public boolean tryToFire(float direction) {
 		if (!ship.fireTorpedo(direction)) return false;	// no torpedoes left
 
@@ -292,8 +288,11 @@ public class Sector {
 		if (y < spriteHeight)	{ newSector = jump(Constants.sectorDirection.Top, entity); entity.setY(maxHeight-1); }
 		if (y > maxHeight)		{ newSector = jump(Constants.sectorDirection.Bottom, entity); entity.setY(spriteHeight+1); }
 
-		if (newSector != null && entity instanceof PlayerShipEntity) {
-			galaxy.playerSector = newSector;
+		if (newSector != null) {
+			if (entity instanceof PlayerShipEntity) {
+				galaxy.playerSector = newSector;
+			}
+			entity.currentSector = newSector;
 		}
 
 		return (newSector != null);
@@ -313,21 +312,9 @@ public class Sector {
 	private boolean warpJump(Entity entity) {
 		if (! entity.doWarpJump()) return false;
 
-		int gx = getGalacticX();
-		int gy = getGalacticY();
-		int gz = getGalacticZ();
+		Galaxy.locationSpec newLoc = entity.calculateWarpJump(new Galaxy.locationSpec(galacticX, galacticY, galacticZ) );
 
-		double rAngle = Math.toRadians(getShipHeading());
-
-		double dx = entity.getWarpSpeed() * 1 * Math.cos(rAngle);
-		double dy = -entity.getWarpSpeed() * 1 * Math.sin(rAngle);
-		double dz = 0; //warpSpeed * 1 * Math.sin(currentInclination);
-
-		gx += dx;
-		gy += dy;
-		gz += dz;
-
-		Sector newSector = galaxy.getSector(gx, gy, gz);
+		Sector newSector = galaxy.getSector(newLoc.getGx(), newLoc.getGy(), newLoc.getGz());
 		newSector.queueEntity(Constants.listType.add, entity);
 		queueEntity(Constants.listType.remove, entity);
 		if (newSector != null && entity instanceof PlayerShipEntity) {

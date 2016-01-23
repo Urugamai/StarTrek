@@ -30,32 +30,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class StarEntity extends Entity {
-	private Game				game;									/** The game in which the entity exists */
-//	private static int			frameCount = 4;
-//	private Sprite[]			frames				= new Sprite[frameCount];	/** The animation frames */
-//	private long				lastFrameChange;						/** The time since the last frame change took place */
-//	private long				frameDuration		= 500;				/** The frame duration in milliseconds, i.e. how long any given frame of animation lasts */
-//	private int					frameNumber;							/** The current frame of animation being displayed */
-
+public class StarEntity extends ObjectEntity {
 	/**
-	 * Create a new alien entity
+	 * Create a new star entity
 	 *
-	 * @param game The game in which this entity is being created
 	 * @param x The intial x location of this alien
 	 * @param y The intial y location of this alien
 	 */
 	public StarEntity(Sector thisSector, String ref, int x, int y) {
-		super(entityType.STAR, ref, x, y);
-		this.setHeading(-1.0f, 0);		// set this sprite to constantly rotate clockwise
+		super(entityType.STAR, thisSector, ref, x, y);
+		//this.setHeading(-1.0f, 0);		// set this sprite to constantly rotate clockwise
 
 		currentSector = thisSector;
-	}
-
-	/**
-	 * Update the game logic
-	 */
-	public void doLogic() {
 	}
 
 	/**

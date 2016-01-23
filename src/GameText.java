@@ -45,6 +45,7 @@ public class GameText {
 	public int getHeight() {
 		return lineHeight * windowRows;
 	}
+	public int getLineHeight() { return lineHeight; }
 
 	public void setTextColour(org.newdawn.slick.Color clr) {
 		currentColour = clr;

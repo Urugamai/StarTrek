@@ -36,10 +36,11 @@ import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
  * An entity representing a shot fired
  *
  */
-public class TorpedoEntity extends Entity {
+public class TorpedoEntity extends ShipEntity {
 	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
 	private Entity				Parent;						/** The parent entity for this torpedo - the only entity that cannot be 'hit' by the torpedo */
 	private double				Range;
+	private double				armedDelay;
 
 	/**
 	 * Create a new shot from the player
@@ -48,11 +49,15 @@ public class TorpedoEntity extends Entity {
 	 * @param spriteFile The sprite file to be used for this shot
 	 */
 	public TorpedoEntity(Sector thisSector, Entity sourceShip, String spriteFile) {
-		super(entityType.TORPEDO, spriteFile, sourceShip.getX(), sourceShip.getY());
+		super(entityType.TORPEDO, thisSector, spriteFile, sourceShip.getX(), sourceShip.getY());
 		currentSector = thisSector;
 
 		this.Parent = sourceShip;
 		this.Range = 5.1; // seconds
+		this.armedDelay = 0.4;	// enough time to clear ourselves
+		energyLevel = 750;
+		shieldPercent = 0;
+		solidity = 0;
 	}
 
 	/**
@@ -63,8 +68,13 @@ public class TorpedoEntity extends Entity {
 	public void move(double delta) {
 		// proceed with normal move
 		super.move(delta);
+		if (armedDelay > 0) {
+			armedDelay -= delta;
+			return;
+		}
+
 		Range -= delta;
-		if (Range <= 0) { used=true; super.currentSector.takeEntity(this); }  // suicide
+		if (Range <= 0) { used=true; super.currentSector.queueEntity(Constants.listType.remove, this); }
 	}
 
 	/**
@@ -74,24 +84,11 @@ public class TorpedoEntity extends Entity {
 	 * @param other The other entity with which we've collided
 	 */
 	public void collidedWith(Entity other) {
-		// prevents double kills, if we've already hit something,
-		// don't collide
-//		if (used) {
-//			return;
-//		}
-//
-//		if (other == Parent) return; // We start the torpedo IN SHIP so this happens initially
-//
-//		super.currentSector.queueEntity(Constants.listType.remove, this);	// Torpedo ALWAYS dies on hitting something
-//
-//		// if we've hit an alien, kill it!
-//		if (other != null) {
-//			// remove the affected entities
-//			if (other instanceof RomulanEntity) super.currentSector.queueEntity(Constants.listType.remove, other);		// TODO: Replace with a DAMAGE calculation and IF appropriate call queueRemoveEntity
-//
-//			// notify the sector that the alien has been killed
-//			super.currentSector.notifyAlienKilled();
-//			used = true;
-//		}
+		if (armedDelay > 0) return;
+		if (other == Parent ) return;
+
+		super.collidedWith(other);
+
+		used=true; super.currentSector.queueEntity(Constants.listType.remove, this);
 	}
 }

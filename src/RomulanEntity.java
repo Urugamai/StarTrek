@@ -30,18 +30,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class RomulanEntity extends Entity {
+public class RomulanEntity extends ShipEntity {
+	private double			accumulatedTime		= 0;
+	private static double	courseDuration = 10000;
 
-	private static int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
-	private static int  LEFT_BORDER       = 10;		/** Left border at which to disallow further movement */
-	private static int  TOP_BORDER;
-	private static int  BOTTOM_BORDER;
-
-	private long		accumulatedTime		= 0;
-	private static long	courseDuration = 10000;
-
-	private float heading = 0.0f;
-	private float speed = 0.0f;
+	private float			heading = 0.0f;
+	private float			speed = 0.0f;
 
 	/**
 	 * Create a new alien entity
@@ -50,13 +44,9 @@ public class RomulanEntity extends Entity {
 	 * @param y The intial y location of this alien
 	 */
 	public RomulanEntity(Sector thisSector, String shipFile, int x, int y) {
-		super(entityType.ROMULANSHIP, shipFile, x, y);
+		super(entityType.ROMULANSHIP, thisSector, shipFile, x, y);
 		currentSector = thisSector;
-
-		RIGHT_BORDER = currentSector.getScreenWidth() - 30;
-		LEFT_BORDER = 30;
-		TOP_BORDER = 30;
-		BOTTOM_BORDER = currentSector.getScreenHeight() - 30;
+		energyLevel = 900;
 	}
 
 	public void newHeading() {
@@ -67,7 +57,7 @@ public class RomulanEntity extends Entity {
 	}
 
 	public void newSpeed() {
-		speed = (float)Math.random()*(Constants.c * Constants.impulseSpeedMax);
+		speed = (float)Math.random()*(Constants.c * Constants.IMPULSE_MAX);
 	}
 
 	/**
@@ -75,7 +65,7 @@ public class RomulanEntity extends Entity {
 	 *
 	 * @param delta The time that has elapsed since last move
 	 */
-	public void move(long delta) {
+	public void move(double delta) {
 		accumulatedTime += delta;
 		if (accumulatedTime > courseDuration) {
 			newHeading();
@@ -90,7 +80,8 @@ public class RomulanEntity extends Entity {
 	/**
 	 * Update the game logic related to aliens
 	 */
-	public void doLogic() {
+	public void doLogic(double delta) {
+		move(delta);
 	}
 
 	/**

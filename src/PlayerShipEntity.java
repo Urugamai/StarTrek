@@ -30,8 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class PlayerShipEntity extends Entity {
-	private int torpedoCount = 0;
+public class PlayerShipEntity extends ShipEntity {
 
 	/**
 	 * Create a new entity to represent the players ship
@@ -41,38 +40,9 @@ public class PlayerShipEntity extends Entity {
 	 * @param y The initial y location of the player's ship
 	 */
 	public PlayerShipEntity(Sector thisSector, String ref,int x,int y) {
-		super(entityType.FEDERATIONSHIP, ref, x, y);
+		super(entityType.FEDERATIONSHIP, thisSector, ref, x, y);
 		currentSector = thisSector;
 
 		torpedoCount = 15;
-	}
-
-	public boolean fireTorpedo(double direction) {
-		// direction irrelevant at this level
-
-		if (torpedoCount > 0) { torpedoCount--; return true; }
-		return false;
-	}
-
-	/**
-	 * Request that the ship move itself based on an elapsed amount of
-	 * time
-	 *
-	 * @param delta The time that has elapsed since last move (ms)
-	 */
-	public void move(long delta) {
-		super.move(delta);
-	}
-
-	/**
-	 * Notification that the player's ship has collided with something
-	 *
-	 * @param other The entity with which the ship has collided
-	 */
-	public void collidedWith(Entity other) {
-
-		if (other instanceof RomulanEntity) {
-			//game.notifyDeath();
-		}
 	}
 }

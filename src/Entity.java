@@ -37,30 +37,15 @@ public abstract class Entity {
 
 	// Its all about ME
 	protected Sector	currentSector;											/** The sector in which this entity is located */
-	private double 		x, y, z;												/** Where Am I */
-	private float		energyLevel;											// How much energy am I carrying (explosive force)
-	private float		shieldPercent;											// how much of my energy is diverted to shields
-	private float		solidity;												// structural strength
-
-	private float  		targetAngle, targetInclination;							/** Where Do I Want To Go */
-	private float 		currentInclination, currentAngle;
-
-	private float 		thrustAcceleration = 0, thrustDuration = 0;
-	private float		velocity = 0.0f;
-
-	private float		warpSpeed = 0, warpDuration = 0;
-	private double		warpDelay = 0;
-	private boolean		warpJump = false;
-
-	private float 		rotationSpeed = 30.0f;									/** Degrees per second */
+	protected double 		x, y, z;												/** Where Am I */
 
 	private static TextureLoader		textureLoader;
 	protected Sprite	sprite;													/** The sprite (graphics) that represents this entity */
 	protected entityType eType;
 
 	// What about others?
-	private Rectangle	me	= new Rectangle();									/** The rectangle used for this entity during collisions  resolution */
-	private Rectangle	him	= new Rectangle();									/** The rectangle used for other entities during collision resolution */
+	private Rectangle	me	= new Rectangle();									/** The rectangle used for this entity during collision detection */
+	private Rectangle	him	= new Rectangle();									/** The rectangle used for other entities during collision detection */
 
 	/**
 	 * Construct a entity based on a sprite image and a location.
@@ -72,147 +57,16 @@ public abstract class Entity {
 		this.sprite = getSprite(spriteFile);
 		this.x = x;
 		this.y = y;
-		currentAngle = 0;
-		currentInclination = 0;
-		targetAngle = 0;
-		targetInclination = 0;
-//		currentSector = super.this;
 	}
 
 	public Sprite getSprite(String ref) {
 		return new Sprite(textureLoader, ref);
 	}
 
-	public void setHeading(float newDegrees, float newInclination) {
-		targetAngle = newDegrees;
-		targetInclination = newInclination;
-	}
-
-	public float getHeading() {
-		return currentAngle;
-	}
-
-	public void setImmediateHeading(float newDegrees, float newInclination) {
-		setHeading(newDegrees, newInclination);
-		currentAngle = newDegrees;
-		currentInclination = newInclination;
-
-	}
-
-	public void setThrust(float accel, float duration) {
-		thrustAcceleration = accel;
-		thrustDuration = duration;
-	}
-
-	public float getVelocity() {
-		return velocity;
-	}
-
-	// Should only be used to implement 'all stop' command (velocity = 0)
-	public void setVelocity(float newVelocity) {
-		velocity = newVelocity;
-	}
-
-	public boolean doWarpJump() {
-		return warpJump;
-	}
-
-	public void setWarp(float warpSpeed, float duration) {
-
-		this.warpSpeed = warpSpeed;
-		warpDuration = duration;
-		warpDelay = 6;    // Maximum time to rotate to correct heading
-		warpJump = false;
-	}
-
-	public void warpMove(double delta) {
-		if (warpSpeed <= 0) return;
-
-		double energy = Math.pow(warpSpeed, 2)*delta;
-		warpDelay -= delta;
-		if (warpDelay < 0) {
-			warpDelay = 1;
-			warpDuration -= 1;
-			warpJump = true;	// we jump once per second, warpSpeed distance
-		}
-	}
-
-	public void warpJumpDone() {
-		warpJump = false;
-		if (warpDuration <= 0) {	// jump complete
-			warpDuration = 0;
-			warpSpeed = 0;
-		}
-	}
-
-	public float getWarpSpeed() {
-		return warpSpeed;
-	}
-
 	public void setLocation(int x, int y, int z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-	}
-
-	private void Rotate(double delta) {
-		int f1, f2;
-
-		if (targetAngle >= 0 && currentAngle != targetAngle) {
-			if (Math.abs(currentAngle - targetAngle) > 180) f1 = -1; else f1 = 1;
-			if (currentAngle < targetAngle) f2 = 1; else f2 = -1;
-			currentAngle += rotationSpeed*f1*f2*delta;
-
-			// Standardise on positive angle between 0 and 360 degrees.
-			if (currentAngle < 0) currentAngle += 360;
-			currentAngle %= 360;
-			if ( Math.abs(currentAngle - targetAngle) <= (rotationSpeed*delta)) currentAngle = targetAngle;
-
-		// PERMANENT rotations
-		} else if (targetAngle <= -2.0f) {		// Permanent anti-clockwise rotation
-			currentAngle -= rotationSpeed*delta;
-			if (currentAngle <= 0.0f) currentAngle += 360.0f;
-		} else if (targetAngle <= -1.0f) {		// Permanent clockwise rotation
-			currentAngle += rotationSpeed*delta;
-			currentAngle %= 360.0f;
-		}
-
-		// Add code for Z rotation when we implement a 3d screen, use same rotation speed for this
-		currentInclination = 0; //= targetInclination;	// just to stop the 'not in use' highlighting ;-)
-
-		sprite.setAngle(currentAngle, currentInclination);
-	}
-
-	private void Translate(double delta) {
-		double rAngle = Math.toRadians(currentAngle);
-
-		if (thrustDuration > 0) {
-			velocity += (thrustAcceleration * delta);
-			if (velocity < 0) { velocity = 0; thrustDuration = 0; return; }
-
-			thrustDuration -= delta;
-			if (thrustDuration < delta) { thrustAcceleration = 0; thrustDuration = 0; }
-		}
-
-		double vx = velocity*Math.cos(rAngle);
-		double vy = -velocity*Math.sin(rAngle);
-		double vz = 0; //velocity*Math.sin(currentInclination);
-
-		x = (x + (vx * delta));
-		y = (y + (vy * delta));
-		z = (z + (vz * delta));
-	}
-
-	/**
-	 * Request that this entity move itself based on a certain amount
-	 * of time passing.
-	 *
-	 * @param delta The amount of time that has passed in seconds
-	 */
-	public void move(double delta) {
-		Rotate(delta);
-		Translate(delta);
-		warpMove(delta);
 	}
 
 	/**
@@ -226,10 +80,6 @@ public abstract class Entity {
 	 * Do the logic associated with this entity. This method
 	 * will be called periodically based on game events
 	 */
-	public void doLogic(double delta) {
-		move(delta);
-	}
-
 	public int getX() {
 		return (int)x;
 	}
@@ -269,4 +119,16 @@ public abstract class Entity {
 	 * @param other The entity with which this entity collided.
 	 */
 	public abstract void collidedWith(Entity other);
+
+	public abstract void move(double delta);
+
+	public abstract void doLogic(double delta);
+
+	public abstract boolean doWarpJump();
+
+	public abstract double getWarpSpeed();
+
+	public abstract void warpJumpDone();
+
+	public abstract Galaxy.locationSpec calculateWarpJump(Galaxy.locationSpec loc);
 }

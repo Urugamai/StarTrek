@@ -36,10 +36,10 @@
  * @author Kevin Glass
  * @author Brian Matzon
  */
-public class StarbaseEntity extends Entity {
-	private static final int  RIGHT_BORDER      = 750;	/** Right border at which to disallow further movement */
-	private static final int  LEFT_BORDER       = 10;	/** Left border at which to disallow further movement */
-	private Game game;									/** The game in which the ship exists */
+public class StarbaseEntity extends ObjectEntity {
+	protected float		energyLevel = 100000, de = 100;											// How much energy am I carrying (explosive force), what is my rate of growth in energy
+	protected float		shieldPercent = 100;											// how much of my energy is diverted to shields
+	protected float		solidity = 100;												// structural strength
 
 	/**
 	 * Create a new entity to represent the players ship
@@ -49,31 +49,10 @@ public class StarbaseEntity extends Entity {
 	 * @param y The initial y location of the player's ship
 	 */
 	public StarbaseEntity(Sector thisSector, String ref, int x, int y) {
-		super(entityType.STARBASE, ref, x, y);
+		super(entityType.STARBASE, thisSector, ref, x, y);
 		sprite.setAngle(-2.0f, 0);		// configure this sprite to rotate constantly anti-clockwise
 
 		currentSector = thisSector;
-	}
-
-	/**
-	 * Request that the ship move itself based on an elapsed ammount of
-	 * time
-	 *
-	 * @param delta The time that has elapsed since last move (ms)
-	 */
-	public void move(long delta) {
-		// if we're moving left and have reached the left hand side
-		// of the screen, don't move
-//		if ((dx < 0) && (x < LEFT_BORDER)) {
-//			return;
-//		}
-		// if we're moving right and have reached the right hand side
-		// of the screen, don't move
-//		if ((dx > 0) && (x > RIGHT_BORDER)) {
-//			return;
-//		}
-
-		super.move(delta);
 	}
 
 	/**
@@ -87,5 +66,9 @@ public class StarbaseEntity extends Entity {
 //		if (other instanceof RomulanEntity) {
 //			game.notifyDeath();
 //		}
+	}
+
+	public void processHit(double energy) {
+		energyLevel -= energy;		// TODO: Complex calculation as used in ShipEntity
 	}
 }
