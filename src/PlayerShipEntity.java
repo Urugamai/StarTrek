@@ -43,6 +43,6 @@ public class PlayerShipEntity extends ShipEntity {
 		super(entityType.FEDERATIONSHIP, thisSector, ref, x, y);
 		currentSector = thisSector;
 
-		torpedoCount = 15;
+		torpedoCount = Constants.maxTorpedoes;
 	}
 }

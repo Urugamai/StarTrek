@@ -53,7 +53,7 @@ public class TorpedoEntity extends ShipEntity {
 		currentSector = thisSector;
 
 		this.Parent = sourceShip;
-		this.Range = 5.1; // seconds
+		this.Range = 8.1; // seconds
 		this.armedDelay = 0.4;	// enough time to clear ourselves
 		energyLevel = 750;
 		shieldPercent = 0;

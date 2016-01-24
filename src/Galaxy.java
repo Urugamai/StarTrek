@@ -12,7 +12,7 @@ public class Galaxy {
 
 	private GameText galacticMap;
 	private GameText shipStatusDisplay;
-	private PlayerShipEntity playerShip = null;
+	protected PlayerShipEntity playerShip = null;
 
 	private ArrayList<Sector> sectorListHead = new ArrayList<Sector>();
 
@@ -130,6 +130,60 @@ public class Galaxy {
 		return starbaseCount;
 	}
 
+	public locationSpec getNearestStarbase(locationSpec loc1) {
+		locationSpec loc2, returnLoc = null;
+		double minDistance = -1;
+
+		for ( Sector aSector : sectorListHead) {
+			if (aSector.getStarbaseCount() > 0) {
+				loc2 = new locationSpec(aSector.getGalacticX(), aSector.getGalacticY(), aSector.getGalacticZ());	//NOTE possibly should only use LRS data rather than actual but we are not pre-building sectors (yet)
+				double dist = game.compute_distance_between(loc1, loc2);
+				if (minDistance < 0 || dist < minDistance) {
+					minDistance = dist;
+					returnLoc = loc2;
+				}
+			}
+		}
+
+		return returnLoc;
+	}
+
+	public locationSpec getNearestEnemyByCount(locationSpec loc1, int enemyCount) {
+		locationSpec loc2, returnLoc = null;
+		double minDistance = -1;
+
+		for ( Sector aSector : sectorListHead) {
+			if (aSector.getEnemyCount() == enemyCount ) {
+				loc2 = new locationSpec(aSector.getGalacticX(), aSector.getGalacticY(), aSector.getGalacticZ());	//NOTE possibly should only use LRS data rather than actual but we are not pre-building sectors (yet)
+				double dist = game.compute_distance_between(loc1, loc2);
+				if (minDistance < 0 || dist < minDistance) {
+					minDistance = dist;
+					returnLoc = loc2;
+				}
+			}
+		}
+
+		return returnLoc;
+	}
+
+	public locationSpec getNearestEnemy(locationSpec loc1) {
+		locationSpec loc2, returnLoc = null;
+		double minDistance = -1;
+
+		for ( Sector aSector : sectorListHead) {
+			if (aSector.getEnemyCount() > 0 ) {
+				loc2 = new locationSpec(aSector.getGalacticX(), aSector.getGalacticY(), aSector.getGalacticZ());	//NOTE possibly should only use LRS data rather than actual but we are not pre-building sectors (yet)
+				double dist = game.compute_distance_between(loc1, loc2);
+				if (minDistance < 0 || dist < minDistance) {
+					minDistance = dist;
+					returnLoc = loc2;
+				}
+			}
+		}
+
+		return returnLoc;
+	}
+
 	public void setPlayerWarp(float warpSpeed, float duration) {
 		playerSector.setShipWarp(warpSpeed, duration);
 	}
@@ -184,12 +238,14 @@ public class Galaxy {
 				shipStatusDisplay.writeLine(currentLine++, "Enemy Location: ("  + ent.getX() + ", " + ent.getY() + ", " + ent.getZ() + ")" );
 			}
 		}
-//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
-//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
-//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
-//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
-//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
-//		shipStatusDisplay.writeLine(currentLine++, "Energy: " + playerShip.energyLevel);
+		currentLine++;
+		if (playerShip.isDocked()) {
+			shipStatusDisplay.writeLine(currentLine++, "Starbase Energy: " + playerShip.dockedTo.energyLevel);
+			shipStatusDisplay.writeLine(currentLine++, "Starbase Torpedoes: " + playerShip.dockedTo.torpedoCount);
+			shipStatusDisplay.writeLine(currentLine++, "Starbase Shields: " + playerShip.dockedTo.shieldPercent + "%");
+			shipStatusDisplay.writeLine(currentLine++, "Starbase Structural Integrity: " + playerShip.dockedTo.solidity + "%");
+			shipStatusDisplay.writeLine(currentLine++, "Starbase Current Location: (" + playerShip.dockedTo.getX() + ", " + playerShip.dockedTo.getY() + ", " + playerShip.dockedTo.getZ() + ")" );
+		}
 
 		shipStatusDisplay.draw();
 	}

@@ -36,10 +36,11 @@
  * @author Kevin Glass
  * @author Brian Matzon
  */
-public class StarbaseEntity extends ObjectEntity {
+public class StarbaseEntity extends ShipEntity {
 	protected float		energyLevel = 100000, de = 100;											// How much energy am I carrying (explosive force), what is my rate of growth in energy
 	protected float		shieldPercent = 100;											// how much of my energy is diverted to shields
 	protected float		solidity = 100;												// structural strength
+	protected int		torpedoCount = 1000;
 
 	/**
 	 * Create a new entity to represent the players ship
@@ -61,14 +62,6 @@ public class StarbaseEntity extends ObjectEntity {
 	 * @param other The entity with which the ship has collided
 	 */
 	public void collidedWith(Entity other) {
-		// if its an alien, notify the game that the player
-		// is dead
-//		if (other instanceof RomulanEntity) {
-//			game.notifyDeath();
-//		}
 	}
 
-	public void processHit(double energy) {
-		energyLevel -= energy;		// TODO: Complex calculation as used in ShipEntity
-	}
 }

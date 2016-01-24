@@ -37,22 +37,10 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
+import java.util.ArrayList;
+
 import static org.lwjgl.opengl.GL11.*;
 
-/**
- * The main hook of our game. This class with both act as a manager
- * for the display and central mediator for the game logic.
- *
- * Display management will consist of a loop that cycles round all
- * entities in the game asking them to move and then drawing them
- * in the appropriate place. With the help of an inner class it
- * will also allow the player to control the main ship.
- *
- * As a mediator it will be informed when entities within our game
- * detect events (e.g. alient killed, played died) and will take
- * appropriate game actions.
- *
- */
 public class Game {
 
 	private Galaxy 				galaxy;
@@ -67,7 +55,10 @@ public class Game {
 
 	private GameText 			textWindow;
 	private String				userInput 			= "";
+	private ArrayList<String>	userInputHistory	= new ArrayList<>();
+	private int					historyLines = 0, historyPosition = 0;
 	private boolean				returnDown;
+	private boolean				inKeyUp = false, inKeyDown = false;
 
 	private Constants.DisplayMode displayMode 		= Constants.DisplayMode.DISPLAY_SECTOR;
 
@@ -308,12 +299,33 @@ public class Game {
 		if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.SHIP_STATUS;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GALACTIC_MAP;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_F3)) displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
+		else if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
+			if (!inKeyUp) {
+				userInput = userInputHistory.get(historyPosition--);
+				if (historyPosition < 0) historyPosition = 0;
+				textWindow.writeLine(0, userInput);
+				inKeyUp = true;
+			}
+		} else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
+			if (!inKeyDown) {
+				historyPosition++;
+				if (historyPosition >= userInputHistory.size()) historyPosition--;
+				userInput = userInputHistory.get(historyPosition);
+				textWindow.writeLine(0, userInput);
+				inKeyDown = true;
+			}
+		} else {
+			inKeyUp = false;
+			inKeyDown = false;
+		}
 
 		char key = getCurrentKey();
 
 		if (key != '\0') {
 			// do something with this key
 			if (key == 13) {
+				userInputHistory.add(userInput);
+				historyPosition = userInputHistory.size()-1;
 				processCommand(userInput);
 				userInput = "";
 				textWindow.scroll();
@@ -357,6 +369,239 @@ public class Game {
 		Display.update();
 	}
 
+	private boolean command_TOR(String[] pieces) {
+		float angle;
+		String direction = "";
+
+		if (pieces.length > 1) {
+			direction = pieces[1];
+			try {
+				angle = Float.valueOf(direction);
+			} catch (Exception e) {
+				textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
+				return false;  // no firing for you when you get the parameter wrong
+			}
+			galaxy.playerFired(angle);
+		} else {
+			textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
+			return false;  // no firing for you when you get the parameter wrong
+		}
+
+		return true;
+	}
+
+	private boolean command_IMP(String[] pieces) {
+		float angle;
+		float force;
+		float seconds;
+		String direction = "", power = "", duration = "";
+
+		if ( pieces.length > 3 ) {
+			direction = pieces[1];
+			power = pieces[2];
+			duration = pieces[3];
+
+			try {
+				angle = Float.valueOf(direction) % 360;
+				if (angle < 0) angle += 360;
+				force = Float.valueOf(power); if (force > 20) force = 20;	// technically could make the energy requirements exponential and so preclude the need for a limit
+				seconds = Float.valueOf(duration);							// Dont need time limit as energy reserves will expire and stop progress anyway
+			} catch (Exception e) {
+				textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
+				return false; // no moving for you when you get the parameters wrong
+			}
+		} else {
+			textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,accel,duration");
+			return false; // no moving for you when you get the parameters wrong
+		}
+
+
+		galaxy.setPlayerHeading(angle, 0);
+		galaxy.setPlayerThrust( force, seconds);
+
+		textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds);
+
+		return true;
+	}
+
+	private boolean command_WARP(String[] pieces) {
+		float angle;
+		float force;
+		float seconds;
+		String direction = "", power = "", duration = "";
+
+		if ( pieces.length > 3 ) {
+			direction = pieces[1];
+			power = pieces[2];
+			duration = pieces[3];
+
+			try {
+				angle = Float.valueOf(direction) % 360;
+				if (angle < 0) angle += 360;
+				force = Float.valueOf(power); if (force > 10) force = 10; // again, energy requirements will preclude this limit in the future
+				seconds = Float.valueOf(duration);
+			} catch (Exception e) {
+				textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
+				return false; // no moving for you when you get the parameters wrong
+			}
+		} else {
+			textWindow.writeLine(1, "Syntax Error: Command format should be: WARP,direction,Speed,duration");
+			return false; // no moving for you when you get the parameters wrong
+		}
+
+		galaxy.setPlayerHeading(angle, 0);
+		galaxy.setPlayerThrust( 0, 6);	// Turn in the desired direction, it takes 6 seconds to do 180 degrees
+
+		galaxy.setPlayerWarp(force, seconds);
+
+		textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds );
+
+		return true;
+	}
+
+	private boolean command_STOP(String[] pieces) {
+		float currentVelocity = galaxy.getPlayerVelocity();
+		if (currentVelocity > 0) {
+			galaxy.setPlayerThrust(-50, currentVelocity / 50.0f + 1);
+		}
+		return true;
+	}
+
+	protected int compute_angle_between(Galaxy.locationSpec loc1, Galaxy.locationSpec loc2 ) {
+		double dx = (loc2.getGx() - loc1.getGx());
+		double dy = (loc1.getGy() - loc2.getGy());
+
+		if (-1 < dx && dx < 1) {
+			if (dy < 0) return 270;
+			else if (dy > 0) return 90;
+			else return 0;
+		}
+
+		double range = Math.sqrt(Math.pow(dx,2)+Math.pow(dy,2));
+		if (-1 < range && range < 1) return 0; // we are colliding anyway
+
+		int newAngleTan = (int)Math.toDegrees( Math.atan(dy/dx) );
+		int newAngleSin = (int)Math.toDegrees( Math.asin(dy/range) );
+		int newAngleCos = (int)Math.toDegrees( Math.acos(dx/range) );
+
+		if (dx < 0) newAngleTan = 180 + newAngleTan;
+		if (newAngleTan < 0) newAngleTan += 360;
+//		newAngle += 180;
+//		newAngle %= 360;
+
+		return newAngleTan;
+	}
+
+	protected int compute_distance_between(Galaxy.locationSpec loc1, Galaxy.locationSpec loc2 ) {
+		double dx = loc1.getGx() - loc2.getGx();
+		double dy = loc1.getGy() - loc2.getGy();
+
+		return (int)Math.sqrt( Math.pow(dy, 2) + Math.pow(dx, 2) );
+	}
+
+	private boolean command_COMP_TARGET(String[] pieces) {
+		int currentLine = 1;
+		Galaxy.locationSpec myLoc = galaxy.playerSector.getPlayerLocation();
+		Galaxy.locationSpec otherLoc = null;
+
+		if (pieces.length < 3) {
+			textWindow.writeLine(1, "Syntax Error: Command format should be: COMP,TGT,[BES]");
+			return false; // no computer command
+		}
+
+		if (pieces[2].compareToIgnoreCase("E") == 0 ) {
+			for (Entity ent : galaxy.playerSector.entities) {
+				if (ent instanceof PlayerShipEntity) continue;
+				if (ent instanceof StarbaseEntity) continue;
+				if (ent instanceof StarEntity) continue;
+
+				// Must be an enemy
+				if (currentLine < 6) {
+					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
+					textWindow.writeLine(currentLine++, ent.eType + " angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+				}
+			}
+		}
+		else if (pieces[2].compareToIgnoreCase("B") == 0 ) {
+			for (Entity ent : galaxy.playerSector.entities) {
+				if (! (ent instanceof StarbaseEntity) ) continue;
+
+				// Must be an Starbase
+				if (currentLine < 6) {
+					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
+					textWindow.writeLine(currentLine++, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+				}
+			}
+		}
+		else if (pieces[2].compareToIgnoreCase("S") == 0 ) {
+			for (Entity ent : galaxy.playerSector.entities) {
+				if (! (ent instanceof StarEntity) ) continue;
+
+				// Must be a Star
+				if (currentLine < 6) {
+					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
+					textWindow.writeLine(currentLine++, "Star angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+				}
+			}
+		}
+		else { textWindow.writeLine(1, "Error: No such computer command: " + pieces[1]); }
+
+		return true;
+	}
+
+	private boolean command_COMP_NAVIGATION(String[] pieces) {
+		Galaxy.locationSpec myLoc = new Galaxy.locationSpec( galaxy.playerSector.getGalacticX(), galaxy.playerSector.getGalacticY(), galaxy.playerSector.getGalacticZ() );
+		Galaxy.locationSpec otherLoc = null;
+		int enemyCount = 0;
+
+		if (pieces.length < 3) {
+			textWindow.writeLine(1, "Syntax Error: Command format should be: COMP,NAV,[BE],{n}");
+			return false; // no computer command
+		}
+
+		if (pieces[2].compareToIgnoreCase("B") == 0 ) {
+			otherLoc = galaxy.getNearestStarbase(myLoc);
+			if (otherLoc == null) {
+				textWindow.writeLine(1, "No starbases in known space." );
+				return true;
+			}
+			textWindow.writeLine(1, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+		}
+		else if (pieces[2].compareToIgnoreCase("E") == 0 ) {
+			if (pieces.length > 3) {
+				try {
+				enemyCount = Integer.valueOf(pieces[3]);
+				} catch (Exception e) {
+					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
+					return false; // no moving for you when you get the parameters wrong
+				}
+				otherLoc = galaxy.getNearestEnemyByCount(myLoc, enemyCount);
+			} else
+				otherLoc = galaxy.getNearestEnemy(myLoc);
+
+			if (otherLoc == null) {
+				textWindow.writeLine(1, "No enemy in known space." );
+				return true;
+			}
+			textWindow.writeLine(1, "Nearest Enemy angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+		}
+
+		return true;
+	}
+
+	private boolean command_COMP(String[] pieces) {
+		if (pieces.length < 2) {
+			textWindow.writeLine(1, "Syntax Error: Command format should be: COMP,command,[parameters]");
+			return false; // no computer command
+		}
+
+		if (pieces[1].compareToIgnoreCase("TGT") == 0 ) { command_COMP_TARGET(pieces); }
+		else if (pieces[1].compareToIgnoreCase("NAV") == 0 ) { command_COMP_NAVIGATION(pieces); }
+		else { textWindow.writeLine(1, "Error: No such computer command: " + pieces[1]); }
+
+		return true;
+	}
+
 	private void processCommand(String cmd) {
 		float angle;
 		float force;
@@ -366,109 +611,17 @@ public class Game {
 
 		pieces = cmd.trim().toUpperCase().split("[ ,\\t\\n\\x0B\\f\\r]");
 
-		if (pieces[0].compareToIgnoreCase("TOR") == 0 ) {
-			if (pieces.length > 1) {
-				direction = pieces[1];
-				try {
-					angle = Float.valueOf(direction);
-				} catch (Exception e) {
-					textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
-					return;  // no firing for you when you get the parameter wrong
-				}
-				galaxy.playerFired(angle);
-			} else {
-				textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
-				return;  // no firing for you when you get the parameter wrong
-			}
-
-			return;
-		}
-
-		if (pieces[0].compareToIgnoreCase("IMP") == 0 ) {
-			if ( pieces.length > 3 ) {
-				direction = pieces[1];
-				power = pieces[2];
-				duration = pieces[3];
-
-				try {
-					angle = Float.valueOf(direction) % 360;
-					if (angle < 0) angle += 360;
-					force = Float.valueOf(power); if (force > 20) force = 20;	// technically could make the energy requirements exponential and so preclude the need for a limit
-					seconds = Float.valueOf(duration);							// Dont need time limit as energy reserves will expire and stop progress anyway
-				} catch (Exception e) {
-					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
-					return; // no moving for you when you get the parameters wrong
-				}
-			} else {
-				textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,accel,duration");
-				return; // no moving for you when you get the parameters wrong
-			}
-
-
-			galaxy.setPlayerHeading(angle, 0);
-			galaxy.setPlayerThrust( force, seconds);
-
-			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds);
-
-			return;
-		}
-
-		if (pieces[0].compareToIgnoreCase("WARP") == 0 ) {
-			if ( pieces.length > 3 ) {
-				direction = pieces[1];
-				power = pieces[2];
-				duration = pieces[3];
-
-				try {
-					angle = Float.valueOf(direction) % 360;
-					if (angle < 0) angle += 360;
-					force = Float.valueOf(power); if (force > 10) force = 10; // again, energy requirements will preclude this limit in the future
-					seconds = Float.valueOf(duration);
-				} catch (Exception e) {
-					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
-					return; // no moving for you when you get the parameters wrong
-				}
-			} else {
-				textWindow.writeLine(1, "Syntax Error: Command format should be: WARP,direction,Speed,duration");
-				return; // no moving for you when you get the parameters wrong
-			}
-
-			galaxy.setPlayerHeading(angle, 0);
-			galaxy.setPlayerThrust( 0, 6);	// Turn in the desired direction, it takes 6 seconds to do 180 degrees
-
-			galaxy.setPlayerWarp(force, seconds);
-
-			textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds );
-
-			return;
-		}
-
-		if (pieces[0].compareToIgnoreCase("STOP") == 0 ) {
-
-			float currentVelocity = galaxy.getPlayerVelocity();
-			if (currentVelocity > 0) {
-				galaxy.setPlayerThrust(-50, currentVelocity / 50.0f + 1);
-			}
-			return;
-		}
-
-		if (pieces[0].compareToIgnoreCase("LRS") == 0 ) {
-			galaxy.doLRS();
-			return;
-		}
-
-		if (pieces[0].compareToIgnoreCase("SRS") == 0 ) {
-			galaxy.doSRS();
-			return;
-		}
-
-		if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) {
-			Game.gameRunning = false;
-			return;
-		}
-
-		textWindow.writeLine(1, "Error: No such command: " + cmd);
-		return;
+		if (pieces[0].compareToIgnoreCase("TOR") == 0 ) { command_TOR(pieces); }
+		else if (pieces[0].compareToIgnoreCase("IMP") == 0 ) { command_IMP(pieces); }
+		else if (pieces[0].compareToIgnoreCase("WARP") == 0 ) { command_WARP(pieces); }
+		else if (pieces[0].compareToIgnoreCase("STOP") == 0 ) { command_STOP(pieces); }
+		else if (pieces[0].compareToIgnoreCase("COMP") == 0 ) { command_COMP(pieces); }
+		else if (pieces[0].compareToIgnoreCase("LRS") == 0 ) { galaxy.doLRS(); }
+		else if (pieces[0].compareToIgnoreCase("SRS") == 0 ) { galaxy.doSRS(); }
+		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) { galaxy.playerShip.shieldsUp = true; }
+		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) { galaxy.playerShip.shieldsUp = false; }
+		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) { Game.gameRunning = false; }
+		else { textWindow.writeLine(1, "Error: No such command: " + cmd); }
 	}
 
 	/**

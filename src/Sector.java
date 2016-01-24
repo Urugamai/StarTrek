@@ -85,10 +85,6 @@ public class Sector {
 
 	public int getGalacticXMin() { return galacticXMin; }
 
-
-//	public int getSectorWidth() { return sectorWidth; }
-//	public int getSectorHeight() { return sectorHeight; }
-
 	public int getEnemyCount() {
 		return enemyCount;
 	}
@@ -99,6 +95,11 @@ public class Sector {
 		return planetCount;
 	}
 
+	public Galaxy.locationSpec getPlayerLocation() {
+		Galaxy.locationSpec loc = new Galaxy.locationSpec(ship.getX(), ship.getY(), ship.getZ());
+
+		return loc;
+	}
 	/**
 	 * Initialise the starting state of the entities (ship and aliens). Each
 	 * entity will be added to the overall list of entities in the game.
