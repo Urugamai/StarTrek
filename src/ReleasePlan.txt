@@ -48,7 +48,7 @@ Version 0.6
     - DONE: add new Entity Types and superset of Entity (ShipEntity, ObjectEntity)
         - DONE: move Warp and other movement parameters to ShipEntity so Objects do not have movement capability
     - DONE: energy display (structural integrity and shields too)
-    - computer commands to calculate angle to target
+    - DONE: computer commands to calculate angle to target
 
 Version 0.x
 ===========
@@ -351,15 +351,15 @@ WARP,direction,range        -   Turn in the direction indicated and activate war
 SRS                         -   Add current sector details to the galactic map.
 LRS                         -   Add the current and 8 surrounding sectors to the galactic map.
 STOP                        -   Computer calculates and implements impulse forces necessary to come to a full stop
+SHUP                        -   Turn ON shields
+SHDOWN                      -   Turn OFF Shields
 EXIT                        -   Quit game.  ESC Key is also meant to work.
 COMP TGT [BSE]              -   Compute angle and distance to Base, Star or all Enemy in current sector
 COMP NAV [BE] {n}           -   Compute angle and distance to nearest sector with a Base or Enemy or with n Enemy
 
 TODO
 ====
-SH,percent                  -   Transfer energy from main banks to bring shields up to selected percentage
-SHUP                        -   Turn ON shields
-SHDOWN                      -   Turn OFF Shields
+SH,Energy                   -   Transfer energy from main banks to boost shield percentage (1 for every 10 units of energy?)
 AS                          -   ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
 PHA,direction,power         -   fire Phasers in the direction indicated with start power at the level indicated.  Power
                                 will decrease by 1% (10%?) per lightsecond travelled.

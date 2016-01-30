@@ -54,6 +54,7 @@ public class Game {
 	private TextureLoader		textureLoader;
 
 	private GameText 			textWindow;
+	private GameText			helpWindow;
 	private String				userInput 			= "";
 	private ArrayList<String>	userInputHistory	= new ArrayList<>();
 	private int					historyLines = 0, historyPosition = 0;
@@ -183,6 +184,8 @@ public class Game {
 		textWindow.write( "Star Trekking across the universe...");
 		textWindow.scroll();
 
+		helpWindow = new GameText(0, height, 55);
+
 		// setup the initial game state
 		startGame();
 	}
@@ -296,9 +299,10 @@ public class Game {
 
 		textWindow.writeLine(4, "Currently in sector (" + galaxy.playerSector.getGalacticX() + "," + galaxy.playerSector.getGalacticY() + ")");
 
-		if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.SHIP_STATUS;
+		if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.HELP_SCREEN;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GALACTIC_MAP;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_F3)) displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
+		else if (Keyboard.isKeyDown(Keyboard.KEY_F4)) displayMode = Constants.DisplayMode.SHIP_STATUS;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
 			if (!inKeyUp) {
 				userInput = userInputHistory.get(historyPosition--);
@@ -356,7 +360,9 @@ public class Game {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		if (displayMode == Constants.DisplayMode.DISPLAY_SECTOR)
+		if (displayMode == Constants.DisplayMode.HELP_SCREEN)
+			drawHelp();
+		else if (displayMode == Constants.DisplayMode.DISPLAY_SECTOR)
 			galaxy.drawSector();
 		else if (displayMode == Constants.DisplayMode.GALACTIC_MAP)
 			galaxy.drawGalaxy();
@@ -602,6 +608,39 @@ public class Game {
 		return true;
 	}
 
+	private void command_HELP(String[] pieces) {
+		displayMode = Constants.DisplayMode.HELP_SCREEN;
+
+	}
+
+	private void drawHelp() {
+		int currentLine = 50;
+
+		helpWindow.writeLine(currentLine--, "F1                          This help screen");
+		helpWindow.writeLine(currentLine--, "F2                          Galaxy Display");
+		helpWindow.writeLine(currentLine--, "F3                          Sector Display");
+		helpWindow.writeLine(currentLine--, "F4                          Ship Status Display");
+		currentLine--;
+		helpWindow.writeLine(currentLine--, "TOR angle                   Send a torpedo out at the angle (in degrees) provided");
+		helpWindow.writeLine(currentLine--, "PHA angle power             Fire phasers along indicated angle starting with indicated power. Power drops by 1 for each 1 unit of range.");
+		helpWindow.writeLine(currentLine--, "IMP angle force duration    Turn ship towards angle while applying force for indicated number of seconds");
+		helpWindow.writeLine(currentLine--, "WARP angle factor duration  Turn ship towards angle then travel at Warp Factor provided for indicated number of seconds");
+		helpWindow.writeLine(currentLine--, "                            Warp factor 1 for 1 second will take you one sector.  Higher factors take more energy, travel further and get there faster.");
+		helpWindow.writeLine(currentLine--, "STOP                        apply maximum deceleration force until we have stopped moving");
+		helpWindow.writeLine(currentLine--, "SRS                         Short range scan, refreshes data about the current sector.");
+		helpWindow.writeLine(currentLine--, "LRS                         Long range scan, Gather information from adjoining sectors. This updates Galactic Map.");
+		helpWindow.writeLine(currentLine--, "SHUP                        Shields UP");
+		helpWindow.writeLine(currentLine--, "SHDOWN                      Shields DOWN");
+		helpWindow.writeLine(currentLine--, "EXIT");
+		currentLine--;
+		helpWindow.writeLine(currentLine--, "COMP command [parameters]   Ask computer to calculate something");
+		helpWindow.writeLine(currentLine--, "        NAV [BE]            Computer navigation angle (and range) to any Base or Enemy in current sector");
+		helpWindow.writeLine(currentLine--, "        TGT [BES]           Computer targeting information (angle and range) to Base, Enemy or Star in sector.");
+		helpWindow.writeLine(currentLine--, " ");
+
+		helpWindow.draw();
+	}
+
 	private void processCommand(String cmd) {
 		float angle;
 		float force;
@@ -609,9 +648,11 @@ public class Game {
 		String[] pieces;
 		String direction = "", power = "", duration = "";
 
-		pieces = cmd.trim().toUpperCase().split("[ ,\\t\\n\\x0B\\f\\r]");
+		pieces = cmd.trim().toUpperCase().split("[ ,\t\\n\\x0B\\f\\r]");
 
-		if (pieces[0].compareToIgnoreCase("TOR") == 0 ) { command_TOR(pieces); }
+		if (pieces[0].compareToIgnoreCase("HELP") == 0 ) { command_HELP(pieces); }
+		else if (pieces[0].compareToIgnoreCase("TOR") == 0 ) { command_TOR(pieces); }
+		else if (pieces[0].compareToIgnoreCase("PHA") == 0 ) { command_TOR(pieces); }
 		else if (pieces[0].compareToIgnoreCase("IMP") == 0 ) { command_IMP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("WARP") == 0 ) { command_WARP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("STOP") == 0 ) { command_STOP(pieces); }

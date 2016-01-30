@@ -11,7 +11,7 @@ public class Galaxy {
 	private int starbaseCount = 0;				// Galactic allocation of starbases
 
 	private GameText galacticMap;
-	private GameText shipStatusDisplay;
+	protected GameText shipStatusDisplay;
 	protected PlayerShipEntity playerShip = null;
 
 	private ArrayList<Sector> sectorListHead = new ArrayList<Sector>();

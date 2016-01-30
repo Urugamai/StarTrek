@@ -41,7 +41,7 @@ public class Constants {
 	public static final float		maxStarbaseEnergy	= 300000f;
 	public static final int 		maxStarbaseTorpedoes = 1500;
 
-	public static enum DisplayMode {DISPLAY_SECTOR, GALACTIC_MAP, SHIP_STATUS};
+	public static enum DisplayMode {HELP_SCREEN, DISPLAY_SECTOR, GALACTIC_MAP, SHIP_STATUS};
 	public static enum sectorDirection { LeftTop, Top, RightTop, Left, here, Right, LeftBottom, Bottom, RightBottom };
 	public static enum LRSItems {
 		Enemy(0), Starbases(1), Planets(2);
