@@ -1,14 +1,12 @@
-import org.lwjgl.Sys;
+import java.util.ArrayList;
 
 /**
  * Created by Mark on 23/01/2016.
  */
 public abstract class ShipEntity extends Entity {
 	protected int 		torpedoCount = Constants.maxTorpedoes;
-	protected float		energyLevel = 1000, de = 1;											// How much energy am I carrying (explosive force), what is my rate of growth in energy per second
 	protected float		shieldPercent = 100;											// shield strength
 	protected boolean	shieldsUp = true;
-	protected float		solidity = 100, ds = 1;												// structural strength
 
 	protected StarbaseEntity dockedTo = null;
 	private double		damageTimer = 0;
@@ -28,13 +26,17 @@ public abstract class ShipEntity extends Entity {
 
 	private double		gdx = 0, gdy = 0, gdz = 0;		// Galactic Coordinate spring-loading warp galactic sector delta
 
-	public ShipEntity(Entity.entityType shipType, Sector thisSector, String ref, int x, int y) {
+	public ShipEntity(Transaction.SubType shipType, Sector thisSector, String ref, int x, int y) {
 		super(shipType, ref, x, y);
-		currentSector = thisSector;
+		mySector = thisSector;
 		currentAngle = 0;
 		currentInclination = 0;
 		targetAngle = 0;
 		targetInclination = 0;
+		energyLevel = 1000;
+		de = 1;
+		solidity = 100;
+		ds = 1;
 	}
 
 	// Add OR Subtract from the ships energy reserves
@@ -157,6 +159,15 @@ public abstract class ShipEntity extends Entity {
 		return false;
 	}
 
+	public boolean firePhaser(double direction, double power) {
+		// direction irrelevant at this level
+		if (power > energyLevel) return false;
+
+		energyLevel -= power;
+
+		return true;
+	}
+
 	private void Rotate(double delta) {
 		int f1, f2;
 
@@ -208,59 +219,46 @@ public abstract class ShipEntity extends Entity {
 		z = (z + (vz * delta));
 	}
 
-	/**
-	 * Request that this entity move itself based on a certain amount
-	 * of time passing.
-	 *
-	 * @param delta The amount of time that has passed in seconds
-	 */
 	public void move(double delta) {
 		Rotate(delta);
 		Translate(delta);
 		warpMove(delta);
 	}
 
-	public void doLogic(double delta) {
-		addEnergy(de*delta);	// top up from engines
-		if (shieldsUp) addEnergy(-shieldPercent/100*2*delta);		// cost of running shields
-		addEnergy(-thrustAcceleration*delta);		// cost of running impulse engines
+	public void doLogic(double delta, ArrayList<Transaction> transactions) {
+		energyTransaction(transactions, Transaction.Action.ADD, de*delta);
+
+		if (shieldsUp) {
+			energyTransaction(transactions, Transaction.Action.DEDUCT, shieldPercent/100*2*delta);
+		}
+
+		energyTransaction(transactions, Transaction.Action.DEDUCT, thrustAcceleration*delta);
 
 		move(delta);
+
 		if (dockedTo != null) {
 			if (! collidesWith(dockedTo)) dockedTo = null;	// we have left the base
 			else {
-				if (velocity > 2.0) {
-					damageTimer -= delta;
-
-					// ripped off the docking clamps!
-					if (damageTimer <= 0) {
-						collidedWith(dockedTo);
-						damageTimer = 1;
-					}
-				} else {
-
+				if (velocity <= 2.0) {
 					// Docked bonus
 					if (dockedTo.energyLevel < dockedTo.de * delta) {
-						dockedTo.energyLevel -= addEnergy(dockedTo.energyLevel);
+						dockedTo.energyTransaction(transactions, Transaction.Action.DEDUCT, dockedTo.energyLevel);
+						energyTransaction(transactions, Transaction.Action.ADD, dockedTo.energyLevel);
 					} else {
-						dockedTo.energyLevel -= addEnergy(dockedTo.de * delta);
+						dockedTo.energyTransaction(transactions, Transaction.Action.DEDUCT, dockedTo.de * delta);
+						energyTransaction(transactions, Transaction.Action.ADD, dockedTo.de * delta);
 					}
 
-					if (dockedTo.torpedoCount < (Constants.maxTorpedoes - torpedoCount)) {
-						torpedoCount += dockedTo.torpedoCount;
-						dockedTo.torpedoCount = 0;
-					} else {
-						dockedTo.torpedoCount -= (Constants.maxTorpedoes - torpedoCount);
-						torpedoCount = Constants.maxTorpedoes;
+					if (dockedTo.torpedoCount > 1 && torpedoCount < Constants.maxTorpedoes) {
+						torpedoTransaction(transactions, Transaction.Action.ADD, 1);
+						dockedTo.torpedoTransaction(transactions, Transaction.Action.DEDUCT, 1);
 					}
 
 					if (solidity < 100 && dockedTo.solidity > 0) {
-						if ((damageTimer - delta) <= 0) {
-							solidity += (dockedTo.solidity / 100);
-							damageTimer = 1;
-						}
+						structureTransaction(transactions, Transaction.Action.ADD, dockedTo.solidity/100*delta);
+						dockedTo.energyTransaction(transactions, Transaction.Action.DEDUCT, 10*delta);	// 10 energy per 1 solidity
 					}
-				}
+				} else dockedTo = null;	// Too fast, no longer docked but are still COLLIDING!
 			}
 		}
 	}
@@ -277,7 +275,7 @@ public abstract class ShipEntity extends Entity {
 		return leakage;
 	}
 
-	private double processStructuralHit(double energy) {
+	private double processStructuralHit(double energy, double physical) {
 		double strength = solidity*20+1;
 		double leakage = energy <= strength ? (1 - solidity/100)*energy : energy - strength;
 		double newSolidity = energy <= strength ? (float)(1-energy/strength)*solidity : 0;
@@ -286,50 +284,40 @@ public abstract class ShipEntity extends Entity {
 		return leakage;
 	}
 
-	public void processHit(double energy) {
-		if (energy < 0) return;
+	public void processHit(double energy, double solidity, ArrayList<Transaction> transactions) {
+		if (energy <= 0 && solidity <= 0) return;
+
 
 		energy = processShieldHit(energy);
-		energy = processStructuralHit(energy);
+		energy = processStructuralHit(energy, solidity);
 		addEnergy(-energy);
 
-		if (solidity < 1) super.currentSector.queueEntity(Constants.listType.remove, this); // TODO: Handle Player dying
+		if (solidity < 1) entityTransaction( transactions, Transaction.Action.DELETE, 0); // super.mySector.queueEntity(Constants.listType.REMOVE, this); // TODO: Handle Player dying
 
 		System.out.println(this.eType + ": Energy: " + energyLevel + " Shields: " + shieldPercent + "% Structural Integrity: " + solidity + "%");
 	}
 
-	/**
-	 * Notification that the player's ship has collided with something
-	 *
-	 * @param other The entity with which the ship has collided
-	 */
-	public void collidedWith(Entity other) {
+	private void damageCalc(Entity other, ArrayList<Transaction> transactions) {
+		if (other.eType == Transaction.SubType.BORGSHIP || other.eType == Transaction.SubType.FEDERATIONSHIP || other.eType == Transaction.SubType.ROMULANSHIP || other.eType == Transaction.SubType.STARBASE)
+			((ShipEntity) other).processHit(this.energyLevel, this.solidity, transactions);
+	}
 
-		// TODO: currently every collision is processed twice, once by each side - this could get bad? ;-)
-		if (other instanceof TorpedoEntity) {
-			return; // processed by torpedo
-		}
+	public void collidedWith(Entity other, ArrayList<Transaction> transactions) {
+		System.err.println(this.eType + " collided with " + other.eType);
 
-		if (other instanceof ShipEntity) {
-			double myEnergy = energyLevel;
-			this.processHit(((ShipEntity) other).energyLevel);
-			((ShipEntity) other).processHit(myEnergy);
-		}
-
-		if (other instanceof StarbaseEntity) {
-			if (velocity <= 2.0 ) {
-				// DOCK - Starbase becomes owned by docker?
-				dockedTo = (StarbaseEntity)other;		// Navigator responsible for reducing speed to zero!
-			} else {
-				// Crash
-				double myEnergy = energyLevel;
-				this.processHit(((StarbaseEntity) other).energyLevel);
-				((StarbaseEntity) other).processHit(myEnergy);
+		if (other.eType == Transaction.SubType.STARBASE) {
+			if (velocity <= 2.0) {
+				dockedTo = (StarbaseEntity) other;
+				return;
 			}
 		}
 
-		if (other instanceof StarEntity) {
-			super.currentSector.queueEntity(Constants.listType.remove, this); // we dead!
-		}
+		damageCalc(other, transactions);
+	}
+
+	public boolean IDied() {
+		if (solidity <= 0) return true;
+
+		return false;
 	}
 }

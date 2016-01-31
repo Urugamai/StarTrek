@@ -4,7 +4,7 @@ import java.util.ArrayList;
  * Created by Mark on 8/12/2015.
  */
 public class Galaxy {
-	private Game	game;						/** The game in which this entity exists */
+	private Alliance	game;						/** The game in which this entity exists */
 	private int screenWidth = 0, screenHeight = 0;
 
 	private int alienCount = 0;					// Galactic count of found aliens
@@ -37,7 +37,7 @@ public class Galaxy {
 		public void addGz(int dz) { gz += dz; }
 	}
 
-	public Galaxy(Game game) {
+	public Galaxy(Alliance game) {
 		this.game = game;
 		screenWidth = this.game.getWidth();
 		screenHeight = this.game.getHeight();
@@ -118,8 +118,12 @@ public class Galaxy {
 		return playerSector.getShipVelocity();
 	}
 
-	public void playerFired(float direction) {
-		playerSector.tryToFire(direction);
+	public void playerFiredTorpedo(float direction) {
+		playerSector.tryToFireTorpedo(direction);
+	}
+
+	public void playerFiredPhaser(float direction, float power) {
+		playerSector.tryToFirePhaser(direction, power);
 	}
 
 	public int getEnemyCount() {
@@ -335,32 +339,40 @@ public class Galaxy {
 //			System.out.println(currentLine);
 		}
 
-		galacticMap.writeLine(mapLines + 9, "FEDERATION SPACE GALACTIC MAP");
-		galacticMap.writeLine(mapLines + 8, "There are " + alienCount + " enemy ships known to be in federation space");
+		galacticMap.writeLine(mapLines + 9, "ALLIANCE SPACE GALACTIC MAP");
+		galacticMap.writeLine(mapLines + 8, "There are " + alienCount + " enemy ships known to be in Alliance space");
 		galacticMap.writeLine(mapLines + 7, "You currently have " + starbaseCount + " starbases available");
 		galacticMap.draw();
 //		galacticMap.writeLine(0, "Only updated after Long Range Scan performed.");
 	}
 
 	// Galactic logic implemented here and passed down the classes
-	public void doLogic(double delta) {
+	public void doLogic(double delta, ArrayList<Transaction> transactions) {
 		for ( Sector aSector : sectorListHead) {
-			aSector.doLogic(delta);
-			aSector.checkHits();
+			aSector.doLogic(delta, transactions);
+			//aSector.processCollisions();
 		}
 
-		boolean leaving = true;
-		while (leaving) {
-			leaving = false;
-			for (Sector aSector : sectorListHead) {
-				if (aSector.doJumps(delta) ) { leaving = true; break; }
-				if (aSector.checkLeaving()) { leaving = true; break; }
+//		boolean leaving = true;
+//		while (leaving) {
+//			leaving = false;
+//			for (Sector aSector : sectorListHead) {
+//				if (aSector.doJumps(delta) ) { leaving = true; break; }
+//				if (aSector.processLeaving()) { leaving = true; break; }
+//			}
+//		}
+	}
+
+	public void processTransactions(ArrayList<Transaction> transactions) {
+
+		for (Transaction trans : transactions) {
+			if (trans.type == Transaction.Type.GALAXY) {
+				// implement Galaxy transactions
 			}
 		}
 
 		for ( Sector aSector : sectorListHead) {
-			aSector.doRemove();
-			aSector.doAdd();
+			aSector.processTransactions(transactions);
 		}
 	}
 }

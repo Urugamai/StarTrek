@@ -30,6 +30,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+
 public class StarEntity extends ObjectEntity {
 	/**
 	 * Create a new star entity
@@ -38,18 +40,13 @@ public class StarEntity extends ObjectEntity {
 	 * @param y The intial y location of this alien
 	 */
 	public StarEntity(Sector thisSector, String ref, int x, int y) {
-		super(entityType.STAR, thisSector, ref, x, y);
+		super(Transaction.SubType.STAR, thisSector, ref, x, y);
 		//this.setHeading(-1.0f, 0);		// set this sprite to constantly rotate clockwise
 
-		currentSector = thisSector;
+		mySector = thisSector;
 	}
 
-	/**
-	 * Notification that this alien has collided with another entity
-	 *
-	 * @param other The other entity
-	 */
-	public void collidedWith(Entity other) {
+	public void collidedWith(Entity other, ArrayList<Transaction> transactions) {
 		// collisions with stars have no effect on the star!
 	}
 }

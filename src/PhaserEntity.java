@@ -30,19 +30,70 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class PlayerShipEntity extends ShipEntity {
+import java.util.ArrayList;
+
+/**
+ * An entity representing a shot fired
+ *
+ */
+public class PhaserEntity extends ShipEntity {
+	private boolean used;
+	/**
+	 * True if this shot has been "used", i.e. its hit something
+	 */
+	private Entity Parent;
+	/**
+	 * The parent entity for this torpedo - the only entity that cannot be 'hit' by the torpedo
+	 */
+	private double Range;
+	private double armedDelay;
 
 	/**
-	 * Create a new entity to represent the players ship
+	 * Create a new shot from the player
 	 *
-	 * @param ref The reference to the sprite to show for the ship
-	 * @param x The initial x location of the player's ship
-	 * @param y The initial y location of the player's ship
+	 * @param sourceShip The ship that fired the shot
+	 * @param spriteFile The sprite file to be used for this shot
 	 */
-	public PlayerShipEntity(Sector thisSector, String ref,int x,int y) {
-		super(Transaction.SubType.FEDERATIONSHIP, thisSector, ref, x, y);
+	public PhaserEntity(Sector thisSector, Entity sourceShip, String spriteFile) {
+		super(Transaction.SubType.PHASER, thisSector, spriteFile, sourceShip.getX(), sourceShip.getY());
 		mySector = thisSector;
 
-		torpedoCount = Constants.maxTorpedoes;
+		this.Parent = sourceShip;
+		//this.Range = 8.1; // seconds
+		this.armedDelay = 0.4;    // enough time to clear ourselves
+		energyLevel = 0;
+		shieldPercent = 0;
+		solidity = 0;
+	}
+
+	// Override some parent commands that do NOT apply to torpedo
+	public boolean fireTorpedo(double direction) {
+		return false;
+	}
+
+	public boolean firePhaser(double direction, double power) {
+		return false;
+	}
+
+	public void move(double delta) {
+		// proceed with normal move
+		super.move(delta);
+
+		if (armedDelay > 0) {
+			armedDelay -= delta;
+			return;
+		}
+	}
+
+	public boolean IDied() {
+		if (energyLevel <= 0) return true;
+
+		return false;
+	}
+
+	public void doLogic(double delta, ArrayList<Transaction> transactions) {
+		super.doLogic(delta, transactions);
+
+		energyTransaction(transactions, Transaction.Action.DEDUCT, delta * 1000);
 	}
 }

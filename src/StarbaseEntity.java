@@ -55,13 +55,4 @@ public class StarbaseEntity extends ShipEntity {
 
 		currentSector = thisSector;
 	}
-
-	/**
-	 * Notification that the player's ship has collided with something
-	 *
-	 * @param other The entity with which the ship has collided
-	 */
-	public void collidedWith(Entity other) {
-	}
-
 }

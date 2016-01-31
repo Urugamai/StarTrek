@@ -5,6 +5,7 @@ public class Constants {
 	// Graphics
 	public static final String		FILE_IMG_ENTERPRISE	= "res/ST_Enterprise.gif";
 	public static final String		FILE_IMG_TORPEDO	= "res/ST_Torpedo.gif";
+	public static final String		FILE_IMG_PHASER		= "res/ST_Phaser.gif";
 	public static final String 		FILE_IMG_ROMULAN 	= "res/ST_Romulan.gif";
 	public static final String		FILE_IMG_STARBASE	= "res/ST_StarBase.gif";
 	public static final String		FILE_IMG_STAR		= "res/ST_Star.gif";
@@ -29,10 +30,10 @@ public class Constants {
 	public static final int			maxPlanets			= 9;		// Per Sector
 
 	// All speeds are % of lightspeed?
-	public static final float		phaserSpeed			= 1.0f;		// multiple of light speed
+	public static final float 		PHASER_SPEED 		= 1000.0f;		// pixels per second
 	public static final float		warpSpeedMax		= 10.0f;		// multiple of light speed
 	public static final float 		IMPULSE_MAX 		= 0.2f;		// multiple of light speed
-	public static final float		torpedoSpeed		= 100.0f;		// pixels per second
+	public static final float 		TORPEDO_SPEED 		= 100.0f;		// pixels per second
 	public static final float		c					= 500.0f;	// The speed of light, in pixels per second
 
 	public static final float		maxEnergy			= 3000f;
@@ -50,7 +51,6 @@ public class Constants {
 		public int value() { return value; }
 		public static final int Size = LRSItems.values().length;
 	};
-	public static enum listType { add, remove };
 
 	// Prevent construction call
 	private Constants(){ }

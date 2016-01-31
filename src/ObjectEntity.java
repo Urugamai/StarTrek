@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * Created by Mark on 23/01/2016.
  */
@@ -6,11 +8,9 @@ public abstract class ObjectEntity extends Entity {
 	private boolean		rotateClockwise = true;
 	private float		currentAngle = 0;
 
-	public ObjectEntity(Entity.entityType objectType, Sector thisSector, String ref, int x, int y) {
+	public ObjectEntity(Transaction.SubType objectType, Sector thisSector, String ref, int x, int y) {
 		super(objectType, ref, x, y);
-		//this.setHeading(-1.0f, 0);		// set this sprite to constantly rotate clockwise
-
-		currentSector = thisSector;
+		mySector = thisSector;
 	}
 
 	private void Rotate(double delta) {
@@ -30,7 +30,7 @@ public abstract class ObjectEntity extends Entity {
 		Rotate(delta);
 	}
 
-	public void doLogic(double delta) {
+	public void doLogic(double delta, ArrayList<Transaction> transactions) {
 		move(delta);
 	}
 

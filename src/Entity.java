@@ -31,17 +31,18 @@
  */
 
 import java.awt.Rectangle;
+import java.util.ArrayList;
 
 public abstract class Entity {
-	public static enum entityType { STAR, STARBASE, FEDERATIONSHIP, ROMULANSHIP, TORPEDO, BORGSHIP };	// Who Am I
-
 	// Its all about ME
-	protected Sector	currentSector;											/** The sector in which this entity is located */
+	protected Sector 		mySector;											/** The sector in which this entity is located */
 	protected double 		x, y, z;												/** Where Am I */
+	protected float		energyLevel = 0, de = 0;											// How much energy am I carrying (explosive force), what is my rate of growth in energy per second
+	protected float		solidity = 0, ds = 0;												// structural strength
 
 	private static TextureLoader		textureLoader;
 	protected Sprite	sprite;													/** The sprite (graphics) that represents this entity */
-	protected entityType eType;
+	protected Transaction.SubType eType;
 
 	// What about others?
 	private Rectangle	me	= new Rectangle();									/** The rectangle used for this entity during collision detection */
@@ -51,7 +52,7 @@ public abstract class Entity {
 	 * Construct a entity based on a sprite image and a location.
 	 *
 	 */
-	protected Entity(entityType eType, String spriteFile, int x, int y) {
+	protected Entity(Transaction.SubType eType, String spriteFile, int x, int y) {
 		if (textureLoader == null) textureLoader = new TextureLoader();
 		this.eType = eType;
 		this.sprite = getSprite(spriteFile);
@@ -113,16 +114,61 @@ public abstract class Entity {
 		return me.intersects(him);
 	}
 
-	/**
-	 * Notification that this entity collided with another.
-	 *
-	 * @param other The entity with which this entity collided.
-	 */
-	public abstract void collidedWith(Entity other);
+	private Transaction getEmptyTransaction() {
+		Transaction trans = new Transaction();
+		trans.type = Transaction.Type.ENTITY;
+		trans.subType = eType;
+		trans.who = this;
+
+		return trans;
+	}
+
+	protected void entityTransaction(ArrayList<Transaction> transactions, Transaction.Action action, double amount) {
+		Transaction trans = getEmptyTransaction();
+		trans.action = action;
+		trans.what = Transaction.What.SELF;
+		trans.howMuch = amount;
+		transactions.add(trans);
+	}
+
+	protected void structureTransaction(ArrayList<Transaction> transactions, Transaction.Action action, double amount) {
+		Transaction trans = getEmptyTransaction();
+		trans.action = action;
+		trans.what = Transaction.What.STRUCTURE;
+		trans.howMuch = amount;
+		transactions.add(trans);
+	}
+
+	protected void torpedoTransaction(ArrayList<Transaction> transactions, Transaction.Action action, double amount) {
+		Transaction trans = getEmptyTransaction();
+		trans.action = action;
+		trans.what = Transaction.What.TORPEDO;
+		trans.howMuch = amount;
+		transactions.add(trans);
+	}
+
+	protected void energyTransaction(ArrayList<Transaction> transactions, Transaction.Action action, double amount) {
+		Transaction trans = getEmptyTransaction();
+		trans.action = action;
+		trans.what = Transaction.What.ENERGY;
+		trans.howMuch = amount;
+		transactions.add(trans);
+	}
+
+	public void processTransactions(ArrayList<Transaction> transactions) {
+
+		for (Transaction trans : transactions) {
+			if (trans.type == Transaction.Type.ENTITY) {
+				//TODO: implement Entity transactions
+			}
+		}
+	}
+
+	public abstract void collidedWith(Entity other, ArrayList<Transaction> transactions);
 
 	public abstract void move(double delta);
 
-	public abstract void doLogic(double delta);
+	public abstract void doLogic(double delta, ArrayList<Transaction> transactions);
 
 	public abstract boolean doWarpJump();
 

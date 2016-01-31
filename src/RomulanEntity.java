@@ -31,11 +31,11 @@
  */
 
 public class RomulanEntity extends ShipEntity {
-	private double			accumulatedTime		= 0;
-	private static double	courseDuration = 10000;
+	private double accumulatedTime = 0;
+	private static double courseDuration = 10000;
 
-	private float			heading = 0.0f;
-	private float			speed = 0.0f;
+	private float heading = 0.0f;
+	private float speed = 0.0f;
 
 	/**
 	 * Create a new alien entity
@@ -51,13 +51,13 @@ public class RomulanEntity extends ShipEntity {
 
 	public void newHeading() {
 
-		heading = ((float)Math.random()*360.0f + 180 ) % 360;
+		heading = ((float) Math.random() * 360.0f + 180) % 360;
 
 		sprite.setAngle(heading, 0);
 	}
 
 	public void newSpeed() {
-		speed = (float)Math.random()*(Constants.c * Constants.IMPULSE_MAX);
+		speed = (float) Math.random() * (Constants.c * Constants.IMPULSE_MAX);
 	}
 
 	/**
@@ -84,12 +84,4 @@ public class RomulanEntity extends ShipEntity {
 		move(delta);
 	}
 
-	/**
-	 * Notification that this alien has collided with another entity
-	 *
-	 * @param other The other entity
-	 */
-	public void collidedWith(Entity other) {
-		// collisions with aliens are handled elsewhere
-	}
 }

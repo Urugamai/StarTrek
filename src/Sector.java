@@ -179,9 +179,9 @@ public class Sector {
 	}
 
 	public void queueEntity(Constants.listType listType, Entity entity) {
-		if (listType == Constants.listType.add) {
-			addList.add(entity);        // Delay remove as list iterator gets upset about its list being modified
-		} else if (listType == Constants.listType.remove) {
+		if (listType == Constants.listType.ADD) {
+			addList.add(entity);        // Delay REMOVE as list iterator gets upset about its list being modified
+		} else if (listType == Constants.listType.REMOVE) {
 			removeList.add(entity);
 		}
 	}
@@ -239,32 +239,28 @@ public class Sector {
 		ship.setWarp(warpSpeed, duration);
 	}
 
-	public boolean tryToFire(float direction) {
+	public boolean tryToFireTorpedo(float direction) {
 		if (!ship.fireTorpedo(direction)) return false;	// no torpedoes left
 
-		TorpedoEntity shot = new TorpedoEntity(this, ship, Constants.FILE_IMG_TORPEDO);
+		PhaserEntity shot = new PhaserEntity(this, ship, Constants.FILE_IMG_TORPEDO);
 		shot.setImmediateHeading(direction, 0);
-		shot.setVelocity(Constants.torpedoSpeed);
+		shot.setVelocity(Constants.TORPEDO_SPEED);
 		entities.add(shot);
 //		game.soundManager.playEffect(game.SOUND_SHOT);
 		return true;
 	}
 
-	// TODO processHits needs to be a LOT smarter
-	// Identify source and target objects to determine type of hit involved.
+	public boolean tryToFirePhaser(float direction, float power) {
+		if (! ship.firePhaser(direction, power) ) return false;
 
-	public void processHits(Entity me) {
-		// brute force collisions, compare me against
-		// every other entity. If any of them collide notify
-		// both entities that the collision has occurred
-		for (Entity him : entities) {
-			if (him == me) continue;    // of course we hit ourselves, so dont check ;-)
+		TorpedoEntity shot = new TorpedoEntity(this, ship, Constants.FILE_IMG_PHASER);
+		shot.setImmediateHeading(direction, 0);
+		shot.energyLevel = power;
+		shot.setVelocity(Constants.PHASER_SPEED);
+		entities.add(shot);
 
-			if (me.collidesWith(him)) {
-				me.collidedWith(him);
-				him.collidedWith(me);
-			}
-		}
+//		game.soundManager.playEffect(game.SOUND_PHASER_SHOT);
+		return true;
 	}
 
 	private boolean leavingSector(Entity entity){
@@ -293,7 +289,7 @@ public class Sector {
 			if (entity instanceof PlayerShipEntity) {
 				galaxy.playerSector = newSector;
 			}
-			entity.currentSector = newSector;
+			entity.mySector = newSector;
 		}
 
 		return (newSector != null);
@@ -304,8 +300,8 @@ public class Sector {
 
 		Sector newSector = galaxy.getSector(newLoc);	// creates if missing
 
-		newSector.queueEntity(Constants.listType.add, entity);
-		queueEntity(Constants.listType.remove, entity);
+		newSector.queueEntity(Constants.listType.ADD, entity);
+		queueEntity(Constants.listType.REMOVE, entity);
 
 		return newSector;
 	}
@@ -316,28 +312,14 @@ public class Sector {
 		Galaxy.locationSpec newLoc = entity.calculateWarpJump(new Galaxy.locationSpec(galacticX, galacticY, galacticZ) );
 
 		Sector newSector = galaxy.getSector(newLoc.getGx(), newLoc.getGy(), newLoc.getGz());
-		newSector.queueEntity(Constants.listType.add, entity);
-		queueEntity(Constants.listType.remove, entity);
+		newSector.queueEntity(Constants.listType.ADD, entity);
+		queueEntity(Constants.listType.REMOVE, entity);
 		if (newSector != null && entity instanceof PlayerShipEntity) {
 			galaxy.playerSector = newSector;
 		}
 
 		entity.warpJumpDone();
 		return true;
-	}
-
-	public void draw() {
-		// cycle round drawing all the entities we have in the game
-		for (Entity entity : entities) {
-			entity.draw();
-		}
-	}
-
-	public void doLogic(double delta) {
-		// cycle round every entity doing personal logic and other interactions
-		for (Entity entity : entities) {
-			entity.doLogic(delta);
-		}
 	}
 
 	public boolean doJumps(double delta){
@@ -347,17 +329,47 @@ public class Sector {
 		return false;
 	}
 
-	public boolean checkLeaving() {
+	public void draw() {
+		// cycle round drawing all the entities we have in the game
+		for (Entity entity : entities) {
+			entity.draw();
+		}
+	}
+
+	public void doLogic(double delta, ArrayList<Transaction> transactions) {
+		// cycle round every entity doing personal logic and other interactions
+		for (Entity entity : entities) {
+			entity.doLogic(delta, transactions);
+		}
+		processCollisions(delta, transactions);
+		processLeaving(delta, transactions);
+		for (Entity entity : entities) {
+			if (entity instanceof ShipEntity)
+			if ( ((ShipEntity)entity).IDied() ) {
+				entity.entityTransaction(transactions, Transaction.Action.DELETE, 0);
+			}
+		}
+	}
+
+	public void processCollisions(double delta, ArrayList<Transaction> transactions) {	// Non-overlapping scan of all entities against all others
+		for (int i = 0; i < entities.size()-1; i++) {
+			Entity me = entities.get(i);
+
+			for (int j = i + 1; j < entities.size(); j++) {
+				Entity him = entities.get(j);
+				if (me.collidesWith(him)){
+					me.collidedWith(him, transactions);
+					him.collidedWith(me, transactions);
+				}
+			}
+		}
+	}
+
+	public boolean processLeaving(double delta, ArrayList<Transaction> transactions) {
 		for (Entity entity : entities) {
 			if (leavingSector(entity)) return true;	// concurrent update errors means we must exit and restart sector list processing
 		}
 		return false;
-	}
-
-	public void checkHits() {
-		for (Entity entity : entities) {
-			processHits(entity);
-		}
 	}
 
 	public void doAdd() {
@@ -377,6 +389,19 @@ public class Sector {
 				takeEntity(entity);
 
 			removeList.clear();
+		}
+	}
+
+	public void processTransactions(ArrayList<Transaction> transactions) {
+
+		for (Transaction trans : transactions) {
+			if (trans.type == Transaction.Type.SECTOR) {
+				// implement Sector transactions
+			}
+		}
+
+		for (Entity entity : entities) {
+			entity.processTransactions(transactions);
 		}
 	}
 }

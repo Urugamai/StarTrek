@@ -41,10 +41,11 @@ import java.util.ArrayList;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Game {
+public class Alliance {
 
 	private Galaxy 				galaxy;
 	private float				starDate 			= 12345;
+	private ArrayList<Transaction> transactions;
 
 	private int					width				= 1000;
 	private int					height				= 1000;
@@ -87,7 +88,7 @@ public class Game {
 	 * @param fullscreen
 	 *
 	 */
-	public Game(boolean fullscreen) {
+	public Alliance(boolean fullscreen) {
 		this.fullscreen = fullscreen;
 		initialize();
 	}
@@ -173,9 +174,9 @@ public class Game {
 			SOUND_WIN    = soundManager.addSound(Constants.FILE_SND_WIN);
 			SOUND_LOOSE  = soundManager.addSound(Constants.FILE_SND_LOSE);
 		} catch (LWJGLException le) {
-			System.out.println("Game exiting - exception in initialization:");
+			System.out.println("Alliance exiting - exception in initialization:");
 			le.printStackTrace();
-			Game.gameRunning = false;
+			Alliance.gameRunning = false;
 			return;
 		}
 
@@ -186,8 +187,10 @@ public class Game {
 
 		helpWindow = new GameText(0, height, 55);
 
+		transactions = new ArrayList<Transaction>();
+
 		// setup the initial game state
-		startGame();
+		startAlliance();
 	}
 
 	/**
@@ -213,12 +216,7 @@ public class Game {
 		return false;
 	}
 
-	/**
-	 * Start a fresh game, this should clear out any old data and
-	 * create a new set.
-	 */
-	private void startGame() {
-		// clear out any existing entities and initialise a new set
+	private void startAlliance() {
 		galaxy = new Galaxy(this);
 		galaxy.initPlayerShip();
 	}
@@ -241,17 +239,19 @@ public class Game {
 		//SystemTimer.sleep(lastLoopTime+10-SystemTimer.getTime());
 //		Display.sync(60);	// Causes this loop to stop until the next 60th of a second is ready
 
-		textWindow.write( "There are " + galaxy.getEnemyCount() + " enemy ships currently in federation space");
+		textWindow.write( "There are " + galaxy.getEnemyCount() + " enemy ships currently in Alliance space");
 		textWindow.scroll();
 		textWindow.write( "You currently have " + galaxy.getStarbaseCount() + " starbases available");
 		textWindow.scroll();
 
-		while (Game.gameRunning) {
+		while (Alliance.gameRunning) {
 			setTimeDelta();
 
 			userInteractions();
 
-			galaxy.doLogic(msElapsed / 1000.0);
+			galaxy.doLogic(msElapsed / 1000.0, transactions);
+
+			galaxy.processTransactions(transactions);
 
 			frameRendering();
 		}
@@ -346,7 +346,7 @@ public class Game {
 
 		// if escape has been pressed, stop the game
 		if ((Display.isCloseRequested() || Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) && isApplication) {
-			Game.gameRunning = false;
+			Alliance.gameRunning = false;
 		}
 	}
 
@@ -387,12 +387,33 @@ public class Game {
 				textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
 				return false;  // no firing for you when you get the parameter wrong
 			}
-			galaxy.playerFired(angle);
 		} else {
 			textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
+		galaxy.playerFiredTorpedo(angle);
+		return true;
+	}
+
+	private boolean command_PHA(String[] pieces) {
+		float angle = -1;
+		float power = 0;
+
+		if (pieces.length > 2) {
+			try {
+				angle = Float.valueOf(pieces[1]);
+				power = Float.valueOf(pieces[2]);
+			} catch (Exception e) {
+				textWindow.writeLine(1, "Syntax Error: Command format should be: PHA,direction,power");
+				return false;  // no firing for you when you get the parameter wrong
+			}
+		} else {
+			textWindow.writeLine(1, "Syntax Error: Command format should be: PHA,direction,power");
+			return false;  // no firing for you when you get the parameter wrong
+		}
+
+		galaxy.playerFiredPhaser(angle, power);
 		return true;
 	}
 
@@ -652,7 +673,7 @@ public class Game {
 
 		if (pieces[0].compareToIgnoreCase("HELP") == 0 ) { command_HELP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("TOR") == 0 ) { command_TOR(pieces); }
-		else if (pieces[0].compareToIgnoreCase("PHA") == 0 ) { command_TOR(pieces); }
+		else if (pieces[0].compareToIgnoreCase("PHA") == 0 ) { command_PHA(pieces); }
 		else if (pieces[0].compareToIgnoreCase("IMP") == 0 ) { command_IMP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("WARP") == 0 ) { command_WARP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("STOP") == 0 ) { command_STOP(pieces); }
@@ -661,7 +682,7 @@ public class Game {
 		else if (pieces[0].compareToIgnoreCase("SRS") == 0 ) { galaxy.doSRS(); }
 		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) { galaxy.playerShip.shieldsUp = true; }
 		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) { galaxy.playerShip.shieldsUp = false; }
-		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) { Game.gameRunning = false; }
+		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) { Alliance.gameRunning = false; }
 		else { textWindow.writeLine(1, "Error: No such command: " + cmd); }
 	}
 
@@ -675,8 +696,8 @@ public class Game {
 	public static void main(String argv[]) {
 		isApplication = true;
 		System.out.println("Use -fullscreen for fullscreen mode");
-		new Game((argv.length > 0 && "-fullscreen".equalsIgnoreCase(argv[0]))).execute();
-//		new Game(true).execute();	// force to full screen
+		new Alliance((argv.length > 0 && "-fullscreen".equalsIgnoreCase(argv[0]))).execute();
+//		new Alliance(true).execute();	// force to full screen
 
 		System.exit(0);
 	}

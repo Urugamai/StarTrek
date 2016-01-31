@@ -37,7 +37,6 @@ import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
  *
  */
 public class TorpedoEntity extends ShipEntity {
-	private boolean				used;						/** True if this shot has been "used", i.e. its hit something */
 	private Entity				Parent;						/** The parent entity for this torpedo - the only entity that cannot be 'hit' by the torpedo */
 	private double				Range;
 	private double				armedDelay;
@@ -49,46 +48,37 @@ public class TorpedoEntity extends ShipEntity {
 	 * @param spriteFile The sprite file to be used for this shot
 	 */
 	public TorpedoEntity(Sector thisSector, Entity sourceShip, String spriteFile) {
-		super(entityType.TORPEDO, thisSector, spriteFile, sourceShip.getX(), sourceShip.getY());
-		currentSector = thisSector;
+		super(Transaction.SubType.TORPEDO, thisSector, spriteFile, sourceShip.getX(), sourceShip.getY());
+		mySector = thisSector;
 
 		this.Parent = sourceShip;
 		this.Range = 8.1; // seconds
 		this.armedDelay = 0.4;	// enough time to clear ourselves
-		energyLevel = 750;
+		energyLevel = 888;
 		shieldPercent = 0;
-		solidity = 0;
+		solidity = 1;
 	}
 
-	/**
-	 * Request that this shot move based on time elapsed
-	 *
-	 * @param delta The time that has elapsed since last move
-	 */
+	// Override some parent commands that do NOT apply to torpedo
+	public boolean fireTorpedo(double direction) {return false;}
+	public boolean firePhaser(double direction, double power) {return false;}
+
 	public void move(double delta) {
 		// proceed with normal move
 		super.move(delta);
+
+		// Some torpedo special calculations
 		if (armedDelay > 0) {
 			armedDelay -= delta;
 			return;
 		}
 
 		Range -= delta;
-		if (Range <= 0) { used=true; super.currentSector.queueEntity(Constants.listType.remove, this); }
 	}
 
-	/**
-	 * Notification that this shot has collided with another
-	 * entity
-	 *
-	 * @param other The other entity with which we've collided
-	 */
-	public void collidedWith(Entity other) {
-		if (armedDelay > 0) return;
-		if (other == Parent ) return;
+	public boolean IDied() {
+		if (Range <= 0) return true;
 
-		super.collidedWith(other);
-
-		used=true; super.currentSector.queueEntity(Constants.listType.remove, this);
+		return false;
 	}
 }
