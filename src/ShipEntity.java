@@ -26,9 +26,8 @@ public abstract class ShipEntity extends Entity {
 
 	private double		gdx = 0, gdy = 0, gdz = 0;		// Galactic Coordinate spring-loading warp galactic sector delta
 
-	public ShipEntity(Transaction.SubType shipType, Sector thisSector, String ref, int x, int y) {
-		super(shipType, ref, x, y);
-		mySector = thisSector;
+	public ShipEntity(Transaction.SubType shipType, String ref) {
+		super(shipType, ref);
 		currentAngle = 0;
 		currentInclination = 0;
 		targetAngle = 0;

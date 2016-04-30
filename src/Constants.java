@@ -20,8 +20,19 @@ public class Constants {
 	public static final String		FILE_SND_WIN		= "res/win.wav";
 
 	/** Game Parameters */
-	public static final String		WINDOW_TITLE		= "Star Trek - TNG";
+	public static final String		WINDOW_TITLE		= "Alliance";
 	public static final int			FramesPerSecond		= 60;
+
+	public static final float		fractionMessageWindowWidth	= 1f;
+	public static final float		fractionMessageWindowHeight	= 0.20f;
+
+	public static final float		fractionStatusWindowWidth	= 0.20f;
+	public static final float		fractionStatusWindowHeight	= 1 - fractionMessageWindowHeight;
+
+
+	public static final float		fractionSectorWindowWidth	= 1 - fractionStatusWindowWidth;
+	public static final float		fractionSectorWindowHeight	= 1 - fractionMessageWindowHeight;
+
 	public static final int			screenLines			= 40;		// Number of text lines to provide on the screen
 
 	public static final int			maxEnemy			= 5;		// Per sector

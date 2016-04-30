@@ -50,9 +50,9 @@ public class StarbaseEntity extends ShipEntity {
 	 * @param y The initial y location of the player's ship
 	 */
 	public StarbaseEntity(Sector thisSector, String ref, int x, int y) {
-		super(entityType.STARBASE, thisSector, ref, x, y);
+		super(Transaction.SubType.STARBASE, ref);
 		sprite.setAngle(-2.0f, 0);		// configure this sprite to rotate constantly anti-clockwise
 
-		currentSector = thisSector;
+		mySector = thisSector;
 	}
 }

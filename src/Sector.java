@@ -27,21 +27,7 @@ public class Sector {
 	private ArrayList<Entity> removeList = new ArrayList<Entity>();
 	private ArrayList<Entity> addList = new ArrayList<Entity>();
 
-	public Sector(Galaxy theGalaxy, int gx, int gy, int gz, int screenWidth, int screenHeight) {
-		galaxy = theGalaxy;
-		this.screenWidth = screenWidth;
-		this.screenHeight = screenHeight;
-
-		// scale: how far out we are going to build from this sector (sector build is recursive)
-		galacticX = gx;	// Where are we
-		galacticY = gy;	// where are we
-		galacticZ = gz;
-
-		if (gx < galacticXMin) galacticXMin = gx;
-		if (gy < galacticYMin) galacticYMin = gy;
-		if (gx > galacticXMax) galacticXMax = gx;
-		if (gy > galacticYMax) galacticYMax = gy;
-
+	public Sector() {
 		// Counters
 		newEnemyCount();
 		starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
@@ -136,26 +122,6 @@ public class Sector {
 		}
 	}
 
-	public PlayerShipEntity initPlayerShip() {
-		Entity newEntity = null;
-		int x;
-		int y;
-
-		// Whack in the player ship - try desired location first
-		do {
-			x = (int) (Math.random() * (screenWidth - 50));
-			y = (int) (Math.random() * (screenHeight - 50));
-			if (newEntity != null) {
-				newEntity = null;	// dispose of current entity
-			}
-			newEntity = new PlayerShipEntity(this, Constants.FILE_IMG_ENTERPRISE, x, y);
-		} while (checkEntityForOverlap(newEntity));
-		entities.add(newEntity);
-		ship = (PlayerShipEntity) newEntity;
-
-		return ship;
-	}
-
 	public void doSRS() {
 		LRS_EnemyCount = enemyCount;
 		LRS_StarbaseCount = starbaseCount;
@@ -176,14 +142,6 @@ public class Sector {
 			if (me.collidesWith(entity)) return true;
 		}
 		return false;	// No entities overlap me
-	}
-
-	public void queueEntity(Constants.listType listType, Entity entity) {
-		if (listType == Constants.listType.ADD) {
-			addList.add(entity);        // Delay REMOVE as list iterator gets upset about its list being modified
-		} else if (listType == Constants.listType.REMOVE) {
-			removeList.add(entity);
-		}
 	}
 
 	public boolean takeEntity(Entity entity) {
@@ -263,72 +221,6 @@ public class Sector {
 		return true;
 	}
 
-	private boolean leavingSector(Entity entity){
-		// Entity location
-		int x = entity.getX();
-		int y = entity.getY();
-		int z = entity.getZ();
-
-		// Entity size
-		int spriteWidth = entity.sprite.getWidth();
-		int spriteHeight = entity.sprite.getHeight();
-
-		// Sector size
-		int maxWidth = screenWidth - spriteWidth;
-		int maxHeight = screenHeight - spriteHeight;
-
-		Sector newSector = null;
-
-		// Are we at the border?
-		if (x < spriteWidth)	{ newSector = jump(Constants.sectorDirection.Left, entity); entity.setX(maxWidth-1); }
-		if (x > maxWidth )		{ newSector = jump(Constants.sectorDirection.Right, entity); entity.setX(spriteWidth+1); }
-		if (y < spriteHeight)	{ newSector = jump(Constants.sectorDirection.Top, entity); entity.setY(maxHeight-1); }
-		if (y > maxHeight)		{ newSector = jump(Constants.sectorDirection.Bottom, entity); entity.setY(spriteHeight+1); }
-
-		if (newSector != null) {
-			if (entity instanceof PlayerShipEntity) {
-				galaxy.playerSector = newSector;
-			}
-			entity.mySector = newSector;
-		}
-
-		return (newSector != null);
-	}
-
-	private Sector jump(Constants.sectorDirection dir, Entity entity) {
-		Galaxy.locationSpec newLoc = whatSectorIs(dir);
-
-		Sector newSector = galaxy.getSector(newLoc);	// creates if missing
-
-		newSector.queueEntity(Constants.listType.ADD, entity);
-		queueEntity(Constants.listType.REMOVE, entity);
-
-		return newSector;
-	}
-
-	private boolean warpJump(Entity entity) {
-		if (! entity.doWarpJump()) return false;
-
-		Galaxy.locationSpec newLoc = entity.calculateWarpJump(new Galaxy.locationSpec(galacticX, galacticY, galacticZ) );
-
-		Sector newSector = galaxy.getSector(newLoc.getGx(), newLoc.getGy(), newLoc.getGz());
-		newSector.queueEntity(Constants.listType.ADD, entity);
-		queueEntity(Constants.listType.REMOVE, entity);
-		if (newSector != null && entity instanceof PlayerShipEntity) {
-			galaxy.playerSector = newSector;
-		}
-
-		entity.warpJumpDone();
-		return true;
-	}
-
-	public boolean doJumps(double delta){
-		for (Entity entity : entities) {
-			if (warpJump(entity)) return true;
-		}
-		return false;
-	}
-
 	public void draw() {
 		// cycle round drawing all the entities we have in the game
 		for (Entity entity : entities) {
@@ -342,7 +234,6 @@ public class Sector {
 			entity.doLogic(delta, transactions);
 		}
 		processCollisions(delta, transactions);
-		processLeaving(delta, transactions);
 		for (Entity entity : entities) {
 			if (entity instanceof ShipEntity)
 			if ( ((ShipEntity)entity).IDied() ) {
@@ -365,13 +256,6 @@ public class Sector {
 		}
 	}
 
-	public boolean processLeaving(double delta, ArrayList<Transaction> transactions) {
-		for (Entity entity : entities) {
-			if (leavingSector(entity)) return true;	// concurrent update errors means we must exit and restart sector list processing
-		}
-		return false;
-	}
-
 	public void doAdd() {
 		// Add any entities that are meant to be in this sector now
 		if (!addList.isEmpty()) {
@@ -392,11 +276,33 @@ public class Sector {
 		}
 	}
 
+	private Transaction getEmptyTransaction() {
+		Transaction trans = new Transaction();
+		trans.type = Transaction.Type.SECTOR;
+		trans.subType = Transaction.SubType.FEDERATIONSECTOR;
+		trans.who = this;
+
+		return trans;
+	}
+
+	protected void sectorTransaction(ArrayList<Transaction> transactions, Transaction.Action action, Object entity) {
+		Transaction trans = getEmptyTransaction();
+		trans.action = action;
+		trans.what = Transaction.What.ENTITY;
+		trans.who = entity;
+		transactions.add(trans);
+	}
+
 	public void processTransactions(ArrayList<Transaction> transactions) {
 
 		for (Transaction trans : transactions) {
+			if (!trans.active) continue;
 			if (trans.type == Transaction.Type.SECTOR) {
-				// implement Sector transactions
+				//TODO implement Sector transactions
+//				if (trans.subType == this.eType) {
+				System.err.println("SECTOR: " + trans.type + ", " + trans.subType + ", " + trans.who + ", " + trans.action + ", " + trans.what + ", " + trans.howMuch);
+				trans.active = false;
+//				}
 			}
 		}
 
@@ -405,4 +311,3 @@ public class Sector {
 		}
 	}
 }
-

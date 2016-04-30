@@ -44,8 +44,8 @@ public class RomulanEntity extends ShipEntity {
 	 * @param y The intial y location of this alien
 	 */
 	public RomulanEntity(Sector thisSector, String shipFile, int x, int y) {
-		super(entityType.ROMULANSHIP, thisSector, shipFile, x, y);
-		currentSector = thisSector;
+		super(Transaction.SubType.ROMULANSHIP, shipFile);
+		mySector = thisSector;
 		energyLevel = 900;
 	}
 

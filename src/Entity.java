@@ -52,12 +52,10 @@ public abstract class Entity {
 	 * Construct a entity based on a sprite image and a location.
 	 *
 	 */
-	protected Entity(Transaction.SubType eType, String spriteFile, int x, int y) {
+	protected Entity(Transaction.SubType eType, String spriteFile) {
 		if (textureLoader == null) textureLoader = new TextureLoader();
 		this.eType = eType;
 		this.sprite = getSprite(spriteFile);
-		this.x = x;
-		this.y = y;
 	}
 
 	public Sprite getSprite(String ref) {
@@ -126,7 +124,7 @@ public abstract class Entity {
 	protected void entityTransaction(ArrayList<Transaction> transactions, Transaction.Action action, double amount) {
 		Transaction trans = getEmptyTransaction();
 		trans.action = action;
-		trans.what = Transaction.What.SELF;
+		trans.what = Transaction.What.ENTITY;
 		trans.howMuch = amount;
 		transactions.add(trans);
 	}
@@ -158,8 +156,36 @@ public abstract class Entity {
 	public void processTransactions(ArrayList<Transaction> transactions) {
 
 		for (Transaction trans : transactions) {
+			if (!trans.active) continue;
 			if (trans.type == Transaction.Type.ENTITY) {
-				//TODO: implement Entity transactions
+				if (trans.subType == this.eType) {
+					if (trans.who == this) {
+						if (trans.action == Transaction.Action.DEDUCT) {
+							if (trans.what == Transaction.What.ENERGY) {
+								if (trans.howMuch > 0) {
+									if (trans.howMuch <= energyLevel) {
+										energyLevel -= trans.howMuch;
+									} else energyLevel = 0;
+								}
+								trans.active = false;
+								continue;
+							}
+						}
+						if (trans.action == Transaction.Action.ADD) {
+							if (trans.what == Transaction.What.ENERGY) {
+								if (trans.howMuch > 0) {
+										energyLevel += trans.howMuch;
+								}
+								trans.active = false;
+								continue;
+							}
+						}
+
+						//TODO: implement Entity transactions
+//						System.err.println("ENTITY: " + trans.type + ", " + trans.subType + ", " + trans.who + ", " + trans.action + ", " + trans.what + ", " + trans.howMuch);
+						trans.active = false;
+					}
+				}
 			}
 		}
 	}

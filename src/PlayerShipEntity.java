@@ -36,12 +36,9 @@ public class PlayerShipEntity extends ShipEntity {
 	 * Create a new entity to represent the players ship
 	 *
 	 * @param ref The reference to the sprite to show for the ship
-	 * @param x The initial x location of the player's ship
-	 * @param y The initial y location of the player's ship
 	 */
-	public PlayerShipEntity(Sector thisSector, String ref,int x,int y) {
-		super(Transaction.SubType.FEDERATIONSHIP, thisSector, ref, x, y);
-		mySector = thisSector;
+	public PlayerShipEntity(String ref) {
+		super(Transaction.SubType.FEDERATIONSHIP, ref);
 
 		torpedoCount = Constants.maxTorpedoes;
 	}

@@ -49,6 +49,9 @@ Version 0.6
         - DONE: move Warp and other movement parameters to ShipEntity so Objects do not have movement capability
     - DONE: energy display (structural integrity and shields too)
     - DONE: computer commands to calculate angle to target
+        - Computer output to SideBar reserved area
+- New Bugs:
+    - Crash when torpedo leaves sector
 
 Version 0.x
 ===========
@@ -81,16 +84,16 @@ Version 0.x
 
 Version 0.x
 ===========
+- ship status view (down right side or a new screen?  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
+
+Version 0.x
+===========
 - Enemies fight back
     - Torpedo and Phaser capabilities
 
 Version 0.x
 ===========
 - Better Audio files
-
-Version 0.x
-===========
-- ship status view (down right side or a new screen?  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
 
 Version 0.x
 ===========
@@ -156,6 +159,8 @@ Version 0.x
 
 Version 1.0 ALPHA
 =================
+- Fork Phone Version
+    - create new ReleasePlan_Phone.txt
 
 Version 1.0.x
 =============

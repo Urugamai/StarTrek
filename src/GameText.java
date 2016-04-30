@@ -22,22 +22,19 @@ public class GameText {
 	private int 				lineHeight;
 	private org.newdawn.slick.Color currentColour = org.newdawn.slick.Color.green;
 
-	protected GameText(int blockX, int blockY, int lines) {
+	protected GameText(int LeftEdgeStart, int BottomEdgeStart, int LinesToProvide) {
 		// Setup FONT stuff
 		awtFont = new Font("Courier New", Font.PLAIN, 14);
 		font = new TrueTypeFont(awtFont, antiAlias);
 		font2 = new UnicodeFont(awtFont);
 		font2.getEffects().add(new ColorEffect(java.awt.Color.white));
 		font2.addAsciiGlyphs();
-		try { font2.loadGlyphs(); }
-		catch (SlickException e) {
-			e.printStackTrace();
-		}
+		try { font2.loadGlyphs(); }	catch (SlickException e) { e.printStackTrace(); }
 
-		textRow = new String[lines];
-		windowRows = lines;
-		bottomLeftX = blockX;
-		bottomLeftY = blockY;
+		textRow = new String[LinesToProvide];
+		windowRows = LinesToProvide;
+		bottomLeftX = LeftEdgeStart;
+		bottomLeftY = BottomEdgeStart;
 
 		lineHeight = font2.getLineHeight()+2;	// 2 pixel line separation
 	}
@@ -65,11 +62,13 @@ public class GameText {
 
 	public void scroll() {
 		for (int row = windowRows-1; row > 0; row--) {
-			if (textRow[row-1] == null || textRow[row-1].trim().isEmpty()) continue;
-
-			textRow[row] = textRow[row - 1].trim();
+			if (textRow[row-1] == null || textRow[row-1].trim().isEmpty()) {
+				textRow[row] = "";
+			} else {
+				textRow[row] = textRow[row - 1].trim();
+			}
 		}
-		textRow[0] = "";
+		textRow[0] = "";	// The row we freed up!
 	}
 
 	public void draw() {

@@ -44,11 +44,17 @@ import static org.lwjgl.opengl.GL11.*;
 public class Alliance {
 
 	private Galaxy 				galaxy;
+	private PlayerShipEntity	playerShip;
+	private Sector				currentSector;
 	private float				starDate 			= 12345;
 	private ArrayList<Transaction> transactions;
 
-	private int					width				= 1000;
-	private int					height				= 1000;
+	private int screenWidth = 1024;
+	private int screenHeight = 768;
+
+	private int sectorWindowTop, sectorWindowLeft, sectorWindowBottom, sectorWindowRight;
+	private int statusWindowTop, statusWindowLeft, statusWindowBottom, statusWindowRight;
+	private int messageWindowTop, messageWindowLeft, messageWindowBottom, messageWindowRight;
 
 	private long				msElapsed;
 
@@ -56,6 +62,7 @@ public class Alliance {
 
 	private GameText 			textWindow;
 	private GameText			helpWindow;
+	private StatusDisplay		statusDisplay;
 	private String				userInput 			= "";
 	private ArrayList<String>	userInputHistory	= new ArrayList<>();
 	private int					historyLines = 0, historyPosition = 0;
@@ -107,12 +114,12 @@ public class Alliance {
 		return (Sys.getTime() * 1000) / timerTicksPerSecond;
 	}
 
-	public int getWidth() {
-		return width;
+	public int getScreenWidth() {
+		return screenWidth;
 	}
 
-	public int getHeight() {
-		return height;
+	public int getScreenHeight() {
+		return screenHeight;
 	}
 
 	/**
@@ -123,7 +130,7 @@ public class Alliance {
 	public static void sleep(long duration) {
 		try {
 			Thread.sleep((duration * timerTicksPerSecond) / 1000);
-		} catch (InterruptedException inte) {
+		} catch (InterruptedException ex) {
 		}
 	}
 
@@ -131,7 +138,10 @@ public class Alliance {
 	 * Intialise the common elements for the game
 	 */
 	public void initialize() {
-		// initialize the window beforehand
+
+		/*
+		 * initialise the Full Game window
+		 */
 		displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
 		try {
 			setDisplayMode();
@@ -139,13 +149,15 @@ public class Alliance {
 			Display.setFullscreen(fullscreen);
 			Display.create();
 
-			// grab the mouse, dont want that hideous cursor when we're playing!
+			// grab the mouse, don't want a cursor when we're playing!
 			if (isApplication) {
 				Mouse.setGrabbed(true);
 			}
 
 			// enable textures since we're going to use these for our sprites
 			glEnable(GL_TEXTURE_2D);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			// disable the OpenGL depth test since we're rendering 2D graphics
 			glDisable(GL_DEPTH_TEST);
@@ -153,12 +165,10 @@ public class Alliance {
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 
-			glOrtho(0, width, height, 0, -1, 1);
+			glOrtho(0, screenWidth, screenHeight, 0, -1, 1);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
-			glViewport(0, 0, width, height);
-
-			textureLoader = new TextureLoader();
+			glViewport(0, 0, screenWidth, screenHeight);
 
 			// create our sound manager, and initialize it with 7 channels
 			// 1 channel for sounds, 6 for effects - this should be enough
@@ -180,12 +190,19 @@ public class Alliance {
 			return;
 		}
 
-		textWindow = new GameText(0, height, 5);
-		textWindow.setTextColour( org.newdawn.slick.Color.green);
-		textWindow.write( "Star Trekking across the universe...");
-		textWindow.scroll();
+		textureLoader = new TextureLoader();		// for loading sprites
 
-		helpWindow = new GameText(0, height, 55);
+		// Text block at bottom of the screen
+		textWindow = new GameText( 0, screenHeight, 5);
+		textWindow.setTextColour( org.newdawn.slick.Color.green);
+		textWindow.write( "Establishing the Galaxy...");
+		textWindow.scroll();	// Free up the bottom line for user entry
+
+		/*
+		 * Other views
+		 */
+		// Full screen help window (linked to F1 button)
+		helpWindow = new GameText(0, screenHeight, 55);
 
 		transactions = new ArrayList<Transaction>();
 
@@ -199,32 +216,60 @@ public class Alliance {
 	private boolean setDisplayMode() {
 		try {
 			// get modes
-			DisplayMode[] dm = org.lwjgl.util.Display.getAvailableDisplayModes(width, height, -1, -1, -1, -1, Constants.FramesPerSecond, Constants.FramesPerSecond);
+			DisplayMode[] dm = org.lwjgl.util.Display.getAvailableDisplayModes(screenWidth, screenHeight, -1, -1, -1, -1, Constants.FramesPerSecond, Constants.FramesPerSecond );
+			for (int i = 0; i < dm.length; i++)
+			{
+				if (dm[i].getWidth() > screenWidth && dm[i].getHeight() > screenHeight) {
+					updateDimensions( dm[i].getWidth(), dm[i].getHeight() );
+				}
+			}
 
 			org.lwjgl.util.Display.setDisplayMode(dm, new String[] {
-					"width=" + width,
-					"height=" + height,
+					"screenWidth=" + screenWidth,
+					"screenHeight=" + screenHeight,
 					"freq=" + Constants.FramesPerSecond,
 					"bpp=" + org.lwjgl.opengl.Display.getDisplayMode().getBitsPerPixel()
 			});
-			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Unable to enter fullscreen, continuing in windowed mode");
+			return false;
 		}
 
-		return false;
+		return true;
+	}
+
+	private void updateDimensions(int newScreenWidth, int newScreenHeight) {
+		screenWidth = newScreenWidth;
+		screenHeight = newScreenHeight;
+
+		sectorWindowTop = 0;
+		sectorWindowLeft = 0;
+		sectorWindowBottom = (int)(screenHeight * Constants.fractionSectorWindowHeight);
+		sectorWindowRight = (int)(screenWidth * Constants.fractionSectorWindowWidth);
+
+		messageWindowTop = sectorWindowBottom;
+		messageWindowLeft = 0;
+		messageWindowBottom = screenHeight;
+		messageWindowRight = screenWidth;
+
+		statusWindowTop = 0;
+		statusWindowLeft = sectorWindowRight;
+		statusWindowBottom = sectorWindowBottom;
+		statusWindowRight = screenWidth;
+
 	}
 
 	private void startAlliance() {
-		galaxy = new Galaxy(this);
-		galaxy.initPlayerShip();
+		galaxy = new Galaxy(10, 10);	// TODO make these a choice the game player can select
+		playerShip = new PlayerShipEntity(Constants.FILE_IMG_ENTERPRISE);
 	}
 
 	/**
 	 * Notification from a game entity that the logic of the game
 	 * should be run at the next opportunity (normally as a result of some
 	 * game event)
+	 * NOT USED at this TOP LEVEL, we should be the one triggering game events ;-)
 	 */
 	public void updateLogic() {
 	}
@@ -239,10 +284,10 @@ public class Alliance {
 		//SystemTimer.sleep(lastLoopTime+10-SystemTimer.getTime());
 //		Display.sync(60);	// Causes this loop to stop until the next 60th of a second is ready
 
-		textWindow.write( "There are " + galaxy.getEnemyCount() + " enemy ships currently in Alliance space");
-		textWindow.scroll();
-		textWindow.write( "You currently have " + galaxy.getStarbaseCount() + " starbases available");
-		textWindow.scroll();
+//		textWindow.write( "There are " + galaxy.getEnemyCount() + " enemy ships currently in Alliance space");
+//		textWindow.scroll();
+//		textWindow.write( "You currently have " + galaxy.getStarbaseCount() + " starbases available");
+//		textWindow.scroll();
 
 		while (Alliance.gameRunning) {
 			setTimeDelta();
@@ -297,8 +342,6 @@ public class Alliance {
 
 	private void userInteractions() {
 
-		textWindow.writeLine(4, "Currently in sector (" + galaxy.playerSector.getGalacticX() + "," + galaxy.playerSector.getGalacticY() + ")");
-
 		if (Keyboard.isKeyDown(Keyboard.KEY_F1)) displayMode = Constants.DisplayMode.HELP_SCREEN;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_F2)) displayMode = Constants.DisplayMode.GALACTIC_MAP;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_F3)) displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
@@ -332,6 +375,8 @@ public class Alliance {
 				historyPosition = userInputHistory.size()-1;
 				processCommand(userInput);
 				userInput = "";
+				textWindow.scroll();
+				textWindow.writeLine(0, "Currently in sector (" + currentSector.getGalacticX() + "," + currentSector.getGalacticY() + ")");  // TODO Remove this sector display once the status display does it
 				textWindow.scroll();
 			} else {
 				if (key == 8 && userInput.length() > 0 ) { // Backspace
@@ -392,7 +437,7 @@ public class Alliance {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-		galaxy.playerFiredTorpedo(angle);
+//TODO		galaxy.playerFiredTorpedo(angle);
 		return true;
 	}
 
@@ -413,7 +458,7 @@ public class Alliance {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-		galaxy.playerFiredPhaser(angle, power);
+//TODO		galaxy.playerFiredPhaser(angle, power);
 		return true;
 	}
 
@@ -443,8 +488,8 @@ public class Alliance {
 		}
 
 
-		galaxy.setPlayerHeading(angle, 0);
-		galaxy.setPlayerThrust( force, seconds);
+//TODO		galaxy.setPlayerHeading(angle, 0);
+//TODO		galaxy.setPlayerThrust( force, seconds);
 
 		textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds);
 
@@ -476,10 +521,10 @@ public class Alliance {
 			return false; // no moving for you when you get the parameters wrong
 		}
 
-		galaxy.setPlayerHeading(angle, 0);
-		galaxy.setPlayerThrust( 0, 6);	// Turn in the desired direction, it takes 6 seconds to do 180 degrees
+//TODO		galaxy.setPlayerHeading(angle, 0);
+//TODO		galaxy.setPlayerThrust( 0, 6);	// Turn in the desired direction, it takes 6 seconds to do 180 degrees
 
-		galaxy.setPlayerWarp(force, seconds);
+//TODO		galaxy.setPlayerWarp(force, seconds);
 
 		textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds );
 
@@ -487,10 +532,10 @@ public class Alliance {
 	}
 
 	private boolean command_STOP(String[] pieces) {
-		float currentVelocity = galaxy.getPlayerVelocity();
-		if (currentVelocity > 0) {
-			galaxy.setPlayerThrust(-50, currentVelocity / 50.0f + 1);
-		}
+//TODO		float currentVelocity = galaxy.getPlayerVelocity();
+//TODO		if (currentVelocity > 0) {
+//TODO			galaxy.setPlayerThrust(-50, currentVelocity / 50.0f + 1);
+//TODO		}
 		return true;
 	}
 
@@ -528,7 +573,7 @@ public class Alliance {
 
 	private boolean command_COMP_TARGET(String[] pieces) {
 		int currentLine = 1;
-		Galaxy.locationSpec myLoc = galaxy.playerSector.getPlayerLocation();
+//TODO		Galaxy.locationSpec myLoc = galaxy.playerSector.getPlayerLocation();
 		Galaxy.locationSpec otherLoc = null;
 
 		if (pieces.length < 3) {
@@ -537,39 +582,39 @@ public class Alliance {
 		}
 
 		if (pieces[2].compareToIgnoreCase("E") == 0 ) {
-			for (Entity ent : galaxy.playerSector.entities) {
-				if (ent instanceof PlayerShipEntity) continue;
-				if (ent instanceof StarbaseEntity) continue;
-				if (ent instanceof StarEntity) continue;
+//TODO			for (Entity ent : galaxy.playerSector.entities) {
+//TODO				if (ent instanceof PlayerShipEntity) continue;
+//TODO				if (ent instanceof StarbaseEntity) continue;
+//TODO				if (ent instanceof StarEntity) continue;
 
 				// Must be an enemy
 				if (currentLine < 6) {
-					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
-					textWindow.writeLine(currentLine++, ent.eType + " angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
+//TODO					textWindow.writeLine(currentLine++, ent.eType + " angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 				}
-			}
+//TODO			}
 		}
 		else if (pieces[2].compareToIgnoreCase("B") == 0 ) {
-			for (Entity ent : galaxy.playerSector.entities) {
-				if (! (ent instanceof StarbaseEntity) ) continue;
+//TODO			for (Entity ent : galaxy.playerSector.entities) {
+//TODO				if (! (ent instanceof StarbaseEntity) ) continue;
 
 				// Must be an Starbase
 				if (currentLine < 6) {
-					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
-					textWindow.writeLine(currentLine++, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
+//TODO					textWindow.writeLine(currentLine++, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 				}
-			}
+//TODO			}
 		}
 		else if (pieces[2].compareToIgnoreCase("S") == 0 ) {
-			for (Entity ent : galaxy.playerSector.entities) {
-				if (! (ent instanceof StarEntity) ) continue;
+//TODO			for (Entity ent : galaxy.playerSector.entities) {
+//TODO				if (! (ent instanceof StarEntity) ) continue;
 
 				// Must be a Star
 				if (currentLine < 6) {
-					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
-					textWindow.writeLine(currentLine++, "Star angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
+//TODO					textWindow.writeLine(currentLine++, "Star angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 				}
-			}
+//TODO			}
 		}
 		else { textWindow.writeLine(1, "Error: No such computer command: " + pieces[1]); }
 
@@ -577,7 +622,7 @@ public class Alliance {
 	}
 
 	private boolean command_COMP_NAVIGATION(String[] pieces) {
-		Galaxy.locationSpec myLoc = new Galaxy.locationSpec( galaxy.playerSector.getGalacticX(), galaxy.playerSector.getGalacticY(), galaxy.playerSector.getGalacticZ() );
+//TODO		Galaxy.locationSpec myLoc = new Galaxy.locationSpec( galaxy.playerSector.getGalacticX(), galaxy.playerSector.getGalacticY(), galaxy.playerSector.getGalacticZ() );
 		Galaxy.locationSpec otherLoc = null;
 		int enemyCount = 0;
 
@@ -587,12 +632,12 @@ public class Alliance {
 		}
 
 		if (pieces[2].compareToIgnoreCase("B") == 0 ) {
-			otherLoc = galaxy.getNearestStarbase(myLoc);
+//TODO			otherLoc = galaxy.getNearestStarbase(myLoc);
 			if (otherLoc == null) {
 				textWindow.writeLine(1, "No starbases in known space." );
 				return true;
 			}
-			textWindow.writeLine(1, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO			textWindow.writeLine(1, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 		}
 		else if (pieces[2].compareToIgnoreCase("E") == 0 ) {
 			if (pieces.length > 3) {
@@ -602,15 +647,15 @@ public class Alliance {
 					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
 					return false; // no moving for you when you get the parameters wrong
 				}
-				otherLoc = galaxy.getNearestEnemyByCount(myLoc, enemyCount);
+//TODO				otherLoc = galaxy.getNearestEnemyByCount(myLoc, enemyCount);
 			} else
-				otherLoc = galaxy.getNearestEnemy(myLoc);
+//TODO				otherLoc = galaxy.getNearestEnemy(myLoc);
 
 			if (otherLoc == null) {
 				textWindow.writeLine(1, "No enemy in known space." );
 				return true;
 			}
-			textWindow.writeLine(1, "Nearest Enemy angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO			textWindow.writeLine(1, "Nearest Enemy angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 		}
 
 		return true;
@@ -680,8 +725,8 @@ public class Alliance {
 		else if (pieces[0].compareToIgnoreCase("COMP") == 0 ) { command_COMP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("LRS") == 0 ) { galaxy.doLRS(); }
 		else if (pieces[0].compareToIgnoreCase("SRS") == 0 ) { galaxy.doSRS(); }
-		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) { galaxy.playerShip.shieldsUp = true; }
-		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) { galaxy.playerShip.shieldsUp = false; }
+		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) { playerShip.shieldsUp = true; }
+		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) { playerShip.shieldsUp = false; }
 		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) { Alliance.gameRunning = false; }
 		else { textWindow.writeLine(1, "Error: No such command: " + cmd); }
 	}
@@ -703,7 +748,7 @@ public class Alliance {
 	}
 
 	/**
-	 *
+	 *		Start your engines...
 	 */
 	public void execute() {
 		gameLoop();
