@@ -91,6 +91,32 @@ public class Sector {
 
 		return loc;
 	}
+
+	public void AddEntity(Entity entity) {
+		int xUnits, yUnits;
+		int spriteXUnits = Constants.Pixels2UnitsX(entity.sprite.getWidth());
+		int spriteYUnits = Constants.Pixels2UnitsY(entity.sprite.getHeight());
+
+		do {
+			xUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteXUnits)) - (Constants.sectorCentre - spriteXUnits);
+			yUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteYUnits)) - (Constants.sectorCentre - spriteYUnits);
+			entity.setX(xUnits);
+			entity.setY(yUnits);
+		} while (checkEntityForOverlap(entity));
+
+		entities.add(entity);
+	}
+
+	public void AddEntity(Entity object, int xUnits, int yUnits) {
+		int spriteXUnits = Constants.Pixels2UnitsX(object.sprite.getWidth());
+		int spriteYUnits = Constants.Pixels2UnitsY(object.sprite.getHeight());
+
+		object.setX(xUnits);
+		object.setY(yUnits);
+
+		entities.add(object);
+	}
+
 	/**
 	 * Initialise the starting state of the entities (ship and aliens). Each
 	 * entity will be added to the overall list of entities in the game.
@@ -100,44 +126,38 @@ public class Sector {
 		int xUnits = 0;
 		int yUnits = 0;
 
+		int spriteXUnits, spriteYUnits;
+
 		Sprite tmpSprite;
 		TextureLoader textureLoader = new TextureLoader();		// for loading sprites
 
-		// Whack the star into the middle of the sector
-		xUnits = 0;
-		yUnits = 0;
-		newEntity = new StarEntity(this, Constants.FILE_IMG_STAR, xUnits, yUnits);
-		entities.add(newEntity);
+		newEntity = new StarEntity(this, Constants.FILE_IMG_STAR, 0, 0);
+		AddEntity(newEntity, 0, 0);
 
 		// whack in a starbase if needed
-		tmpSprite = new Sprite(textureLoader, Constants.FILE_IMG_STARBASE);
-		int spriteXUnits = Constants.Pixels2UnitsX(tmpSprite.getWidth());
-		int spriteYUnits = Constants.Pixels2UnitsY(tmpSprite.getHeight());
+		if (starbaseCount > 0) {
+			tmpSprite = new Sprite(textureLoader, Constants.FILE_IMG_STARBASE);
+			spriteXUnits = Constants.Pixels2UnitsX(tmpSprite.getWidth());
+			spriteYUnits = Constants.Pixels2UnitsY(tmpSprite.getHeight());
 
-		for (int i = 0; i < starbaseCount; i++) {
-			do {
-				newEntity = null;		// dispose of last attempt
-				xUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteXUnits)) - (Constants.sectorCentre - spriteXUnits);
-				yUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteYUnits)) - (Constants.sectorCentre - spriteYUnits);
+			for (int i = 0; i < starbaseCount; i++) {
 				newEntity = new StarbaseEntity(tmpSprite, xUnits, yUnits);
-			} while (checkEntityForOverlap(newEntity));
-			entities.add(newEntity); // this ones a keeper
-			tmpSprite = null;	// dispose
+				AddEntity(newEntity);
+			}
+			tmpSprite = null;    // dispose
 		}
 
 		// Whack in the necessary number of enemy units
-		tmpSprite = new Sprite(textureLoader, Constants.FILE_IMG_ROMULAN);
-		spriteXUnits = (int)Math.ceil(tmpSprite.getWidth() / Constants.sectorXScale);
-		spriteYUnits = (int)Math.ceil(tmpSprite.getHeight() / Constants.sectorYScale);
+		if (enemyCount > 0) {
+			tmpSprite = new Sprite(textureLoader, Constants.FILE_IMG_ROMULAN);
+			spriteXUnits = (int) Math.ceil(tmpSprite.getWidth() / Constants.sectorXScale);
+			spriteYUnits = (int) Math.ceil(tmpSprite.getHeight() / Constants.sectorYScale);
 
-		for (int i = 0; i < enemyCount; i++) {
-			do {
-				newEntity = null;
-				xUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteXUnits)) - (Constants.sectorCentre - spriteXUnits);
-				yUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteYUnits)) - (Constants.sectorCentre - spriteYUnits);
+			for (int i = 0; i < enemyCount; i++) {
 				newEntity = new RomulanEntity(tmpSprite, xUnits, yUnits);
-			} while (checkEntityForOverlap(newEntity));
-			entities.add(newEntity); // this ones a keeper
+				AddEntity(newEntity);
+			}
+			tmpSprite = null;    // dispose
 		}
 	}
 

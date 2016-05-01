@@ -1,3 +1,7 @@
+import java.awt.*;
+
+import static java.awt.Font.PLAIN;
+
 /**
  * Created by Mark on 9/12/2015.
  */
@@ -26,7 +30,7 @@ public class Constants {
 	public static final float		fractionMessageWindowWidth	= 1f;
 	public static final float		fractionMessageWindowHeight	= 0.20f;
 
-	public static final float		fractionStatusWindowWidth	= 0.20f;
+	public static final float		fractionStatusWindowWidth	= 0.30f;
 	public static final float		fractionStatusWindowHeight	= 1 - fractionMessageWindowHeight;
 
 
@@ -36,7 +40,11 @@ public class Constants {
 	public static final int			sectorSize			= 501;		// MUST be ODD (just do it)
 	public static final int 		sectorCentre 		= (int)((sectorSize-1)/2);
 
-	public static final int			screenLines			= 40;		// Number of text lines to provide on the screen
+	public static final String		txtFont				= "Courier New";
+	public static final int			txtStyle			= Font.PLAIN;
+	public static final int			txtSize				= 14;
+
+	public static final int			textBufferSize		= 100;		// Number of text lines to keep
 
 	public static final int			maxEnemy			= 5;		// Per sector
 	public static final float		starbaseProbability = 0.1f;

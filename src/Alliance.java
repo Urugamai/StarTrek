@@ -47,7 +47,6 @@ public class Alliance {
 	private PlayerShipEntity	playerShip;
 	private int					playerSectorX, playerSectorY;
 
-	private Sector				currentSector;
 	private float				starDate 			= 12345;
 	private ArrayList<Transaction> transactions;
 
@@ -63,10 +62,10 @@ public class Alliance {
 
 	private long				msElapsed;
 
-//	private TextureLoader		textureLoader;
-
 	private GameText 			textWindow;
-	private GameText			helpWindow;
+	private GameText			helpWindow; private boolean helpInitialised = false;
+	private GameText 			galacticMap;
+
 	private StatusDisplay		statusDisplay;
 	private String				userInput 			= "";
 	private ArrayList<String>	userInputHistory	= new ArrayList<>();
@@ -150,8 +149,8 @@ public class Alliance {
 		displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
 		try {
 			setDisplayMode();
-			Constants.sectorXScale = screenWidth / Constants.sectorSize;
-			Constants.sectorYScale = screenHeight / Constants.sectorSize;
+			Constants.sectorXScale = (sectorWindowRight - sectorWindowLeft) / Constants.sectorSize;
+			Constants.sectorYScale = (sectorWindowBottom - sectorWindowTop) / Constants.sectorSize;
 
 			assert(Constants.sectorXScale > 0);
 			assert (Constants.sectorYScale > 0);
@@ -204,17 +203,19 @@ public class Alliance {
 //		textureLoader = new TextureLoader();		// for loading sprites
 
 		// Text block at bottom of the screen
-		textWindow = new GameText( 0, screenHeight, 5);
+		textWindow = new GameText( messageWindowLeft, messageWindowRight, messageWindowTop, messageWindowBottom);
 		textWindow.setTextColour( org.newdawn.slick.Color.green);
-		textWindow.write( "Establishing the Galaxy...");
-		textWindow.scroll();	// Free up the bottom line for user entry
+		textWindow.writeLn( "Establishing the Galaxy...");
 
 		/*
 		 * Other views
 		 */
 		// Full screen help window (linked to F1 button)
-		helpWindow = new GameText(0, screenHeight, 55);
+		helpWindow = new GameText(0, screenWidth, 0, screenHeight);
 
+		galacticMap = new GameText(0, screenWidth, 0, screenHeight);
+
+		// Transactions collection
 		transactions = new ArrayList<Transaction>();
 
 		// setup the initial game state
@@ -279,7 +280,7 @@ public class Alliance {
 		playerSectorX = (int)Math.random()*galaxySize;
 		playerSectorY = (int)Math.random()*galaxySize;
 		playerShip = new PlayerShipEntity(Constants.FILE_IMG_ENTERPRISE, playerSectorX, playerSectorY);
-		//TODO galaxy.AddEntity(playerShip, playerSectorX,	playerSectorY);
+		galaxy.AddEntity(playerShip, playerSectorX,	playerSectorY);
 
 
 	}
@@ -369,7 +370,7 @@ public class Alliance {
 			if (!inKeyUp) {
 				userInput = userInputHistory.get(historyPosition--);
 				if (historyPosition < 0) historyPosition = 0;
-				textWindow.writeLine(0, userInput);
+				textWindow.writeAt(0, userInput);
 				inKeyUp = true;
 			}
 		} else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
@@ -377,7 +378,7 @@ public class Alliance {
 				historyPosition++;
 				if (historyPosition >= userInputHistory.size()) historyPosition--;
 				userInput = userInputHistory.get(historyPosition);
-				textWindow.writeLine(0, userInput);
+				textWindow.writeAt(0, userInput);
 				inKeyDown = true;
 			}
 		} else {
@@ -395,15 +396,13 @@ public class Alliance {
 				processCommand(userInput);
 				userInput = "";
 				textWindow.scroll();
-				textWindow.writeLine(0, "Currently in sector (" + currentSector.getGalacticX() + "," + currentSector.getGalacticY() + ")");  // TODO Remove this sector display once the status display does it
-				textWindow.scroll();
 			} else {
 				if (key == 8 && userInput.length() > 0 ) { // Backspace
 					userInput = userInput.substring(0, userInput.length() - 1);
-					textWindow.writeLine(0, userInput);
+					textWindow.writeAt(0, userInput);	// overwrite existing line
 				} else {
 					userInput += key;
-					textWindow.write("" + key);
+					textWindow.write(""+key);	// add to existing line
 				}
 			}
 		}
@@ -427,13 +426,13 @@ public class Alliance {
 		if (displayMode == Constants.DisplayMode.HELP_SCREEN)
 			drawHelp();
 		else if (displayMode == Constants.DisplayMode.DISPLAY_SECTOR)
-			galaxy.drawSector(playerSectorX, playerSectorY);
+			galaxy.drawSector(playerSectorX, playerSectorY, sectorWindowLeft, sectorWindowRight, sectorWindowTop, sectorWindowBottom);
 		else if (displayMode == Constants.DisplayMode.GALACTIC_MAP)
-			galaxy.drawGalaxy();
+			galaxy.drawGalaxy(galacticMap);
 		else if (displayMode == Constants.DisplayMode.SHIP_STATUS)
 			galaxy.drawShipStatus();	// TODO: Change this to a picture and text showing the current ship status
 
-//		textWindow.draw();
+		textWindow.draw();
 
 		// update window contents	(Switch non-visible and visible frames)
 		Display.update();
@@ -448,11 +447,11 @@ public class Alliance {
 			try {
 				angle = Float.valueOf(direction);
 			} catch (Exception e) {
-				textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
+				textWindow.writeAt(1, "Syntax Error: Command format should be: TOR,direction");
 				return false;  // no firing for you when you get the parameter wrong
 			}
 		} else {
-			textWindow.writeLine(1, "Syntax Error: Command format should be: TOR,direction");
+			textWindow.writeAt(1, "Syntax Error: Command format should be: TOR,direction");
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
@@ -469,11 +468,11 @@ public class Alliance {
 				angle = Float.valueOf(pieces[1]);
 				power = Float.valueOf(pieces[2]);
 			} catch (Exception e) {
-				textWindow.writeLine(1, "Syntax Error: Command format should be: PHA,direction,power");
+				textWindow.writeAt(1, "Syntax Error: Command format should be: PHA,direction,power");
 				return false;  // no firing for you when you get the parameter wrong
 			}
 		} else {
-			textWindow.writeLine(1, "Syntax Error: Command format should be: PHA,direction,power");
+			textWindow.writeAt(1, "Syntax Error: Command format should be: PHA,direction,power");
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
@@ -498,11 +497,11 @@ public class Alliance {
 				force = Float.valueOf(power); if (force > 20) force = 20;	// technically could make the energy requirements exponential and so preclude the need for a limit
 				seconds = Float.valueOf(duration);							// Dont need time limit as energy reserves will expire and stop progress anyway
 			} catch (Exception e) {
-				textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
+				textWindow.writeAt(1, "Syntax Error: direction and force must be numeric: IMP,direction,accel,duration");
 				return false; // no moving for you when you get the parameters wrong
 			}
 		} else {
-			textWindow.writeLine(1, "Syntax Error: Command format should be: IMP,direction,accel,duration");
+			textWindow.writeAt(1, "Syntax Error: Command format should be: IMP,direction,accel,duration");
 			return false; // no moving for you when you get the parameters wrong
 		}
 
@@ -510,7 +509,7 @@ public class Alliance {
 //TODO		galaxy.setPlayerHeading(angle, 0);
 //TODO		galaxy.setPlayerThrust( force, seconds);
 
-		textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds);
+		textWindow.writeAt(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds);
 
 		return true;
 	}
@@ -532,11 +531,11 @@ public class Alliance {
 				force = Float.valueOf(power); if (force > 10) force = 10; // again, energy requirements will preclude this limit in the future
 				seconds = Float.valueOf(duration);
 			} catch (Exception e) {
-				textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
+				textWindow.writeAt(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
 				return false; // no moving for you when you get the parameters wrong
 			}
 		} else {
-			textWindow.writeLine(1, "Syntax Error: Command format should be: WARP,direction,Speed,duration");
+			textWindow.writeAt(1, "Syntax Error: Command format should be: WARP,direction,Speed,duration");
 			return false; // no moving for you when you get the parameters wrong
 		}
 
@@ -545,7 +544,7 @@ public class Alliance {
 
 //TODO		galaxy.setPlayerWarp(force, seconds);
 
-		textWindow.writeLine(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds );
+		textWindow.writeAt(0, "Command Complete: " + pieces[0] + " " + angle + " " + force + " " + seconds );
 
 		return true;
 	}
@@ -596,7 +595,7 @@ public class Alliance {
 		Galaxy.locationSpec otherLoc = null;
 
 		if (pieces.length < 3) {
-			textWindow.writeLine(1, "Syntax Error: Command format should be: COMP,TGT,[BES]");
+			textWindow.writeAt(1, "Syntax Error: Command format should be: COMP,TGT,[BES]");
 			return false; // no computer command
 		}
 
@@ -609,7 +608,7 @@ public class Alliance {
 				// Must be an enemy
 				if (currentLine < 6) {
 //TODO					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
-//TODO					textWindow.writeLine(currentLine++, ent.eType + " angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO					textWindow.writeAt(currentLine++, ent.eType + " angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 				}
 //TODO			}
 		}
@@ -620,7 +619,7 @@ public class Alliance {
 				// Must be an Starbase
 				if (currentLine < 6) {
 //TODO					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
-//TODO					textWindow.writeLine(currentLine++, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO					textWindow.writeAt(currentLine++, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 				}
 //TODO			}
 		}
@@ -631,11 +630,11 @@ public class Alliance {
 				// Must be a Star
 				if (currentLine < 6) {
 //TODO					otherLoc = new Galaxy.locationSpec( ent.getX(), ent.getY(), ent.getZ());
-//TODO					textWindow.writeLine(currentLine++, "Star angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO					textWindow.writeAt(currentLine++, "Star angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 				}
 //TODO			}
 		}
-		else { textWindow.writeLine(1, "Error: No such computer command: " + pieces[1]); }
+		else { textWindow.writeAt(1, "Error: No such computer command: " + pieces[1]); }
 
 		return true;
 	}
@@ -646,24 +645,24 @@ public class Alliance {
 		int enemyCount = 0;
 
 		if (pieces.length < 3) {
-			textWindow.writeLine(1, "Syntax Error: Command format should be: COMP,NAV,[BE],{n}");
+			textWindow.writeAt(1, "Syntax Error: Command format should be: COMP,NAV,[BE],{n}");
 			return false; // no computer command
 		}
 
 		if (pieces[2].compareToIgnoreCase("B") == 0 ) {
 //TODO			otherLoc = galaxy.getNearestStarbase(myLoc);
 			if (otherLoc == null) {
-				textWindow.writeLine(1, "No starbases in known space." );
+				textWindow.writeAt(1, "No starbases in known space." );
 				return true;
 			}
-//TODO			textWindow.writeLine(1, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO			textWindow.writeAt(1, "Starbase angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 		}
 		else if (pieces[2].compareToIgnoreCase("E") == 0 ) {
 			if (pieces.length > 3) {
 				try {
 				enemyCount = Integer.valueOf(pieces[3]);
 				} catch (Exception e) {
-					textWindow.writeLine(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
+					textWindow.writeAt(1, "Syntax Error: direction and force must be numeric: WARP,direction,Speed,duration");
 					return false; // no moving for you when you get the parameters wrong
 				}
 //TODO				otherLoc = galaxy.getNearestEnemyByCount(myLoc, enemyCount);
@@ -671,10 +670,10 @@ public class Alliance {
 //TODO				otherLoc = galaxy.getNearestEnemy(myLoc);
 
 			if (otherLoc == null) {
-				textWindow.writeLine(1, "No enemy in known space." );
+				textWindow.writeAt(1, "No enemy in known space." );
 				return true;
 			}
-//TODO			textWindow.writeLine(1, "Nearest Enemy angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
+//TODO			textWindow.writeAt(1, "Nearest Enemy angle: "  + compute_angle_between(myLoc, otherLoc) + " range " +  compute_distance_between(myLoc, otherLoc) + "." );
 		}
 
 		return true;
@@ -682,13 +681,13 @@ public class Alliance {
 
 	private boolean command_COMP(String[] pieces) {
 		if (pieces.length < 2) {
-			textWindow.writeLine(1, "Syntax Error: Command format should be: COMP,command,[parameters]");
+			textWindow.writeAt(1, "Syntax Error: Command format should be: COMP,command,[parameters]");
 			return false; // no computer command
 		}
 
 		if (pieces[1].compareToIgnoreCase("TGT") == 0 ) { command_COMP_TARGET(pieces); }
 		else if (pieces[1].compareToIgnoreCase("NAV") == 0 ) { command_COMP_NAVIGATION(pieces); }
-		else { textWindow.writeLine(1, "Error: No such computer command: " + pieces[1]); }
+		else { textWindow.writeAt(1, "Error: No such computer command: " + pieces[1]); }
 
 		return true;
 	}
@@ -698,31 +697,32 @@ public class Alliance {
 
 	}
 
+	private void initHelp() {
+		helpWindow.writeLn( "F1                          This help screen");
+		helpWindow.writeLn( "F2                          Galaxy Display");
+		helpWindow.writeLn( "F3                          Sector Display");
+		helpWindow.writeLn( "F4                          Ship Status Display");
+		helpWindow.writeLn("");
+		helpWindow.writeLn( "TOR angle                   Send a torpedo out at the angle (in degrees) provided");
+		helpWindow.writeLn( "PHA angle power             Fire phasers along indicated angle starting with indicated power. Power drops by 1 for each 1 unit of range.");
+		helpWindow.writeLn( "IMP angle force duration    Turn ship towards angle while applying force for indicated number of seconds");
+		helpWindow.writeLn( "WARP angle factor duration  Turn ship towards angle then travel at Warp Factor provided for indicated number of seconds");
+		helpWindow.writeLn( "                            Warp factor 1 for 1 second will take you one sector.  Higher factors take more energy, travel further and get there faster.");
+		helpWindow.writeLn( "STOP                        apply maximum deceleration force until we have stopped moving");
+		helpWindow.writeLn( "SRS                         Short range scan, refreshes data about the current sector.");
+		helpWindow.writeLn( "LRS                         Long range scan, Gather information from adjoining sectors. This updates Galactic Map.");
+		helpWindow.writeLn( "SHUP                        Shields UP");
+		helpWindow.writeLn( "SHDOWN                      Shields DOWN");
+		helpWindow.writeLn( "EXIT");
+		helpWindow.writeLn("");
+		helpWindow.writeLn( "COMP command [parameters]   Ask computer to calculate something");
+		helpWindow.writeLn( "        NAV [BE]            Computer navigation angle (and range) to any Base or Enemy in current sector");
+		helpWindow.writeLn( "        TGT [BES]           Computer targeting information (angle and range) to Base, Enemy or Star in sector.");
+		helpWindow.writeLn( " ");
+		helpInitialised = true;
+	}
 	private void drawHelp() {
-		int currentLine = 50;
-
-		helpWindow.writeLine(currentLine--, "F1                          This help screen");
-		helpWindow.writeLine(currentLine--, "F2                          Galaxy Display");
-		helpWindow.writeLine(currentLine--, "F3                          Sector Display");
-		helpWindow.writeLine(currentLine--, "F4                          Ship Status Display");
-		currentLine--;
-		helpWindow.writeLine(currentLine--, "TOR angle                   Send a torpedo out at the angle (in degrees) provided");
-		helpWindow.writeLine(currentLine--, "PHA angle power             Fire phasers along indicated angle starting with indicated power. Power drops by 1 for each 1 unit of range.");
-		helpWindow.writeLine(currentLine--, "IMP angle force duration    Turn ship towards angle while applying force for indicated number of seconds");
-		helpWindow.writeLine(currentLine--, "WARP angle factor duration  Turn ship towards angle then travel at Warp Factor provided for indicated number of seconds");
-		helpWindow.writeLine(currentLine--, "                            Warp factor 1 for 1 second will take you one sector.  Higher factors take more energy, travel further and get there faster.");
-		helpWindow.writeLine(currentLine--, "STOP                        apply maximum deceleration force until we have stopped moving");
-		helpWindow.writeLine(currentLine--, "SRS                         Short range scan, refreshes data about the current sector.");
-		helpWindow.writeLine(currentLine--, "LRS                         Long range scan, Gather information from adjoining sectors. This updates Galactic Map.");
-		helpWindow.writeLine(currentLine--, "SHUP                        Shields UP");
-		helpWindow.writeLine(currentLine--, "SHDOWN                      Shields DOWN");
-		helpWindow.writeLine(currentLine--, "EXIT");
-		currentLine--;
-		helpWindow.writeLine(currentLine--, "COMP command [parameters]   Ask computer to calculate something");
-		helpWindow.writeLine(currentLine--, "        NAV [BE]            Computer navigation angle (and range) to any Base or Enemy in current sector");
-		helpWindow.writeLine(currentLine--, "        TGT [BES]           Computer targeting information (angle and range) to Base, Enemy or Star in sector.");
-		helpWindow.writeLine(currentLine--, " ");
-
+		if (!helpInitialised) initHelp();
 		helpWindow.draw();
 	}
 
@@ -747,7 +747,7 @@ public class Alliance {
 		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) { playerShip.shieldsUp = true; }
 		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) { playerShip.shieldsUp = false; }
 		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) { Alliance.gameRunning = false; }
-		else { textWindow.writeLine(1, "Error: No such command: " + cmd); }
+		else { textWindow.writeAt(1, "Error: No such command: " + cmd); }
 	}
 
 	/**

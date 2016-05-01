@@ -2,6 +2,8 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.lwjgl.opengl.GL11.glViewport;
+
 /**
  * Created by Mark on 8/12/2015.
  */
@@ -123,15 +125,20 @@ public class Galaxy {
 		return returnLoc;
 	}
 
+	public void AddEntity(Entity object, int sectorX,	int sectorY) {
+		sectorArray[sectorX][sectorY].AddEntity(object);
+	}
+
 	public void doLRS() {
 	}
 
 	public void doSRS() {
 	}
 
-	public void drawSector(int sectorX, int sectorY) {
+	public void drawSector(int sectorX, int sectorY, int viewportXMin, int viewportXMax, int viewportYMin, int viewportYMax) {
 		Sector viewSector = sectorArray[sectorX][sectorY];
 
+//		glViewport(viewportXMin, viewportYMin, viewportXMax, viewportYMax);	// MAKES EVERYTHING SMALL :-(
 		viewSector.draw();
 	}
 
@@ -139,8 +146,8 @@ public class Galaxy {
 	}
 
 	// Draw a section of the galaxy with the players current sector in the centre
-	public void drawGalaxy() {
-		int mapLines = Constants.screenLines - 10;
+	public void drawGalaxy(GameText galacticMap) {
+		int mapLines = Math.min(Constants.textBufferSize, galaxyHeight);
 		int halfScreen = mapLines / 2;
 		int mapCols = 20;
 		int halfMapCols = mapCols / 2;
