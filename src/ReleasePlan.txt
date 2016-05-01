@@ -232,6 +232,7 @@ Version 1.2.x
     - collisions kill
     - Objects to avoid orbital paths on initial placement (StarBases, ships, etc)
     - Make star SMALLER
+    - Give star and planets energy and structural strength so they can be damaged/destroyed with enough fire power...
 
 Version 1.2.x
 ===========

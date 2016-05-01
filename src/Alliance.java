@@ -45,6 +45,8 @@ public class Alliance {
 
 	private Galaxy 				galaxy;
 	private PlayerShipEntity	playerShip;
+	private int					playerSectorX, playerSectorY;
+
 	private Sector				currentSector;
 	private float				starDate 			= 12345;
 	private ArrayList<Transaction> transactions;
@@ -274,8 +276,8 @@ public class Alliance {
 		galaxy = new Galaxy(galaxySize, galaxySize);
 
 		// Add The PLAYER to a SECTOR in the GALAXY
-		int playerSectorX = (int)Math.random()*galaxySize;
-		int playerSectorY = (int)Math.random()*galaxySize;
+		playerSectorX = (int)Math.random()*galaxySize;
+		playerSectorY = (int)Math.random()*galaxySize;
 		playerShip = new PlayerShipEntity(Constants.FILE_IMG_ENTERPRISE, playerSectorX, playerSectorY);
 		//TODO galaxy.AddEntity(playerShip, playerSectorX,	playerSectorY);
 
@@ -315,7 +317,7 @@ public class Alliance {
 
 //			galaxy.processTransactions(transactions);
 
-//			frameRendering();
+			frameRendering();
 		}
 
 		// clean up
@@ -425,7 +427,7 @@ public class Alliance {
 		if (displayMode == Constants.DisplayMode.HELP_SCREEN)
 			drawHelp();
 		else if (displayMode == Constants.DisplayMode.DISPLAY_SECTOR)
-			galaxy.drawSector();
+			galaxy.drawSector(playerSectorX, playerSectorY);
 		else if (displayMode == Constants.DisplayMode.GALACTIC_MAP)
 			galaxy.drawGalaxy();
 		else if (displayMode == Constants.DisplayMode.SHIP_STATUS)

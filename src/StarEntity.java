@@ -35,12 +35,9 @@ import java.util.ArrayList;
 public class StarEntity extends ObjectEntity {
 	/**
 	 * Create a new star entity
-	 *
-	 * @param x The intial x location of this alien
-	 * @param y The intial y location of this alien
 	 */
-	public StarEntity(Sector thisSector, String ref, int sectorX, int sectorY) {
-		super(Transaction.SubType.STAR, thisSector, ref, sectorX, sectorY);
+	public StarEntity(Sector thisSector, String ref, int sectorPosX, int sectorPosY) {
+		super(Transaction.SubType.STAR, ref, sectorPosX, sectorPosY);
 		//this.setHeading(-1.0f, 0);		// set this sprite to constantly rotate clockwise
 	}
 

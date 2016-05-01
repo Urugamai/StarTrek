@@ -8,8 +8,8 @@ public abstract class ObjectEntity extends Entity {
 	private boolean		rotateClockwise = true;
 	private float		currentAngle = 0;
 
-	public ObjectEntity(Transaction.SubType objectType, Sector thisSector, String ref, int x, int y) {
-		super(objectType, ref, x, y);
+	public ObjectEntity(Transaction.SubType objectType, String ref, int posX, int posY) {
+		super(objectType, ref, posX, posY);
 	}
 
 	private void Rotate(double delta) {

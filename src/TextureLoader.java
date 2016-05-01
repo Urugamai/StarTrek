@@ -264,11 +264,10 @@ public class TextureLoader {
 	 * @throws IOException Indicates a failure to find a resource
 	 */
 	private BufferedImage loadImage(String ref) throws IOException {
-//		URL url = TextureLoader.class.getClassLoader().getResource(ref);
 //
 		// due to an issue with ImageIO and mixed signed code
-		// we are now using good oldfashioned ImageIcon to load
-		// images and the paint it on top of a new BufferedImage
+		// we are now using good old fashioned ImageIcon to load
+		// images and then paint it on top of a new BufferedImage
 		ImageIcon imgIcon = new ImageIcon(ref);
 		Image img = imgIcon.getImage();
 		if (imgIcon == null || img == null || imgIcon.getIconHeight() < 0 || imgIcon.getIconWidth() < 0) {
@@ -282,7 +281,7 @@ public class TextureLoader {
 		Graphics g = bufferedImage.getGraphics();		// get pointer to graphics storage
 		g.drawImage(img, 0, 0, null);					// write img into graphics storage
 		g.dispose();
-		System.out.println("DEBUG: bufferedImg: " + ref + " hasAlpha is " + bufferedImage.getColorModel().hasAlpha() );
+//		System.out.println("DEBUG: bufferedImg: " + ref + " hasAlpha is " + bufferedImage.getColorModel().hasAlpha() );
 
 		return bufferedImage;
 	}

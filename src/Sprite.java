@@ -97,8 +97,8 @@ public class Sprite {
 	public void draw(int x, int y) {
 		float correctedAngle;
 		int f1=1, f2=1;
-		int pixelX = (int)Math.floor(x * Constants.sectorXScale);
-		int pixelY = (int)Math.floor(y * Constants.sectorYScale);
+		int pixelX = Constants.Units2PixelsX(x);
+		int pixelY = Constants.Units2PixelsY(y);
 
 		float maxYtex = texture.getHeight(), maxXtex = texture.getWidth(), centreYtex = maxYtex/2, centreXtex = maxXtex/2, centreY = height/2, centreX = width / 2;
 

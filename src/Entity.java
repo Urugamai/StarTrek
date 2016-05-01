@@ -35,9 +35,9 @@ import java.util.ArrayList;
 
 public abstract class Entity {
 	// Its all about ME
-	protected int 		mySectorX, mySectorY;											/** The sector in which this entity is located */
+	//protected int 		posXUnits, posYUnits;											/** The sector in which this entity is located */
 
-	protected int 		x, y, z;												/** Where Am I in THIS sector*/
+	protected int posXUnits, posYUnits, posZUnits;												/** Where Am I in THIS sector*/
 	protected float		energyLevel = 0, de = 0;											// How much energy am I carrying (explosive force), what is my rate of growth in energy per second
 	protected float		solidity = 0, ds = 0;												// structural strength
 
@@ -53,57 +53,57 @@ public abstract class Entity {
 	 * Construct a entity based on a sprite image and a location.
 	 *
 	 */
-	protected Entity(Transaction.SubType eType, String spriteFile, int sectorX, int sectorY) {
+	protected Entity(Transaction.SubType eType, String spriteFile, int sectorPosX, int sectorPosY) {
 		if (textureLoader == null) textureLoader = new TextureLoader();
 		this.eType = eType;
 		this.sprite = getSprite(spriteFile);
-		this.mySectorX = sectorX;
-		this.mySectorY = sectorY;
-		findSafePlaceForEntity();
+		this.posXUnits = sectorPosX;
+		this.posYUnits = sectorPosY;
+//		findSafePlaceForEntity();
 	}
 
-	protected Entity(Transaction.SubType eType, Sprite spriteObject, int sectorX, int sectorY) {
+	protected Entity(Transaction.SubType eType, Sprite spriteObject, int sectorPosX, int sectorPosY) {
 		if (textureLoader == null) textureLoader = new TextureLoader();
 		this.eType = eType;
 		this.sprite = spriteObject;
-		this.mySectorX = sectorX;
-		this.mySectorY = sectorY;
-		findSafePlaceForEntity();
+		this.posXUnits = sectorPosX;
+		this.posYUnits = sectorPosY;
+//		findSafePlaceForEntity();
 	}
 
-	// Same as above but this time we TELL the sector where to locate the entity
-	protected Entity(Transaction.SubType eType, String spriteFile, int sectorX, int sectorY, int x, int y, int z) {
-		if (textureLoader == null) textureLoader = new TextureLoader();
-		this.eType = eType;
-		this.sprite = getSprite(spriteFile);
-		this.mySectorX = sectorX;
-		this.mySectorY = sectorY;
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
+//	// Same as above but this time we TELL the sector where to locate the entity
+//	protected Entity(Transaction.SubType eType, String spriteFile, int sectorPosX, int sectorPosY) {
+//		if (textureLoader == null) textureLoader = new TextureLoader();
+//		this.eType = eType;
+//		this.sprite = getSprite(spriteFile);
+//		this.mySectorX = sectorX;
+//		this.mySectorY = sectorY;
+//		this.x = x;
+//		this.y = y;
+//		this.z = z;
+//	}
 
-	private void findSafePlaceForEntity() {
-		this.x = (int)Math.random()*Constants.sectorSize - Constants.sectorCentre;
-		this.y = (int) Math.random()*Constants.sectorSize - Constants.sectorCentre;
-		this.z = 0;	// Not in use yet
-	}
+//	private void findSafePlaceForEntity() {
+//		this.x = (int)Math.random()*Constants.sectorSize - Constants.sectorCentre;
+//		this.y = (int) Math.random()*Constants.sectorSize - Constants.sectorCentre;
+//		this.z = 0;	// Not in use yet
+//	}
 
 	public Sprite getSprite(String ref) {
 		return new Sprite(textureLoader, ref);
 	}
 
 	public void setLocation(int x, int y, int z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		this.posXUnits = x;
+		this.posYUnits = y;
+		this.posZUnits = z;
 	}
 
 	/**
 	 * Draw this entity to the graphics context provided
 	 */
 	public void draw() {
-		sprite.draw((int)x, (int)y);
+		sprite.draw((int) posXUnits, (int) posYUnits);
 	}
 
 	/**
@@ -111,22 +111,22 @@ public abstract class Entity {
 	 * will be called periodically based on game events
 	 */
 	public int getX() {
-		return (int)x;
+		return (int) posXUnits;
 	}
 
 	public int getY() {
-		return (int)y;
+		return (int) posYUnits;
 	}
 
 	public int getZ() {
-		return (int)z;
+		return (int) posZUnits;
 	}
 
-	public void setX(int newValue) { x = newValue; }
+	public void setX(int newValue) { posXUnits = newValue; }
 
-	public void setY(int newValue) { y = newValue; }
+	public void setY(int newValue) { posYUnits = newValue; }
 
-	public void setZ(int newValue) { z = newValue; }
+	public void setZ(int newValue) { posZUnits = newValue; }
 
 	/**
 	 * Check if this entity collides with another.
@@ -138,10 +138,10 @@ public abstract class Entity {
 	 * @return True if the entities collide with each other
 	 */
 	public boolean collidesWith(Entity other) {
-		int mePixelX = (int)(x * Constants.sectorXScale);
-		int mePixelY = (int)(y * Constants.sectorYScale);
-		int himPixelX = (int)(other.x * Constants.sectorXScale);
-		int himPixelY = (int)(other.y * Constants.sectorYScale);
+		int mePixelX = Constants.Units2PixelsX(posXUnits);
+		int mePixelY = Constants.Units2PixelsY(posYUnits);
+		int himPixelX = Constants.Units2PixelsX(other.posXUnits);
+		int himPixelY = Constants.Pixels2UnitsY(other.posYUnits);
 
 		me.setBounds(mePixelX, mePixelY, sprite.getWidth(), sprite.getHeight());
 		him.setBounds( himPixelX, himPixelY, other.sprite.getWidth(), other.sprite.getHeight());

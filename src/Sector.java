@@ -133,9 +133,9 @@ public class Sector {
 		for (int i = 0; i < enemyCount; i++) {
 			do {
 				newEntity = null;
-				x = (int) (Math.random() * (Constants.sectorSize - 2*spriteXUnits)) - (Constants.sectorCentre - spriteXUnits);
-				y = (int) (Math.random() * (Constants.sectorSize - 2*spriteYUnits)) - (Constants.sectorCentre - spriteYUnits);
-				newEntity = new RomulanEntity(tmpSprite, x, y);
+				xUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteXUnits)) - (Constants.sectorCentre - spriteXUnits);
+				yUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteYUnits)) - (Constants.sectorCentre - spriteYUnits);
+				newEntity = new RomulanEntity(tmpSprite, xUnits, yUnits);
 			} while (checkEntityForOverlap(newEntity));
 			entities.add(newEntity); // this ones a keeper
 		}

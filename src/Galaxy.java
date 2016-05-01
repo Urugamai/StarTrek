@@ -129,7 +129,10 @@ public class Galaxy {
 	public void doSRS() {
 	}
 
-	public void drawSector() {
+	public void drawSector(int sectorX, int sectorY) {
+		Sector viewSector = sectorArray[sectorX][sectorY];
+
+		viewSector.draw();
 	}
 
 	public void drawShipStatus() {
