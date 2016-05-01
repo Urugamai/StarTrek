@@ -26,8 +26,20 @@ public abstract class ShipEntity extends Entity {
 
 	private double		gdx = 0, gdy = 0, gdz = 0;		// Galactic Coordinate spring-loading warp galactic sector delta
 
-	public ShipEntity(Transaction.SubType shipType, String ref) {
-		super(shipType, ref);
+	public ShipEntity(Transaction.SubType shipType, String ref, int sectorX, int sectorY) {
+		super(shipType, ref, sectorX, sectorY);
+		currentAngle = 0;
+		currentInclination = 0;
+		targetAngle = 0;
+		targetInclination = 0;
+		energyLevel = 1000;
+		de = 1;
+		solidity = 100;
+		ds = 1;
+	}
+
+	public ShipEntity(Transaction.SubType shipType, Sprite ref, int sectorX, int sectorY) {
+		super(shipType, ref, sectorX, sectorY);
 		currentAngle = 0;
 		currentInclination = 0;
 		targetAngle = 0;
@@ -213,9 +225,9 @@ public abstract class ShipEntity extends Entity {
 		double vy = -velocity*Math.sin(rAngle);
 		double vz = 0; //velocity*Math.sin(currentInclination);
 
-		x = (x + (vx * delta));
-		y = (y + (vy * delta));
-		z = (z + (vz * delta));
+//		x = (x + (vx * delta));
+//		y = (y + (vy * delta));
+//		z = (z + (vz * delta));
 	}
 
 	public void move(double delta) {

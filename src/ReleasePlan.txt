@@ -252,8 +252,13 @@ VERSION 1.3
 ===========
 - RELEASE
 
-Version 2.0 BETA
+Version 2...
 ================
+- Hexagonal Galaxy - SPHERICALish!
+    - Sectors are hexagonal
+        - moving out of one into the next is now in 6 directions
+        - moving out of edge sector of galaxy enters at edge sector at other end - so, galaxy like a soccer ball
+
 - Multiplayer
     - more than one Enterprise Class vessel
         - Count of enemy vessels will need to become N * NumberOfPlayers

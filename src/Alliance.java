@@ -56,9 +56,12 @@ public class Alliance {
 	private int statusWindowTop, statusWindowLeft, statusWindowBottom, statusWindowRight;
 	private int messageWindowTop, messageWindowLeft, messageWindowBottom, messageWindowRight;
 
+	// Todo To become parameters to the game -> Easy = 5X5, Medium = 10X10, Hard = 100X100 (enemy strengths change too)
+	private int galaxySize = 10;
+
 	private long				msElapsed;
 
-	private TextureLoader		textureLoader;
+//	private TextureLoader		textureLoader;
 
 	private GameText 			textWindow;
 	private GameText			helpWindow;
@@ -145,6 +148,12 @@ public class Alliance {
 		displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
 		try {
 			setDisplayMode();
+			Constants.sectorXScale = screenWidth / Constants.sectorSize;
+			Constants.sectorYScale = screenHeight / Constants.sectorSize;
+
+			assert(Constants.sectorXScale > 0);
+			assert (Constants.sectorYScale > 0);
+
 			Display.setTitle(Constants.WINDOW_TITLE);
 			Display.setFullscreen(fullscreen);
 			Display.create();
@@ -190,7 +199,7 @@ public class Alliance {
 			return;
 		}
 
-		textureLoader = new TextureLoader();		// for loading sprites
+//		textureLoader = new TextureLoader();		// for loading sprites
 
 		// Text block at bottom of the screen
 		textWindow = new GameText( 0, screenHeight, 5);
@@ -225,8 +234,8 @@ public class Alliance {
 			}
 
 			org.lwjgl.util.Display.setDisplayMode(dm, new String[] {
-					"screenWidth=" + screenWidth,
-					"screenHeight=" + screenHeight,
+					"width=" + screenWidth,
+					"height=" + screenHeight,
 					"freq=" + Constants.FramesPerSecond,
 					"bpp=" + org.lwjgl.opengl.Display.getDisplayMode().getBitsPerPixel()
 			});
@@ -261,8 +270,16 @@ public class Alliance {
 	}
 
 	private void startAlliance() {
-		galaxy = new Galaxy(10, 10);	// TODO make these a choice the game player can select
-		playerShip = new PlayerShipEntity(Constants.FILE_IMG_ENTERPRISE);
+		// The GALAXY
+		galaxy = new Galaxy(galaxySize, galaxySize);
+
+		// Add The PLAYER to a SECTOR in the GALAXY
+		int playerSectorX = (int)Math.random()*galaxySize;
+		int playerSectorY = (int)Math.random()*galaxySize;
+		playerShip = new PlayerShipEntity(Constants.FILE_IMG_ENTERPRISE, playerSectorX, playerSectorY);
+		//TODO galaxy.AddEntity(playerShip, playerSectorX,	playerSectorY);
+
+
 	}
 
 	/**
@@ -294,11 +311,11 @@ public class Alliance {
 
 			userInteractions();
 
-			galaxy.doLogic(msElapsed / 1000.0, transactions);
+//			galaxy.doLogic(msElapsed / 1000.0, transactions);
 
-			galaxy.processTransactions(transactions);
+//			galaxy.processTransactions(transactions);
 
-			frameRendering();
+//			frameRendering();
 		}
 
 		// clean up
@@ -414,7 +431,7 @@ public class Alliance {
 		else if (displayMode == Constants.DisplayMode.SHIP_STATUS)
 			galaxy.drawShipStatus();	// TODO: Change this to a picture and text showing the current ship status
 
-		textWindow.draw();
+//		textWindow.draw();
 
 		// update window contents	(Switch non-visible and visible frames)
 		Display.update();
@@ -741,6 +758,9 @@ public class Alliance {
 	public static void main(String argv[]) {
 		isApplication = true;
 		System.out.println("Use -fullscreen for fullscreen mode");
+	// TODO Add extra parameters
+		// GameMode={Easy|Medium|Hard|Psycho|...}
+		// ForceGalaxySize=nnnn
 		new Alliance((argv.length > 0 && "-fullscreen".equalsIgnoreCase(argv[0]))).execute();
 //		new Alliance(true).execute();	// force to full screen
 

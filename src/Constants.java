@@ -33,6 +33,9 @@ public class Constants {
 	public static final float		fractionSectorWindowWidth	= 1 - fractionStatusWindowWidth;
 	public static final float		fractionSectorWindowHeight	= 1 - fractionMessageWindowHeight;
 
+	public static final int			sectorSize			= 501;		// MUST be ODD (just do it)
+	public static final int 		sectorCentre 		= (int)((sectorSize-1)/2);
+
 	public static final int			screenLines			= 40;		// Number of text lines to provide on the screen
 
 	public static final int			maxEnemy			= 5;		// Per sector
@@ -62,6 +65,24 @@ public class Constants {
 		public int value() { return value; }
 		public static final int Size = LRSItems.values().length;
 	};
+
+	public static double sectorXScale = 1, sectorYScale = 1;
+
+	public static int Pixels2UnitsX(int pixels) {
+		return (int)Math.ceil(pixels / Constants.sectorXScale) - Constants.sectorCentre;
+	}
+
+	public static int Pixels2UnitsY(int pixels) {
+		return (int)Math.ceil(pixels / Constants.sectorYScale) - Constants.sectorCentre;
+	}
+
+	public static int Units2PixelsX(int units) {
+		return (int)Math.floor((units + Constants.sectorCentre) * Constants.sectorXScale);
+	}
+
+	public static int Units2PixelsY(int units) {
+		return (int)Math.floor((units + Constants.sectorCentre) * Constants.sectorYScale);
+	}
 
 	// Prevent construction call
 	private Constants(){ }

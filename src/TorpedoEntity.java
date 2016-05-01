@@ -48,8 +48,7 @@ public class TorpedoEntity extends ShipEntity {
 	 * @param spriteFile The sprite file to be used for this shot
 	 */
 	public TorpedoEntity(Sector thisSector, Entity sourceShip, String spriteFile) {
-		super(Transaction.SubType.TORPEDO, thisSector, spriteFile, sourceShip.getX(), sourceShip.getY());
-		mySector = thisSector;
+		super(Transaction.SubType.TORPEDO, spriteFile, sourceShip.getX(), sourceShip.getY());
 
 		this.Parent = sourceShip;
 		this.Range = 8.1; // seconds

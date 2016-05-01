@@ -40,12 +40,14 @@ public class RomulanEntity extends ShipEntity {
 	/**
 	 * Create a new alien entity
 	 *
-	 * @param x The intial x location of this alien
-	 * @param y The intial y location of this alien
 	 */
-	public RomulanEntity(Sector thisSector, String shipFile, int x, int y) {
-		super(Transaction.SubType.ROMULANSHIP, shipFile);
-		mySector = thisSector;
+	public RomulanEntity(Sector thisSector, String shipFile, int sectorX, int sectorY) {
+		super(Transaction.SubType.ROMULANSHIP, shipFile, sectorX, sectorY);
+		energyLevel = 900;
+	}
+
+	public RomulanEntity(Sprite shipSprite, int sectorX, int sectorY) {
+		super(Transaction.SubType.ROMULANSHIP, shipSprite, sectorX, sectorY);
 		energyLevel = 900;
 	}
 

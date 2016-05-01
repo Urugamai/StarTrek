@@ -55,8 +55,7 @@ public class PhaserEntity extends ShipEntity {
 	 * @param spriteFile The sprite file to be used for this shot
 	 */
 	public PhaserEntity(Sector thisSector, Entity sourceShip, String spriteFile) {
-		super(Transaction.SubType.PHASER, thisSector, spriteFile, sourceShip.getX(), sourceShip.getY());
-		mySector = thisSector;
+		super(Transaction.SubType.PHASER, spriteFile, sourceShip.getX(), sourceShip.getY());
 
 		this.Parent = sourceShip;
 		//this.Range = 8.1; // seconds

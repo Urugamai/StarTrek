@@ -39,11 +39,9 @@ public class StarEntity extends ObjectEntity {
 	 * @param x The intial x location of this alien
 	 * @param y The intial y location of this alien
 	 */
-	public StarEntity(Sector thisSector, String ref, int x, int y) {
-		super(Transaction.SubType.STAR, thisSector, ref, x, y);
+	public StarEntity(Sector thisSector, String ref, int sectorX, int sectorY) {
+		super(Transaction.SubType.STAR, thisSector, ref, sectorX, sectorY);
 		//this.setHeading(-1.0f, 0);		// set this sprite to constantly rotate clockwise
-
-		mySector = thisSector;
 	}
 
 	public void collidedWith(Entity other, ArrayList<Transaction> transactions) {

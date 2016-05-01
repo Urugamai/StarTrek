@@ -6,11 +6,13 @@ import java.util.ArrayList;
 public class Sector {
 	private Galaxy galaxy; // For calling backup up the tree
 
+	private int sectorX, sectorY;
+
 	protected static Sector lastNewSector = null;  // There can only be one
 	private static int galacticXMin = 0, galacticXMax = 0, galacticYMin = 0, galacticYMax = 0; // , galacticZMin = 0, galacticZMax = 0;
 
 	private int galacticX, galacticY, galacticZ;
-	private int screenWidth = 0, screenHeight = 0;
+//	private int screenWidth = 0, screenHeight = 0;
 
 	public int LRS_EnemyCount = -1;
 	public int LRS_StarbaseCount = -1;
@@ -27,8 +29,11 @@ public class Sector {
 	private ArrayList<Entity> removeList = new ArrayList<Entity>();
 	private ArrayList<Entity> addList = new ArrayList<Entity>();
 
-	public Sector() {
+	public Sector(int sectorX, int sectorY) {
 		// Counters
+		this.sectorX = sectorX;
+		this.sectorY = sectorY;
+
 		newEnemyCount();
 		starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
 		planetCount = (int) (Math.random() * (Constants.maxPlanets + 1));
@@ -66,8 +71,8 @@ public class Sector {
 	public int getGalacticX() { return galacticX; }
 	public int getGalacticY() { return galacticY; }
 	public int getGalacticZ() { return galacticZ; }
-	public int getScreenWidth() { return screenWidth; }
-	public int getScreenHeight() { return screenHeight; }
+//	public int getScreenWidth() { return screenWidth; }
+//	public int getScreenHeight() { return screenHeight; }
 
 	public int getGalacticXMin() { return galacticXMin; }
 
@@ -92,31 +97,45 @@ public class Sector {
 	 */
 	public void initEntities() {
 		Entity newEntity = null;
-		int x = screenWidth / 2;
-		int y = screenHeight / 2;
+		int xUnits = 0;
+		int yUnits = 0;
+
+		Sprite tmpSprite;
+		TextureLoader textureLoader = new TextureLoader();		// for loading sprites
 
 		// Whack the star into the middle of the sector
-		newEntity = new StarEntity(this, Constants.FILE_IMG_STAR, x, y);
+		xUnits = 0;
+		yUnits = 0;
+		newEntity = new StarEntity(this, Constants.FILE_IMG_STAR, xUnits, yUnits);
 		entities.add(newEntity);
 
 		// whack in a starbase if needed
+		tmpSprite = new Sprite(textureLoader, Constants.FILE_IMG_STARBASE);
+		int spriteXUnits = Constants.Pixels2UnitsX(tmpSprite.getWidth());
+		int spriteYUnits = Constants.Pixels2UnitsY(tmpSprite.getHeight());
+
 		for (int i = 0; i < starbaseCount; i++) {
 			do {
 				newEntity = null;		// dispose of last attempt
-				x = (int) (Math.random() * (screenWidth - 50));
-				y = (int) (Math.random() * (screenHeight - 50));
-				newEntity = new StarbaseEntity(this, Constants.FILE_IMG_STARBASE, x, y);
+				xUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteXUnits)) - (Constants.sectorCentre - spriteXUnits);
+				yUnits = (int) (Math.random() * (Constants.sectorSize - 2*spriteYUnits)) - (Constants.sectorCentre - spriteYUnits);
+				newEntity = new StarbaseEntity(tmpSprite, xUnits, yUnits);
 			} while (checkEntityForOverlap(newEntity));
 			entities.add(newEntity); // this ones a keeper
+			tmpSprite = null;	// dispose
 		}
 
 		// Whack in the necessary number of enemy units
+		tmpSprite = new Sprite(textureLoader, Constants.FILE_IMG_ROMULAN);
+		spriteXUnits = (int)Math.ceil(tmpSprite.getWidth() / Constants.sectorXScale);
+		spriteYUnits = (int)Math.ceil(tmpSprite.getHeight() / Constants.sectorYScale);
+
 		for (int i = 0; i < enemyCount; i++) {
 			do {
 				newEntity = null;
-				x = (int) (Math.random() * (screenWidth - 50));
-				y = (int) (Math.random() * (screenHeight - 50));
-				newEntity = new RomulanEntity(this, Constants.FILE_IMG_ROMULAN, x, y);
+				x = (int) (Math.random() * (Constants.sectorSize - 2*spriteXUnits)) - (Constants.sectorCentre - spriteXUnits);
+				y = (int) (Math.random() * (Constants.sectorSize - 2*spriteYUnits)) - (Constants.sectorCentre - spriteYUnits);
+				newEntity = new RomulanEntity(tmpSprite, x, y);
 			} while (checkEntityForOverlap(newEntity));
 			entities.add(newEntity); // this ones a keeper
 		}

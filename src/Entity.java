@@ -35,12 +35,13 @@ import java.util.ArrayList;
 
 public abstract class Entity {
 	// Its all about ME
-	protected Sector 		mySector;											/** The sector in which this entity is located */
-	protected double 		x, y, z;												/** Where Am I */
+	protected int 		mySectorX, mySectorY;											/** The sector in which this entity is located */
+
+	protected int 		x, y, z;												/** Where Am I in THIS sector*/
 	protected float		energyLevel = 0, de = 0;											// How much energy am I carrying (explosive force), what is my rate of growth in energy per second
 	protected float		solidity = 0, ds = 0;												// structural strength
 
-	private static TextureLoader		textureLoader;
+	private static TextureLoader		textureLoader;		// 'static' so we only create ONE for ALL the entities to share
 	protected Sprite	sprite;													/** The sprite (graphics) that represents this entity */
 	protected Transaction.SubType eType;
 
@@ -52,10 +53,40 @@ public abstract class Entity {
 	 * Construct a entity based on a sprite image and a location.
 	 *
 	 */
-	protected Entity(Transaction.SubType eType, String spriteFile) {
+	protected Entity(Transaction.SubType eType, String spriteFile, int sectorX, int sectorY) {
 		if (textureLoader == null) textureLoader = new TextureLoader();
 		this.eType = eType;
 		this.sprite = getSprite(spriteFile);
+		this.mySectorX = sectorX;
+		this.mySectorY = sectorY;
+		findSafePlaceForEntity();
+	}
+
+	protected Entity(Transaction.SubType eType, Sprite spriteObject, int sectorX, int sectorY) {
+		if (textureLoader == null) textureLoader = new TextureLoader();
+		this.eType = eType;
+		this.sprite = spriteObject;
+		this.mySectorX = sectorX;
+		this.mySectorY = sectorY;
+		findSafePlaceForEntity();
+	}
+
+	// Same as above but this time we TELL the sector where to locate the entity
+	protected Entity(Transaction.SubType eType, String spriteFile, int sectorX, int sectorY, int x, int y, int z) {
+		if (textureLoader == null) textureLoader = new TextureLoader();
+		this.eType = eType;
+		this.sprite = getSprite(spriteFile);
+		this.mySectorX = sectorX;
+		this.mySectorY = sectorY;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	private void findSafePlaceForEntity() {
+		this.x = (int)Math.random()*Constants.sectorSize - Constants.sectorCentre;
+		this.y = (int) Math.random()*Constants.sectorSize - Constants.sectorCentre;
+		this.z = 0;	// Not in use yet
 	}
 
 	public Sprite getSprite(String ref) {
@@ -101,13 +132,19 @@ public abstract class Entity {
 	 * Check if this entity collides with another.
 	 * TODO: Probably need collision detection to be smarter
 	 * 		- Take into account transparent part of rectangle (no collision)
+	 * 		- Take into account current rotations of Entities
 	 *
 	 * @param other The other entity to check collision against
 	 * @return True if the entities collide with each other
 	 */
 	public boolean collidesWith(Entity other) {
-		me.setBounds((int)x, (int)y, sprite.getWidth(), sprite.getHeight());
-		him.setBounds( (int)other.x, (int)other.y, other.sprite.getWidth(), other.sprite.getHeight());
+		int mePixelX = (int)(x * Constants.sectorXScale);
+		int mePixelY = (int)(y * Constants.sectorYScale);
+		int himPixelX = (int)(other.x * Constants.sectorXScale);
+		int himPixelY = (int)(other.y * Constants.sectorYScale);
+
+		me.setBounds(mePixelX, mePixelY, sprite.getWidth(), sprite.getHeight());
+		him.setBounds( himPixelX, himPixelY, other.sprite.getWidth(), other.sprite.getHeight());
 
 		return me.intersects(him);
 	}

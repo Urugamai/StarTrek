@@ -91,12 +91,14 @@ public class Sprite {
 	/**
 	 * Draw the sprite at the specified location
 	 *
-	 * @param x The x location at which to draw this sprite
-	 * @param y The y location at which to draw this sprite
+	 * @param x The x location at which to draw this sprite - in UNITS
+	 * @param y The y location at which to draw this sprite - in UNITS
 	 */
 	public void draw(int x, int y) {
 		float correctedAngle;
 		int f1=1, f2=1;
+		int pixelX = (int)Math.floor(x * Constants.sectorXScale);
+		int pixelY = (int)Math.floor(y * Constants.sectorYScale);
 
 		float maxYtex = texture.getHeight(), maxXtex = texture.getWidth(), centreYtex = maxYtex/2, centreXtex = maxXtex/2, centreY = height/2, centreX = width / 2;
 
@@ -115,7 +117,7 @@ public class Sprite {
 		// translate to the right location and prepare to draw
 		// Rotation is clockwise in gl, change to anticlockwise to match trigonometry standard
 		correctedAngle = ((360 - currentAngle) + 90) % 360;
-		glTranslatef(x+centreX, y+centreY, 0);
+		glTranslatef(pixelX+centreX, pixelY+centreY, 0);
 		glRotatef(correctedAngle, 0.0f, 0.0f, 1.0f);
 		glTranslatef(-centreX, -centreY, 0);
 

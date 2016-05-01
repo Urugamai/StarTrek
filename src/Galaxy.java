@@ -8,14 +8,17 @@ import java.util.List;
 public class Galaxy {
 
 	public Sector[][] allocate(Class<Sector> c,int row,int column){
-		Sector [][] matrix = (Sector[][]) Array.newInstance(c,row);
-		for (int i = 0; i < column; i++) {
-			matrix[i] = (Sector[]) Array.newInstance(c,column);
+		Sector[][] matrix = (Sector[][]) Array.newInstance(c, column, row);
+		for (int x = 0; x < column; x++) {
+			//matrix[x] = (Sector[]) Array.newInstance(c,column);
+			for(int y = 0; y < row; y++) {
+				matrix[x][y] = new Sector(x,y);
+			}
 		}
 		return matrix;
 	}
 
-	public Sector [][] sectorArray;
+	public Sector[][] sectorArray;
 
 	private int galaxyWidth, galaxyHeight;
 
@@ -51,19 +54,15 @@ public class Galaxy {
 		return getSector(loc.getGx(), loc.getGy());
 	}
 
-	public Sector getSector( int X, int Y) {
-		Sector req = sectorArray[X][Y];
-		assert(req != null);
-		return req;
-	}
+	public Sector getSector( int sectorX, int sectorY) {
+		assert(sectorX < galaxyWidth);
+		assert(sectorY < galaxyHeight);
 
-	public void initSectors() {
-		// Done in class constructor
-//		for (int gx = 0; gx < galaxyWidth; gx++ ) {
-//			for (int gy = 0; gy < galaxyHeight; gy++ ) {
-//				sectorArray[gx][gy].initEntities();
-//			}
-//		}
+		Sector req = sectorArray[sectorX][sectorY];
+
+		assert(req != null);
+
+		return req;
 	}
 
 	public int getEnemyCount() {

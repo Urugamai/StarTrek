@@ -10,7 +10,6 @@ public abstract class ObjectEntity extends Entity {
 
 	public ObjectEntity(Transaction.SubType objectType, Sector thisSector, String ref, int x, int y) {
 		super(objectType, ref, x, y);
-		mySector = thisSector;
 	}
 
 	private void Rotate(double delta) {

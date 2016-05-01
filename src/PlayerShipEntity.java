@@ -37,8 +37,8 @@ public class PlayerShipEntity extends ShipEntity {
 	 *
 	 * @param ref The reference to the sprite to show for the ship
 	 */
-	public PlayerShipEntity(String ref) {
-		super(Transaction.SubType.FEDERATIONSHIP, ref);
+	public PlayerShipEntity(String ref, int sectorX, int sectorY) {
+		super(Transaction.SubType.FEDERATIONSHIP, ref, sectorX, sectorY);
 
 		torpedoCount = Constants.maxTorpedoes;
 	}
