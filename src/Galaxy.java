@@ -138,7 +138,6 @@ public class Galaxy {
 	public void drawSector(int sectorX, int sectorY, int viewportXMin, int viewportXMax, int viewportYMin, int viewportYMax) {
 		Sector viewSector = sectorArray[sectorX][sectorY];
 
-//		glViewport(viewportXMin, viewportYMin, viewportXMax, viewportYMax);	// MAKES EVERYTHING SMALL :-(
 		viewSector.draw();
 	}
 

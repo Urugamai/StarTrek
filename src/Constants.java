@@ -30,7 +30,7 @@ public class Constants {
 	public static final float		fractionMessageWindowWidth	= 1f;
 	public static final float		fractionMessageWindowHeight	= 0.20f;
 
-	public static final float		fractionStatusWindowWidth	= 0.30f;
+	public static final float		fractionStatusWindowWidth	= 0.20f;
 	public static final float		fractionStatusWindowHeight	= 1 - fractionMessageWindowHeight;
 
 

@@ -53,9 +53,9 @@ public class Alliance {
 	private int screenWidth = 1024;
 	private int screenHeight = 768;
 
-	private int sectorWindowTop, sectorWindowLeft, sectorWindowBottom, sectorWindowRight;
-	private int statusWindowTop, statusWindowLeft, statusWindowBottom, statusWindowRight;
-	private int messageWindowTop, messageWindowLeft, messageWindowBottom, messageWindowRight;
+	private int sectorWindowTop, sectorWindowLeft, sectorWindowBottom, sectorWindowRight, sectorWindowWidth, sectorWindowHeight;
+	private int statusWindowTop, statusWindowLeft, statusWindowBottom, statusWindowRight, statusWindowWidth, statusWindowHeight;
+	private int messageWindowTop, messageWindowLeft, messageWindowBottom, messageWindowRight, messageWindowWidth, messageWindowHeight;
 
 	// Todo To become parameters to the game -> Easy = 5X5, Medium = 10X10, Hard = 100X100 (enemy strengths change too)
 	private int galaxySize = 10;
@@ -149,8 +149,8 @@ public class Alliance {
 		displayMode = Constants.DisplayMode.DISPLAY_SECTOR;
 		try {
 			setDisplayMode();
-			Constants.sectorXScale = (sectorWindowRight - sectorWindowLeft) / Constants.sectorSize;
-			Constants.sectorYScale = (sectorWindowBottom - sectorWindowTop) / Constants.sectorSize;
+			Constants.sectorXScale = (sectorWindowWidth) / Constants.sectorSize;
+			Constants.sectorYScale = (sectorWindowHeight) / Constants.sectorSize;
 
 			assert(Constants.sectorXScale > 0);
 			assert (Constants.sectorYScale > 0);
@@ -165,9 +165,11 @@ public class Alliance {
 			}
 
 			// enable textures since we're going to use these for our sprites
+			glEnable(GL_COLOR_MATERIAL);                                // Enable Color Material (Allows Us To Tint Textures)
 			glEnable(GL_TEXTURE_2D);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glClearColor (0.0f, 0.0f, 0.0f, 0.0f);                          // Black Background
 
 			// disable the OpenGL depth test since we're rendering 2D graphics
 			glDisable(GL_DEPTH_TEST);
@@ -259,17 +261,22 @@ public class Alliance {
 		sectorWindowLeft = 0;
 		sectorWindowBottom = (int)(screenHeight * Constants.fractionSectorWindowHeight);
 		sectorWindowRight = (int)(screenWidth * Constants.fractionSectorWindowWidth);
+		sectorWindowWidth = sectorWindowRight - sectorWindowLeft;
+		sectorWindowHeight = sectorWindowBottom - sectorWindowTop;
 
 		messageWindowTop = sectorWindowBottom;
 		messageWindowLeft = 0;
 		messageWindowBottom = screenHeight;
 		messageWindowRight = screenWidth;
+		messageWindowWidth = messageWindowRight - messageWindowLeft;
+		messageWindowHeight = messageWindowBottom - messageWindowTop;
 
 		statusWindowTop = 0;
 		statusWindowLeft = sectorWindowRight;
 		statusWindowBottom = sectorWindowBottom;
 		statusWindowRight = screenWidth;
-
+		statusWindowWidth = statusWindowRight - statusWindowLeft;
+		statusWindowHeight = statusWindowBottom - statusWindowTop;
 	}
 
 	private void startAlliance() {
@@ -345,19 +352,54 @@ public class Alliance {
 		}
 	}
 
-	private char getCurrentKey() {
-		boolean returnPressed = Keyboard.isKeyDown(Keyboard.KEY_RETURN);
-		if (returnPressed) {
-			if (returnDown) return '\0';  // Already processed this pressing of return
-			returnDown = true;
-			return Keyboard.getEventCharacter();
-		}
+	/**
+	 * Notification that a frame is being rendered. Responsible for
+	 * running visual parts of game logic and rendering the scene.
+	 */
+	public void frameRendering() {
+		byte r, g, b;
 
-		if (Keyboard.next()) {
-			return Keyboard.getEventCharacter();
-		}
+		// TODO to use viewport screen definitions I think I need to alter all the drawing parts to use relative rather than absolute screen coordinates
 
-		return '\0';
+		// clear non-visible screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glViewport(0, 0, screenWidth, screenHeight);
+
+		// Main Display window
+//		r = 0; g = 0; b = 0;
+//		glColor3b(r,g,b);
+//		glViewport(sectorWindowLeft, sectorWindowBottom, sectorWindowWidth, sectorWindowHeight);
+//		glMatrixMode(GL_MODELVIEW);
+//		glLoadIdentity();
+//		glOrtho(0, sectorWindowWidth, sectorWindowHeight, 0, -1, 1);
+		if (displayMode == Constants.DisplayMode.HELP_SCREEN) 			drawHelp();
+		else if (displayMode == Constants.DisplayMode.DISPLAY_SECTOR) 	galaxy.drawSector(playerSectorX, playerSectorY, sectorWindowLeft, sectorWindowRight, sectorWindowTop, sectorWindowBottom);
+		else if (displayMode == Constants.DisplayMode.GALACTIC_MAP)		galaxy.drawGalaxy(galacticMap);
+
+		// Right side window
+//		r = 50; g = 60; b = 70;
+//		glColor3b(r,g,b);
+//		glViewport(statusWindowLeft, statusWindowBottom, statusWindowWidth, statusWindowHeight);
+//		glMatrixMode(GL_MODELVIEW);
+//		glLoadIdentity();
+//		glOrtho(0, statusWindowWidth, statusWindowHeight, 0, -1, 1);
+		galaxy.drawShipStatus();
+
+		// bottom window
+//		r = (byte)150; g = (byte)170; b = (byte)190;
+//		glColor3b(r,g,b);
+//		glViewport(messageWindowLeft, messageWindowBottom, messageWindowWidth, messageWindowHeight);
+//		glMatrixMode(GL_MODELVIEW);
+//		glLoadIdentity();
+//		glOrtho(0, messageWindowWidth, messageWindowHeight, 0, -1, 1);
+		textWindow.draw();
+
+		glFlush();
+
+		// update screen contents	(Switch non-visible and visible frames)
+		Display.update();
 	}
 
 	private void userInteractions() {
@@ -370,7 +412,7 @@ public class Alliance {
 			if (!inKeyUp) {
 				userInput = userInputHistory.get(historyPosition--);
 				if (historyPosition < 0) historyPosition = 0;
-				textWindow.writeAt(0, userInput);
+				textWindow.write( userInput);
 				inKeyUp = true;
 			}
 		} else if (Keyboard.isKeyDown(Keyboard.KEY_DOWN)) {
@@ -378,7 +420,7 @@ public class Alliance {
 				historyPosition++;
 				if (historyPosition >= userInputHistory.size()) historyPosition--;
 				userInput = userInputHistory.get(historyPosition);
-				textWindow.writeAt(0, userInput);
+				textWindow.write( userInput);
 				inKeyDown = true;
 			}
 		} else {
@@ -399,7 +441,7 @@ public class Alliance {
 			} else {
 				if (key == 8 && userInput.length() > 0 ) { // Backspace
 					userInput = userInput.substring(0, userInput.length() - 1);
-					textWindow.writeAt(0, userInput);	// overwrite existing line
+					textWindow.write(userInput);	// overwrite existing line
 				} else {
 					userInput += key;
 					textWindow.write(""+key);	// add to existing line
@@ -413,29 +455,19 @@ public class Alliance {
 		}
 	}
 
-	/**
-	 * Notification that a frame is being rendered. Responsible for
-	 * running visual parts of game logic and rendering the scene.
-	 */
-	public void frameRendering() {
-		// clear non-visible screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+	private char getCurrentKey() {
+		boolean returnPressed = Keyboard.isKeyDown(Keyboard.KEY_RETURN);
+		if (returnPressed) {
+			if (returnDown) return '\0';  // Already processed this pressing of return
+			returnDown = true;
+			return Keyboard.getEventCharacter();
+		}
 
-		if (displayMode == Constants.DisplayMode.HELP_SCREEN)
-			drawHelp();
-		else if (displayMode == Constants.DisplayMode.DISPLAY_SECTOR)
-			galaxy.drawSector(playerSectorX, playerSectorY, sectorWindowLeft, sectorWindowRight, sectorWindowTop, sectorWindowBottom);
-		else if (displayMode == Constants.DisplayMode.GALACTIC_MAP)
-			galaxy.drawGalaxy(galacticMap);
-		else if (displayMode == Constants.DisplayMode.SHIP_STATUS)
-			galaxy.drawShipStatus();	// TODO: Change this to a picture and text showing the current ship status
+		if (Keyboard.next()) {
+			return Keyboard.getEventCharacter();
+		}
 
-		textWindow.draw();
-
-		// update window contents	(Switch non-visible and visible frames)
-		Display.update();
+		return '\0';
 	}
 
 	private boolean command_TOR(String[] pieces) {
