@@ -27,6 +27,8 @@ public class Constants {
 	public static final String		WINDOW_TITLE		= "Alliance";
 	public static final int			FramesPerSecond		= 60;
 
+	public static final int			viewSector = 0, viewStatus = 1, viewComputer = 2, viewGalaxy = 3;
+
 	public static final float		fractionMessageWindowWidth	= 1f;
 	public static final float		fractionMessageWindowHeight	= 0.20f;
 

@@ -1,0 +1,33 @@
+Alliance
+    - Game Management
+    - Galaxy.Initialize(GX, GY) (Size of galaxy for this game)
+    - Knows...
+        - Current Sector GX,GY
+        - UserEngine Object
+            - Call UE.Initialize ONCE
+            - Call UE.Process(milliseconds) every loop with elapsed milliseconds since last call
+        - ViewEngine Object
+            - Call VE.Initialize ONCE
+            - Call VE.Process(SectorObjectPtr, UserEngineObjectPtr, Asset[user]ObjectPtr )
+        - Command Delivery
+            - Call UE.GetCommand(CmdStr)
+                - Returns true if command is complete and has been erased (due to this call)
+                - Returns current CMDString (incomplete (false) or complete(true))
+        - Game Play processing
+            - Hit Detection (Ship-Ship/Star/Starbase, Torpedo-Ship/Starbase/Star(nodamage))
+                - Ship to Ship -> Mark the right hand ship as 'hit detection DONE' so you do not repeat the calculations in reverse for the same collision
+                    - Torpedoes do not hit torpedoes as space it too big for that to happen
+                    - Stars and StarBases are Hit, they do not DO the hitting, though hitting them hurts you more than it hurts them ;-)
+                - Sector.GetCollision(ObjectA, ObjectB) - Object A and B are RETURNED by GetCollision - both null if no collisions current.
+                - Damage calculations for each entity
+                - Explosion trigger to view engine if warranted
+            - Motion Calculations
+                - Galaxy.Sector(GX,GY).Asset(n).Movements()  (e.g. while ass=nextasset != null call ass.Movements())
+            - Phaser Fired (because these travel as speed of light, you cannot SEE them on the SRS but they DO take time to travel to target, no warning until hit
+                - Energy drain
+                - Time delay
+                - Target Damage
+
+Galaxy
+    - Sector Management
+        - Sector[GX][GY].Initialize() dynamically built by game start
