@@ -1,16 +1,15 @@
 
 import org.lwjgl.LWJGLException;
-import org.lwjgl.Sys;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.vector.Vector3f;
+import org.newdawn.slick.*;
 
-import java.nio.IntBuffer;
+import java.awt.*;
+import java.awt.Font;
 import java.util.ArrayList;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.util.glu.GLU.gluOrtho2D;
 
 /**
  * Created by Mark on 25/06/2016.
@@ -25,6 +24,7 @@ public class ViewManagement {
 	private double window0PercentW = 0.8;
 	private double window0PercentH = 0.8;
 
+	private Alliance alliance = null;
 	private Galaxy galaxy = null;
 	private Sector sector = null;
 	private GameText computer = null;
@@ -32,8 +32,12 @@ public class ViewManagement {
 
 	private int[] viewX, viewY, viewH, viewW;
 
+	private TrueTypeFont fontGalaxy;
+	private Font awtFont = new Font("Courier", Font.PLAIN, 16); //name, style (PLAIN, BOLD, or ITALIC), size
+
 	public ViewManagement(boolean fullscreen) {
 		initialiseView(fullscreen, screenWidth, screenHeight, window0PercentW, window0PercentH);
+		fontGalaxy = new TrueTypeFont(awtFont, false); //base Font, anti-aliasing true/false
 	}
 
 	public ViewManagement(boolean fullscreen, int sw, int sh) {
@@ -89,7 +93,7 @@ public class ViewManagement {
 		} catch (LWJGLException le) {
 			System.out.println("Alliance exiting - exception in initialization:");
 			le.printStackTrace();
-//			Alliance.gameRunning = false;
+			alliance.gameRunning = false;
 			return;
 		}
 	}
@@ -142,6 +146,8 @@ public class ViewManagement {
 		return viewH[nView];
 	}
 
+	public void setAlliance(Alliance a) { alliance = a; }
+
 	public void setGalaxy(Galaxy g) {
 		galaxy = g;
 	}
@@ -150,14 +156,13 @@ public class ViewManagement {
 		sector = s;
 	}
 
+	public void setShip(Entity s) { ship = s; }
+
 	public void draw(double secondsElapsed) {
 
-		// glMatrixMode, glBegin, glColor4f, glVertex2f, etc have been DEPRECATED!!!
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-
-//		glColor3ub((byte)150, (byte)150, (byte)150);
 
 		for (int nView = 0; nView < 4; nView++) {
 			setupView(nView);
@@ -178,7 +183,12 @@ public class ViewManagement {
 		Display.update();		// update screen contents	(Switch non-visible with visible framebuffer)
 	}
 
-	private void setupView(int nView) {	}
+	private void setupView(int nView) {
+		glViewport(viewX[nView], viewY[nView], viewW[nView], viewH[nView] );
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0, viewW[nView], viewH[nView], 0, 1, -1);
+	}
 
 	private void drawView(int nView) {
 
@@ -206,25 +216,33 @@ public class ViewManagement {
 
 	private void drawGalaxy() {
 		if (galaxy == null) return;
+		int height = fontGalaxy.getHeight()+1;
+		int width = (fontGalaxy.getWidth("1")+0)*3;
 
+		for(int gx = 0; gx < alliance.galaxySize; gx++) {
+			for(int gy = 0; gy < alliance.galaxySize; gy++) {
+				Sector sector = galaxy.getSector(gx, gy);
+				String text = "x1z";// + sector.enemyCount + sector.starbaseCount + sector.planetCount;
+				fontGalaxy.drawString((gx+0)*width,(gy+0)*height, text, org.newdawn.slick.Color.white);
+				//drawSprite(ship.sprite, (gx+1)*15, (gy+1)*15, 0.5f);
+			}
+		}
 	}
 
 	private void drawSector() {
 		if (sector == null) return;
 
-		// draw sector map in current viewport by asking sector.xxx() for needed details
-		// ...
 		ArrayList<Entity> entities = sector.getEntities();
 
 		for (Entity entity : entities) {
 				drawEntity(entity);
 		}
-
 	}
 
 	private void drawStatus() {
 		if (ship == null) return;
 
+		drawSprite(ship.sprite, 100, 100, 20.0f);
 	}
 
 	private void drawComputer() {
@@ -241,6 +259,10 @@ public class ViewManagement {
 
 	private void drawSprite(Sprite sprite, int atX, int atY) {
 
+		drawSprite(sprite, atX, atY, 1.0f);
+	}
+
+	private void drawSprite(Sprite sprite, int atX, int atY, float scale) {
 		int height = sprite.getHeight();
 		int width = sprite.getWidth();
 		Texture texture = sprite.getTexture();
@@ -254,21 +276,19 @@ public class ViewManagement {
 		// bind to the appropriate texture for this sprite
 		texture.bind();
 
-//		System.out.println("Rotated (" + rotation.x + ", " + rotation.y + ", " + rotation.z + ")");
-//		glTranslatef(, , 0);			// move centre of image to 0,0,0
 		glTranslatef(atX, atY, 0);				// move image to target location
 		glRotatef(rotation.x, 1.0f, 0.0f, 0.0f);		// rotate image around the X axis (the param with a 1.0 as its value)
 		glRotatef(rotation.y, 0.0f, 1.0f, 0.0f);		// rotate image around the Y axis (the param with a 1.0 as its value)
 		glRotatef(rotation.z, 0.0f, 0.0f, 1.0f);		// rotate image around the Z axis (the param with a 1.0 as its value)
-		glTranslatef(-centreX, -centreY, 0);				// move image to target location
+		glTranslatef(-centreX, -centreY, 0);			// move image to correct for rotation around 0,0 (a corner of the image)
 
 		// draw a quad textured to match the sprite
 		glBegin(GL_QUADS);
 		{
 			glTexCoord2f(0, 0);										glVertex2f(0, 0);
-			glTexCoord2f(0, texture.getHeight());					glVertex2f(0, height);
-			glTexCoord2f(texture.getWidth(), texture.getHeight());	glVertex2f(width, height);
-			glTexCoord2f(texture.getWidth(), 0);					glVertex2f(width, 0);
+			glTexCoord2f(0, texture.getHeight());					glVertex2f(0, height*scale);
+			glTexCoord2f(texture.getWidth(), texture.getHeight());	glVertex2f(width*scale, height*scale);
+			glTexCoord2f(texture.getWidth(), 0);					glVertex2f(width*scale, 0);
 		}
 		glEnd();
 

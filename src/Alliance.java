@@ -52,9 +52,9 @@ public class Alliance {
 	private ComputerManagement  computer;
 
 	private Galaxy 				galaxy;
-	private int 				galaxySize = 10;
+	protected int 				galaxySize = 10;
 
-	private static boolean		gameRunning	= true;
+	public static boolean		gameRunning	= true;
 	private String 				Command = null;
 
 	private Entity				playerShip;
@@ -78,6 +78,7 @@ public class Alliance {
 	public void initialize() {
 
 		view = new ViewManagement(fullscreen);
+		view.setAlliance(this);
 
 		galaxy = new Galaxy(galaxySize, galaxySize);
 
@@ -91,6 +92,7 @@ public class Alliance {
 		view.setGalaxy(galaxy);
 
 		user = new UserManagement();
+		user.setAlliance(this);
 		user.setGalaxy(galaxy);
 
 		computer = new ComputerManagement();
@@ -136,6 +138,7 @@ public class Alliance {
 
 		playerShip = new Entity(Entity.SubType.FEDERATIONSHIP, Constants.FILE_IMG_ENTERPRISE);
 		computer.setShip(playerShip);
+		view.setShip(playerShip);
 
 		sector = galaxy.getSector(playerGalacticX, playerGalacticY);
 		sector.AddEntity(playerShip);
@@ -145,9 +148,12 @@ public class Alliance {
 		float sectorHeight = view.getViewHeight(Constants.viewSector);
 
 		int pX, pY;
+		float entityW = playerShip.sprite.getWidth();
+		float entityH = playerShip.sprite.getHeight();
+
 		do {
-			pX = (int) (Math.random() * sectorWidth);
-			pY = (int) (Math.random() * sectorHeight);
+			pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
+			pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
 			playerShip.sprite.setLocation(pX, pY, 0);
 		} while (sector.findCollision(playerShip) != null);
 		System.out.println("player landed at " + pX + ", " + pY);
@@ -160,11 +166,13 @@ public class Alliance {
 		float sectorHeight = view.getViewHeight(Constants.viewSector);
 		float centreX = sectorWidth / 2;
 		float centreY = sectorHeight / 2;
+		float entityW;
+		float entityH;
 		Sector sector;
 		Entity newEntity;
 		int pX, pY, reps;
 
-		// scan the galaxy and move the stars to the middle, add enemies, etc.
+		// scan the galaxy and add stars, enemies, etc.
 		for (int gx = 0; gx < galaxySize; gx++) {
 			for (int gy = 0; gy < galaxySize; gy++) {
 				sector = galaxy.getSector(gx, gy);
@@ -176,18 +184,22 @@ public class Alliance {
 
 				sector.starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
 				sector.planetCount = (int) (Math.random() * (Constants.maxPlanets + 1));
+				// If there is a starbase then chances of enemy AND enemy count should be low
+				// The increase in planets should reduce the enemy count
 				sector.enemyCount =
-						sector.starbaseCount > 0 ?	Math.random() < 0.1 ? (int) (Math.random() * (Constants.maxEnemy + 1)) : 0
-						: sector.planetCount > 0 ?	Math.random() > (sector.planetCount/(Constants.maxPlanets + 1)) ? (int) (Math.random() * (Constants.maxEnemy + 1)) : 0
-						: 							Math.random() < 0.7 ? (int) (Math.random() * (Constants.maxEnemy + 1)) : 0
+						sector.starbaseCount > 0 ?	Math.random() < 0.1 ? (int) (Math.random() * (Constants.maxEnemy / 3.0 + 1)) : 0
+						: sector.planetCount > 0 ?	Math.random() > (sector.planetCount/(Constants.maxPlanets + 1)) ? (int) (Math.random() * (Constants.maxEnemy / sector.planetCount + 1)) : 0
+						: 							Math.random() < 0.8 ? (int) (Math.random() * (Constants.maxEnemy + 1)) : 0
 						;
 
 				// Add Starbase (Maximum 1)
 				if (sector.starbaseCount > 0) {
 					newEntity = new Entity(Entity.SubType.STARBASE, Constants.FILE_IMG_STARBASE);
+					entityW = newEntity.sprite.getWidth();
+					entityH = newEntity.sprite.getHeight();
 					do {
-						pX = (int) (Math.random() * sectorWidth);
-						pY = (int) (Math.random() * sectorHeight);
+						pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
+						pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
 						newEntity.sprite.setLocation(pX, pY, 0);
 					} while (sector.findCollision(newEntity) != null);
 					System.out.println("Starbase landed at " + pX + ", " + pY);
@@ -200,9 +212,11 @@ public class Alliance {
 				// Add Planet(s)
 				for (reps = 0; reps < sector.planetCount; reps++) {
 					newEntity = new Entity(Entity.SubType.PLANET, Constants.FILE_IMG_PLANET);
+					entityW = newEntity.sprite.getWidth();
+					entityH = newEntity.sprite.getHeight();
 					do {
-						pX = (int) (Math.random() * sectorWidth);
-						pY = (int) (Math.random() * sectorHeight);
+						pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
+						pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
 						newEntity.sprite.setLocation(pX, pY, 0);
 					} while (sector.findCollision(newEntity) != null);
 					System.out.println("Planet landed at " + pX + ", " + pY);
@@ -214,9 +228,11 @@ public class Alliance {
 				// Add Enemy(s)
 				for (reps = 0; reps < sector.enemyCount; reps++) {
 					newEntity = new Entity(Entity.SubType.ENEMYSHIP, Constants.FILE_IMG_ROMULAN);
+					entityW = newEntity.sprite.getWidth();
+					entityH = newEntity.sprite.getHeight();
 					do {
-						pX = (int) (Math.random() * sectorWidth);
-						pY = (int) (Math.random() * sectorHeight);
+						pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
+						pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
 						newEntity.sprite.setLocation(pX, pY, 0);
 					} while (sector.findCollision(newEntity) != null);
 					System.out.println("Enemy landed at " + pX + ", " + pY);
@@ -227,15 +243,10 @@ public class Alliance {
 				}
 			}
 		}
+
 		System.out.println("Total Enemy = " + totalEnemy);
 		System.out.println("Total Starbases = " + totalStarbases);
 	}
-
-//	public int newEnemyCount() {
-//		int e = totalEnemyCount;
-//		e += Math.random() < 0.7 ? (int) (Math.random() * (Constants.maxEnemy - e + 1)) : 0;
-//		return e;
-//	}
 
 	/**
 	 * Notification from a game entity that the logic of the game
@@ -252,7 +263,7 @@ public class Alliance {
 	 * and requesting that the callback update its screen.
 	 *****************************************************************/
 	private void gameLoop() {
-		sound.playSound("Start");
+//		sound.playSound("Start");
 
 		while (gameRunning) {
 			setTimeDelta();

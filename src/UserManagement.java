@@ -9,6 +9,7 @@ import org.lwjgl.input.Mouse;
 import java.util.ArrayList;
 
 public class UserManagement {
+	private Alliance alliance = null;
 	private Galaxy galaxy = null;
 
 	private String				userInput 			= "";
@@ -93,6 +94,8 @@ public class UserManagement {
 	public void clearCommand() {
 		cmd = "";
 	}
+
+	public void setAlliance(Alliance a) { alliance = a; }
 
 	public void setGalaxy(Galaxy g) {
 		galaxy = g;
