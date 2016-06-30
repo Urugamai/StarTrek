@@ -4,29 +4,13 @@ import java.util.ArrayList;
  * Created by Mark on 8/12/2015.
  */
 public class Sector {
-	private int enemyCount = 0;
-	private int starbaseCount = 0;
-	private int planetCount = 0;
+	public int enemyCount = 0;
+	public int starbaseCount = 0;
+	public int planetCount = 0;
 
 	protected ArrayList<Entity> entities = new ArrayList<Entity>();
 
-	public Sector(int sectorX, int sectorY) {
-		// Counters
-		enemyCount = newEnemyCount();
-		starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
-		planetCount = (int) (Math.random() * (Constants.maxPlanets + 1));
-
-		initEntities();
-	}
-
-	public ArrayList<Entity> getEntities() {
-		return entities;
-	}
-
-	public int newEnemyCount() {
-		int e = enemyCount;
-		e += Math.random() < 0.7 ? (int) (Math.random() * (Constants.maxEnemy - e + 1)) : 0;
-		return e;
+	public Sector() {
 	}
 
 	public void AddEntity(Entity entity) {
@@ -76,28 +60,24 @@ public class Sector {
 		}
 	}
 
+	public ArrayList<Entity> getEntities() {
+		return entities;
+	}
+
 	public void doLogic(double secondsElapsed) {
 		// cycle round every entity doing personal logic and other interactions
 		for (Entity entity : entities) {
 			entity.doLogic(secondsElapsed);
 		}
-		processCollisions(secondsElapsed);
-		for (Entity entity : entities) {
-
-		}
 	}
 
-	public void processCollisions(double secondsElapsed) {	// Non-overlapping scan of all entities against all others
-		for (int i = 0; i < entities.size()-1; i++) {
-			Entity me = entities.get(i);
+	public Entity findCollision(Entity me) {
+		for (int j = 0; j < entities.size(); j++) {
+			Entity him = entities.get(j);
+			if (me == him) continue;
 
-			for (int j = i + 1; j < entities.size(); j++) {
-				Entity him = entities.get(j);
-				if (me.collidesWith(him)){
-					me.collidedWith(him);
-					him.collidedWith(me);
-				}
-			}
+			if (me.collidesWith(him)) return him;
 		}
+		return null;
 	}
 }

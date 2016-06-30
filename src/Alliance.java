@@ -60,6 +60,8 @@ public class Alliance {
 	private Entity				playerShip;
 	private int					playerGalacticX, playerGalacticY;
 
+	private int					totalEnemy = 0, totalStarbases = 0;
+
 	/**
 	 * Construct our game and set it running.
 	 * @param fullscreen
@@ -126,28 +128,114 @@ public class Alliance {
 
 	private void startAlliance() {
 		Sector sector;
+		ArrayList<Entity> entities;
 
 		// Add The PLAYER to a SECTOR in the GALAXY
-		playerGalacticX = (int)Math.floor(Math.random()*galaxySize);
-		playerGalacticY = (int)Math.floor(Math.random()*galaxySize);
+		playerGalacticX = (int) Math.floor(Math.random() * galaxySize);
+		playerGalacticY = (int) Math.floor(Math.random() * galaxySize);
 
-		playerShip = new Entity(Entity.SubType.FEDERATIONSHIP, Constants.FILE_IMG_ENTERPRISE );
+		playerShip = new Entity(Entity.SubType.FEDERATIONSHIP, Constants.FILE_IMG_ENTERPRISE);
 		computer.setShip(playerShip);
 
-		galaxy.AddEntity(playerShip, playerGalacticX,	playerGalacticY);
+		sector = galaxy.getSector(playerGalacticX, playerGalacticY);
+		sector.AddEntity(playerShip);
+		view.setSector(sector);
 
-		view.setSector(sector = galaxy.getSector(playerGalacticX, playerGalacticY));
+		float sectorWidth = view.getViewWidth(Constants.viewSector);
+		float sectorHeight = view.getViewHeight(Constants.viewSector);
 
-		float centreX = view.getViewWidth(Constants.viewSector) / 2;
-		float centreY = view.getViewHeight(Constants.viewSector) / 2;
+		int pX, pY;
+		do {
+			pX = (int) (Math.random() * sectorWidth);
+			pY = (int) (Math.random() * sectorHeight);
+			playerShip.sprite.setLocation(pX, pY, 0);
+		} while (sector.findCollision(playerShip) != null);
+		System.out.println("player landed at " + pX + ", " + pY);
 
-		ArrayList<Entity> entities = sector.getEntities();
-		for (Entity entity : entities) {
-			if (entity.eType == Entity.SubType.STAR) {
-				entity.sprite.setLocation(centreX, centreY, 0);
+		initGalaxy();
+	}
+
+	private void initGalaxy() {
+		float sectorWidth = view.getViewWidth(Constants.viewSector);
+		float sectorHeight = view.getViewHeight(Constants.viewSector);
+		float centreX = sectorWidth / 2;
+		float centreY = sectorHeight / 2;
+		Sector sector;
+		Entity newEntity;
+		int pX, pY, reps;
+
+		// scan the galaxy and move the stars to the middle, add enemies, etc.
+		for (int gx = 0; gx < galaxySize; gx++) {
+			for (int gy = 0; gy < galaxySize; gy++) {
+				sector = galaxy.getSector(gx, gy);
+
+				newEntity = new Entity(Entity.SubType.STAR, Constants.FILE_IMG_STAR);
+				newEntity.sprite.setLocation(centreX,centreY,0);
+				newEntity.sprite.setRotationInfluence(0.0f, 0.0f, 10.0f, -1.0f);
+				sector.AddEntity(newEntity);
+
+				sector.starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
+				sector.planetCount = (int) (Math.random() * (Constants.maxPlanets + 1));
+				sector.enemyCount =
+						sector.starbaseCount > 0 ?	Math.random() < 0.1 ? (int) (Math.random() * (Constants.maxEnemy + 1)) : 0
+						: sector.planetCount > 0 ?	Math.random() > (sector.planetCount/(Constants.maxPlanets + 1)) ? (int) (Math.random() * (Constants.maxEnemy + 1)) : 0
+						: 							Math.random() < 0.7 ? (int) (Math.random() * (Constants.maxEnemy + 1)) : 0
+						;
+
+				// Add Starbase (Maximum 1)
+				if (sector.starbaseCount > 0) {
+					newEntity = new Entity(Entity.SubType.STARBASE, Constants.FILE_IMG_STARBASE);
+					do {
+						pX = (int) (Math.random() * sectorWidth);
+						pY = (int) (Math.random() * sectorHeight);
+						newEntity.sprite.setLocation(pX, pY, 0);
+					} while (sector.findCollision(newEntity) != null);
+					System.out.println("Starbase landed at " + pX + ", " + pY);
+					newEntity.sprite.setLocation(pX,pY,0);
+					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, -20.0f, -1.0f);
+					sector.AddEntity(newEntity);
+					totalStarbases++;
+				}
+
+				// Add Planet(s)
+				for (reps = 0; reps < sector.planetCount; reps++) {
+					newEntity = new Entity(Entity.SubType.PLANET, Constants.FILE_IMG_PLANET);
+					do {
+						pX = (int) (Math.random() * sectorWidth);
+						pY = (int) (Math.random() * sectorHeight);
+						newEntity.sprite.setLocation(pX, pY, 0);
+					} while (sector.findCollision(newEntity) != null);
+					System.out.println("Planet landed at " + pX + ", " + pY);
+					newEntity.sprite.setLocation(pX,pY,0);
+					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, -40.0f, -1.0f);
+					sector.AddEntity(newEntity);
+				}
+
+				// Add Enemy(s)
+				for (reps = 0; reps < sector.enemyCount; reps++) {
+					newEntity = new Entity(Entity.SubType.ENEMYSHIP, Constants.FILE_IMG_ROMULAN);
+					do {
+						pX = (int) (Math.random() * sectorWidth);
+						pY = (int) (Math.random() * sectorHeight);
+						newEntity.sprite.setLocation(pX, pY, 0);
+					} while (sector.findCollision(newEntity) != null);
+					System.out.println("Enemy landed at " + pX + ", " + pY);
+					newEntity.sprite.setLocation(pX,pY,0);
+					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, 0.0f, 0.0f);
+					sector.AddEntity(newEntity);
+					totalEnemy++;
+				}
 			}
 		}
+		System.out.println("Total Enemy = " + totalEnemy);
+		System.out.println("Total Starbases = " + totalStarbases);
 	}
+
+//	public int newEnemyCount() {
+//		int e = totalEnemyCount;
+//		e += Math.random() < 0.7 ? (int) (Math.random() * (Constants.maxEnemy - e + 1)) : 0;
+//		return e;
+//	}
 
 	/**
 	 * Notification from a game entity that the logic of the game

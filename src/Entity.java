@@ -36,7 +36,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 
 public class Entity {
-	public static enum SubType { STAR, STARBASE, FEDERATIONSHIP, ENEMYSHIP, TORPEDO
+	public static enum SubType { STAR, PLANET, STARBASE, FEDERATIONSHIP, ENEMYSHIP, TORPEDO
 	};	// What Am I
 
 	protected Sprite	sprite;						/** My sprite (graphics, movement, location, etc) */
@@ -104,6 +104,6 @@ public class Entity {
 	public void collidedWith(Entity other) {}
 
 	public void doLogic(double secondsElapsed) {
-
+		sprite.doLogic(secondsElapsed);
 	}
 }

@@ -1,7 +1,7 @@
 Version 0.1 DONE
 ===========
 - Basic game play
-    - DONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
+    - REDONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
     - DONE: Command interface
         - Does lwjgl have a text window ability (NO) - implement in own class GameText
     - DONE: Torpedo

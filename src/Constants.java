@@ -13,6 +13,7 @@ public class Constants {
 	public static final String 		FILE_IMG_ROMULAN 	= "res/ST_Romulan.gif";
 	public static final String		FILE_IMG_STARBASE	= "res/ST_StarBase.gif";
 	public static final String		FILE_IMG_STAR		= "res/ST_Star.gif";
+	public static final String		FILE_IMG_PLANET		= "res/ST_Planet.gif";
 	public static final String		FILE_SND_LOSE		= "res/ST_lose.wav";	// TODO Replace sound with one of my own
 
 	// Audio
@@ -48,7 +49,7 @@ public class Constants {
 
 	public static final int			textBufferSize		= 100;		// Number of text lines to keep
 
-	public static final int			maxEnemy			= 5;		// Per sector
+	public static final int			maxEnemy			= 9;		// Per sector
 	public static final float		starbaseProbability = 0.1f;
 	public static final int			startEnemyCount		= 100;		// Per Galaxy
 	public static final int			maxPlanets			= 9;		// Per Sector

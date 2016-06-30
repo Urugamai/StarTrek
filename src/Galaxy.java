@@ -19,7 +19,7 @@ public class Galaxy {
 		for (int x = 0; x < column; x++) {
 			//matrix[x] = (Sector[]) Array.newInstance(c,column);
 			for(int y = 0; y < row; y++) {
-				matrix[x][y] = new Sector(x,y);		// Allocates and initialises a Sector
+				matrix[x][y] = new Sector();		// Allocates and initialises a Sector
 			}
 		}
 		return matrix;
@@ -40,15 +40,13 @@ public class Galaxy {
 	}
 
 	public Sector getSector( int sectorX, int sectorY) {
+		assert(sectorX >= 0);
+		assert(sectorY >= 0);
 		assert(sectorX < galaxyWidth);
 		assert(sectorY < galaxyHeight);
 		Sector req = sectorArray[sectorX][sectorY];
 		assert(req != null);
 		return req;
-	}
-
-	public void AddEntity(Entity object, int sectorX,	int sectorY) {
-		sectorArray[sectorX][sectorY].AddEntity(object);
 	}
 
 	// Galactic logic implemented here and passed down the classes

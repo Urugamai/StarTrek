@@ -46,30 +46,14 @@ import static org.lwjgl.opengl.GL11.*;
  * @author Brian Matzon
  */
 public class Texture {
-
-	/** The GL target type */
-	private int		target;
-
-	/** The GL texture ID */
-	private int		textureID;
-
-	/** The height of the image */
-	private int		height;
-
-	/** The width of the image */
-	private int		width;
-
-	/** The width of the texture */
-	private int		texWidth;
-
-	/** The height of the texture */
-	private int		texHeight;
-
-	/** The ratio of the width of the image to the texture */
-	private float	widthRatio;
-
-	/** The ratio of the height of the image to the texture */
-	private float	heightRatio;
+	private int		target;			/** The GL target type */
+	private int		textureID;		/** The GL texture ID */
+	private int		height;			/** The height of the image */
+	private int		width;			/** The width of the image */
+	private int		texWidth;		/** The width of the texture */
+	private int		texHeight;		/** The height of the texture */
+	private float	widthRatio;		/** The ratio of the width of the image to the texture */
+	private float	heightRatio;	/** The ratio of the height of the image to the texture */
 
 	/**
 	 * Create a new texture

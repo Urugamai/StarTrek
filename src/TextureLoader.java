@@ -63,17 +63,10 @@ import static org.lwjgl.opengl.GL11.*;
  * @author Brian Matzon
  */
 public class TextureLoader {
-	/** The table of textures that have been loaded in this loader */
-	private HashMap<String, Texture> table = new HashMap<String, Texture>();
-
-	/** The colour model including alpha for the GL image */
-	private ColorModel glAlphaColorModel;
-
-	/** The colour model for the GL image */
-	private ColorModel glColorModel;
-
-	/** Scratch buffer for texture ID's */
-	private IntBuffer textureIDBuffer = BufferUtils.createIntBuffer(1);
+	private HashMap<String, Texture> table = new HashMap<String, Texture>();				/** The table of textures that have been loaded in this loader */
+	private ColorModel glAlphaColorModel;									/** The colour model including alpha for the GL image */
+	private ColorModel glColorModel;										/** The colour model for the GL image */
+	private IntBuffer textureIDBuffer = BufferUtils.createIntBuffer(1);		/** Scratch buffer for texture ID's */
 
 	/**
 	 * Create a new texture loader based on the game panel
