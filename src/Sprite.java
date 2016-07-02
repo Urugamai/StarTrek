@@ -30,7 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.*;
 import java.io.IOException;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -56,6 +56,8 @@ public class Sprite {
 	private Vector3f	rotationAngle;				/** Radians of rotation (X,Y), (X,Z), (Y,Z) */
 	private Vector3f	rotationInfluence;			/** Change in Radians of rotation per second */
 	private float		rotationDuration;			/** How long before we turn off the rotationInfluence */
+
+	public float		energyConsumption = 0;
 
 	/**
 	 * Create a new sprite from a specified image.
@@ -85,10 +87,18 @@ public class Sprite {
 		return texture.getImageHeight();
 	}
 
+	public Vector3f getMotion() {
+		return motion;
+	}
+
 	public Texture getTexture() { return texture; }
 
 	public void setLocation(float x, float y, float z) {
 		location.set(x,y,z);
+	}
+
+	public void setLocation(Vector3f loc) {
+		setLocation(loc.x, loc.y, loc.z);
 	}
 
 	public void setMotion(float x, float y, float z) {
@@ -109,31 +119,34 @@ public class Sprite {
 		rotationDuration = d;
 	}
 
-	public void doLogic(double secondsElapsed) {
-		motion = motion.translate((float)(influence.x*secondsElapsed), (float)(influence.y*secondsElapsed), (float)(influence.z*secondsElapsed));
-		if (influenceDuration >= 0) {
-			if (influenceDuration <= secondsElapsed) {
-				influenceDuration = 0;
-				influence.set(0, 0, 0);
-			} else influenceDuration -= secondsElapsed;
-		}
-
-		location = location.translate((float)(motion.x*secondsElapsed), (float)(motion.y*secondsElapsed), (float)(motion.z*secondsElapsed));
-
-		rotationAngle = rotationAngle.translate((float)(rotationInfluence.x*secondsElapsed), (float)(rotationInfluence.y*secondsElapsed), (float)(rotationInfluence.z*secondsElapsed) );
-		if (rotationDuration >= 0) {
-			if (rotationDuration <= secondsElapsed) {
-				rotationDuration = 0;
-				rotationInfluence.set(0, 0, 0);
-			} else rotationDuration -= secondsElapsed;
-		}
-	}
-
 	public Vector3f getRotationAngle() {
 		return rotationAngle;
 	}
 
 	public Vector3f getLocation() {
 		return location;
+	}
+
+	public void doLogic(double secondsElapsed) {
+		double remainingDuration = secondsElapsed < influenceDuration || influenceDuration <= 0 ? secondsElapsed : influenceDuration;
+		motion = motion.translate((float)(influence.x*remainingDuration), (float)(influence.y*remainingDuration), (float)(influence.z*remainingDuration));
+		if (influenceDuration >= 0) {
+			if (influenceDuration <= secondsElapsed) {
+				influenceDuration = 0;
+				influence.set(0, 0, 0);
+			} else influenceDuration -= secondsElapsed;
+		}
+		location = location.translate((float)(motion.x*remainingDuration), (float)(motion.y*remainingDuration), (float)(motion.z*remainingDuration));
+		energyConsumption += (float)Math.sqrt(Math.pow(motion.x*remainingDuration,2) + Math.pow(motion.y*remainingDuration,2) + Math.pow(motion.z*remainingDuration,2));
+
+		remainingDuration = secondsElapsed < rotationDuration || rotationDuration < 0 ? secondsElapsed : rotationDuration;
+		rotationAngle = rotationAngle.translate((float)(rotationInfluence.x*remainingDuration), (float)(rotationInfluence.y*remainingDuration), (float)(rotationInfluence.z*remainingDuration) );
+		if (rotationDuration >= 0) {
+			if (rotationDuration <= secondsElapsed) {
+				rotationDuration = 0;
+				rotationInfluence.set(0, 0, 0);
+			} else rotationDuration -= secondsElapsed;
+		}
+		energyConsumption += (float)Math.sqrt(Math.pow(rotationInfluence.x*remainingDuration,2) + Math.pow(rotationInfluence.y*remainingDuration,2) + Math.pow(rotationInfluence.z*remainingDuration,2));
 	}
 }

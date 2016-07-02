@@ -63,6 +63,7 @@ public class Constants {
 
 	public static final float		maxEnergy			= 3000f;
 	public static final int 		maxTorpedoes		= 15;
+	public static final float		torpedoSpeed		= 50f;
 
 	public static final float		maxStarbaseEnergy	= 300000f;
 	public static final int 		maxStarbaseTorpedoes = 1500;

@@ -4,18 +4,29 @@ import org.lwjgl.util.vector.Vector3f;
  * Created by Mark on 25/06/2016.
  */
 public class ComputerManagement {
+	private Alliance alliance = null;
 	private Galaxy galaxy = null;
+	private Sector sector = null;
 	private Entity ship = null;
+	private SoundManagement sound = null;
+	private String lastCommand = "";
+
+	public void setAlliance(Alliance a) { alliance = a; }
 
 	public void setGalaxy(Galaxy g) {
 		galaxy = g;
 	}
 
+	public void setSector(Sector s) { sector = s; }
+
 	public void setShip(Entity s) {
 		ship = s;
 	}
 
+	public void setSound(SoundManagement s) { sound = s; }
+
 	public boolean doCommand(String cmd) {
+		lastCommand = cmd;
 		String[] pieces;
 
 		pieces = cmd.trim().toUpperCase().split("[ ,\t\\n\\x0B\\f\\r]");
@@ -26,13 +37,31 @@ public class ComputerManagement {
 		else if (pieces[0].compareToIgnoreCase("WARP") == 0 ) { command_WARP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("STOP") == 0 ) { command_STOP(pieces); }
 		else if (pieces[0].compareToIgnoreCase("COMP") == 0 ) { command_COMP(pieces); }
-//		else if (pieces[0].compareToIgnoreCase("LRS") == 0 ) { galaxy.doLRS(); }
+		else if (pieces[0].compareToIgnoreCase("LRS") == 0 ) { command_LRS(pieces); }
 //		else if (pieces[0].compareToIgnoreCase("SRS") == 0 ) { galaxy.doSRS(); }
 //		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) { ship.shieldsUp = true; }
 //		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) { ship.shieldsUp = false; }
+		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) { alliance.gameRunning = false; }
+
 		else return false;
 
 		return true;
+	}
+
+	public String getLastCommand() {
+		return lastCommand;
+	}
+
+	private boolean command_LRS(String[] pieces) {
+		for ( int gx = alliance.playerGalacticX - 1; gx <= alliance.playerGalacticX + 1; gx++) {
+			for (int gy = alliance.playerGalacticY - 1; gy <= alliance.playerGalacticY + 1; gy++) {
+				if (gx < 0 || gx >= alliance.galaxySize) continue;
+				if (gy < 0 || gy >= alliance.galaxySize) continue;
+				galaxy.getSector(gx, gy).setLRS(ship.getLRS(gx, gy));	// Scan current sector
+			}
+		}
+
+         		return true;
 	}
 
 	private boolean command_TOR(String[] pieces) {
@@ -50,7 +79,18 @@ public class ComputerManagement {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-//TODO		galaxy.playerFiredTorpedo(angle);
+		if (ship.torpedoCount > 0) {
+			Entity torpedo =  new Entity(Entity.SubType.TORPEDO, Constants.FILE_IMG_TORPEDO, 0);
+			torpedo.sprite.setLocation(ship.sprite.getLocation());
+			torpedo.energyLevel = 5000;
+			torpedo.sprite.setRotationAngle(0, 0, 360-angle);
+			Vector3f shipMotion = ship.sprite.getMotion();
+			torpedo.sprite.setMotion(shipMotion.x-Constants.torpedoSpeed*(float)Math.sin(Math.toRadians(360-angle)),shipMotion.y+Constants.torpedoSpeed*(float)Math.cos(Math.toRadians(360-angle)), 0f);
+			torpedo.sprite.doLogic(.6); // move the torpedo out before it starts working (clears us).
+			sector.AddEntity(torpedo);
+			sound.playSound("Torpedo");
+			ship.torpedoCount--;
+		}
 		return true;
 	}
 
@@ -69,8 +109,20 @@ public class ComputerManagement {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-//TODO		galaxy.playerFiredPhaser(angle, power);
+		for (Entity entity : sector.getEntities()) {
+			if (entity.eType == Entity.SubType.ENEMYSHIP) {
+				entity.energyLevel -= (power - (distanceBetween(ship, entity)/10)) / sector.enemyCount;
+			}
+		}
+		ship.energyLevel -= power;
+
 		return true;
+	}
+
+	private float distanceBetween(Entity me, Entity him) {
+		Vector3f meLoc = me.sprite.getLocation();
+		Vector3f himLoc = him.sprite.getLocation();
+		return (float)Math.sqrt(Math.pow(meLoc.x-himLoc.x,2)+Math.pow(meLoc.y-himLoc.y,2));
 	}
 
 	private boolean command_IMP(String[] pieces) {
@@ -85,9 +137,10 @@ public class ComputerManagement {
 			duration = pieces[3];
 
 			try {
-				angle = Float.valueOf(direction) % 360;
-				if (angle < 0) angle += 360;
+				angle = Float.valueOf(direction);
+
 				force = Float.valueOf(power); if (force > 20) force = 20;	// technically could make the energy requirements exponential and so preclude the need for a limit
+
 				seconds = Float.valueOf(duration);							// Dont need time limit as energy reserves will expire and stop progress anyway
 			} catch (Exception e) {
 				return false; // no moving for you when you get the parameters wrong
@@ -96,9 +149,13 @@ public class ComputerManagement {
 			return false; // no moving for you when you get the parameters wrong
 		}
 
-
-//TODO		galaxy.setPlayerHeading(angle, 0);
-//TODO		galaxy.setPlayerThrust( force, seconds);
+		Vector3f currentMotion = ship.sprite.getMotion();
+		double fx = -Math.sin(Math.toRadians(360-angle))*force - currentMotion.x;
+		double fy = Math.cos(Math.toRadians(360-angle))*force - currentMotion.y;
+		double fz = 0;
+		Vector3f currentRot = ship.sprite.getRotationAngle();
+		ship.sprite.setInfluence((float)fx, (float)fy, (float)fz, seconds);
+		ship.sprite.setRotationInfluence(0, 0, (360-angle+180-currentRot.z)/3, 3);
 
 		return true;
 	}
@@ -135,6 +192,9 @@ public class ComputerManagement {
 	}
 
 	private boolean command_STOP(String[] pieces) {
+		Vector3f shipMotion = ship.sprite.getMotion();
+		ship.sprite.setInfluence(-shipMotion.x/3, -shipMotion.y/3, 0, 3);
+
 //TODO		float currentVelocity = galaxy.getPlayerVelocity();
 //TODO		if (currentVelocity > 0) {
 //TODO			galaxy.setPlayerThrust(-50, currentVelocity / 50.0f + 1);
@@ -245,7 +305,7 @@ public class ComputerManagement {
 //		helpWindow.writeLn( "F4                          Ship Status Display");
 //		helpWindow.writeLn("");
 //		helpWindow.writeLn( "TOR angle                   Send a torpedo out at the angle (in degrees) provided");
-//		helpWindow.writeLn( "PHA angle power             Fire phasers along indicated angle starting with indicated power. Power drops by 1 for each 1 unit of range.");
+//		helpWindow.writeLn( "PHA power		             Fire phasers at every enemy with total indicated power divided amongst the targets. Power drop proportional with range to target.");
 //		helpWindow.writeLn( "IMP angle force duration    Turn ship towards angle while applying force for indicated number of seconds");
 //		helpWindow.writeLn( "WARP angle factor duration  Turn ship towards angle then travel at Warp Factor provided for indicated number of seconds");
 //		helpWindow.writeLn( "                            Warp factor 1 for 1 second will take you one sector.  Higher factors take more energy, travel further and get there faster.");

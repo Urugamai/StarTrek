@@ -1,7 +1,7 @@
 Version 0.1 DONE
 ===========
 - Basic game play
-    - REDONE: Quadrant with YOU, Enemy, Star, StarBase (dumb pictures)
+    - DONE: Quadrant with YOU, Enemy, Star, StarBase
     - DONE: Command interface
         - Does lwjgl have a text window ability (NO) - implement in own class GameText
     - DONE: Torpedo
@@ -17,19 +17,15 @@ Version 0.2 DONE
 
 Version 0.3
 ===========
-- DONE: Galactic Map (Press and hold KEY_F2)
-    - DONE: Replaces sector screen with Galactic Map
-    - DONE: DOES NOT PAUSE game operation (if possible)
-    - DONE: Only shows sector details for ones you have seen with LRS
-    - DONE: Shows all starbase Sectors as they are where the federation put them so LRS to find them is not necessary
+- DONE: Galactic Map
+    - DONE: DOES NOT PAUSE game operation
+    - DONE: Only shows sector details for ones you have seen with LRS and then only as they were when the lrs was run
 
 Version 0.4
 ===========
-- DONE: Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
-- DONE: Remove Gravity
+- ABANDONED: Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
      - DONE: Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
              relevant super entities so that each can rotate at different rates
-- DONE: Fix broken torpedo capability
 
 Version 0.5
 ===========

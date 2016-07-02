@@ -1,13 +1,23 @@
 
+import java.awt.*;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.util.ArrayList;
+
+import javafx.scene.canvas.GraphicsContext;
+import org.newdawn.slick.*;
+import org.newdawn.slick.Color;
+import org.newdawn.slick.font.GlyphPage;
+import org.newdawn.slick.font.effects.ColorEffect;
+import org.newdawn.slick.gui.*;
+import org.newdawn.slick.opengl.TextureImpl;
+import static org.newdawn.slick.Color.*;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.util.vector.Vector3f;
-import org.newdawn.slick.*;
-
-import java.awt.*;
-import java.awt.Font;
-import java.util.ArrayList;
+import org.newdawn.slick.opengl.pbuffer.GraphicsFactory;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -27,17 +37,31 @@ public class ViewManagement {
 	private Alliance alliance = null;
 	private Galaxy galaxy = null;
 	private Sector sector = null;
-	private GameText computer = null;
 	private Entity ship = null;
+	private UserManagement user = null;
+	private ComputerManagement computer = null;
 
 	private int[] viewX, viewY, viewH, viewW;
 
-	private TrueTypeFont fontGalaxy;
-	private Font awtFont = new Font("Courier", Font.PLAIN, 16); //name, style (PLAIN, BOLD, or ITALIC), size
+	private static TrueTypeFont fontGalaxy = null;
+	private static UnicodeFont fontComputer = null;
 
 	public ViewManagement(boolean fullscreen) {
 		initialiseView(fullscreen, screenWidth, screenHeight, window0PercentW, window0PercentH);
-		fontGalaxy = new TrueTypeFont(awtFont, false); //base Font, anti-aliasing true/false
+
+		Font courierFont = new Font(Font.MONOSPACED, Font.PLAIN, 14); //name, style (PLAIN, BOLD, or ITALIC), size
+		fontGalaxy = new TrueTypeFont(courierFont, false);
+
+		Font TNRFont;
+		TNRFont = new Font("Courier New", Font.PLAIN, 16);
+		fontComputer = new UnicodeFont(TNRFont);
+		fontComputer.getEffects().add(new ColorEffect());
+		fontComputer.addAsciiGlyphs();
+		try {
+			fontComputer.loadGlyphs();
+		} catch (SlickException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public ViewManagement(boolean fullscreen, int sw, int sh) {
@@ -101,10 +125,12 @@ public class ViewManagement {
 	private void createGL() {
 		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_DEPTH_TEST);							// disable the OpenGL depth test since we're rendering 2D graphics
+		glDisable(GL_LIGHTING);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);               // Black Background
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -158,15 +184,17 @@ public class ViewManagement {
 
 	public void setShip(Entity s) { ship = s; }
 
+	public void setComputer(ComputerManagement c) { computer = c; }
+
+	public void setUser(UserManagement u) { user = u; }
+
 	public void draw(double secondsElapsed) {
 
-		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		for (int nView = 0; nView < 4; nView++) {
 			setupView(nView);
-			drawView(nView);
+			drawView(nView, secondsElapsed);
 		}
 
 		fps++;	// we drew a frame
@@ -179,8 +207,9 @@ public class ViewManagement {
 			fps = 0;
 		}
 
-//		glFlush();
+		glFlush();
 		Display.update();		// update screen contents	(Switch non-visible with visible framebuffer)
+//		Display.sync(60);
 	}
 
 	private void setupView(int nView) {
@@ -188,9 +217,14 @@ public class ViewManagement {
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glOrtho(0, viewW[nView], viewH[nView], 0, 1, -1);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glEnable(GL_TEXTURE_2D);
 	}
 
-	private void drawView(int nView) {
+	private void drawView(int nView, double secondsElapsed) {
 
 		switch (nView) {
 			case 0:
@@ -206,7 +240,7 @@ public class ViewManagement {
 				break;
 
 			case 3:
-				drawGalaxy();
+				drawGalaxy(secondsElapsed);
 				break;
 
 			default:
@@ -214,17 +248,22 @@ public class ViewManagement {
 		}
 	}
 
-	private void drawGalaxy() {
+	private void drawGalaxy(double secondsElapsed) {
 		if (galaxy == null) return;
-		int height = fontGalaxy.getHeight()+1;
-		int width = (fontGalaxy.getWidth("1")+0)*3;
+
+		org.newdawn.slick.Color txtColor;
+		String dontKnow = "*";
+
+		int height = fontGalaxy.getLineHeight()+2;
+		int width = (fontGalaxy.getWidth("000")+3);
 
 		for(int gx = 0; gx < alliance.galaxySize; gx++) {
 			for(int gy = 0; gy < alliance.galaxySize; gy++) {
-				Sector sector = galaxy.getSector(gx, gy);
-				String text = "x1z";// + sector.enemyCount + sector.starbaseCount + sector.planetCount;
-				fontGalaxy.drawString((gx+0)*width,(gy+0)*height, text, org.newdawn.slick.Color.white);
-				//drawSprite(ship.sprite, (gx+1)*15, (gy+1)*15, 0.5f);
+				Entity.LRS lrs = ship.getLRS(gx, gy);
+				String text = "" + (lrs.enemyCount < 0 ? dontKnow : lrs.enemyCount) + (lrs.starbaseCount < 0 ? dontKnow : lrs.starbaseCount) + (lrs.planetCount < 0 ? dontKnow : lrs.planetCount);
+				if ((gx == alliance.playerGalacticX) && (gy == alliance.playerGalacticY)) txtColor = green;
+				else txtColor = white;
+				fontGalaxy.drawString((gx+0)*width+50,(gy+0)*height, text, txtColor);
 			}
 		}
 	}
@@ -242,12 +281,48 @@ public class ViewManagement {
 	private void drawStatus() {
 		if (ship == null) return;
 
-		drawSprite(ship.sprite, 100, 100, 20.0f);
+		glPushMatrix();									// store the current model matrix
+
+		drawSprite(ship.sprite, 100, 100, 20.0f, false);
+
+		org.newdawn.slick.Color txtColor = green;
+		int height = fontComputer.getLineHeight()+2;
+		String text; // = "This is a test of the computer output capability 0123456789 Test Complete.";
+
+		text = "Energy Level: " + ship.energyLevel;
+		fontComputer.drawString(0, ship.sprite.getHeight()*20+120, text, txtColor);
+
+		text = "Torpedo Count: " + ship.torpedoCount;
+		fontComputer.drawString(0, ship.sprite.getHeight()*20+140, text, txtColor);
+
+		text = "Enemy Count: " + alliance.totalEnemy;
+		fontComputer.drawString(0, ship.sprite.getHeight()*20+160, text, txtColor);
+
+		text = "Starbase Count: " + alliance.totalStarbases;
+		fontComputer.drawString(0, ship.sprite.getHeight()*20+180, text, txtColor);
+
+		text = "DOCKED: " + ship.docked;
+		fontComputer.drawString(0, ship.sprite.getHeight()*20+200, text, txtColor);
+
+		glPopMatrix();
 	}
 
 	private void drawComputer() {
 		if (computer == null) return;
 
+		glPushMatrix();									// store the current model matrix
+
+		org.newdawn.slick.Color txtColor = green;
+		int height = fontComputer.getLineHeight()+2;
+		String text; // = "This is a test of the computer output capability 0123456789 Test Complete.";
+
+		text = user.getUserInput();
+		fontComputer.drawString(0, 0, "Computer: " + text, txtColor);
+
+		text = computer.getLastCommand();
+		fontComputer.drawString(0, 20, "last Command: " + text, txtColor);
+
+		glPopMatrix();
 	}
 
 	private void drawEntity(Entity entity) {
@@ -259,10 +334,10 @@ public class ViewManagement {
 
 	private void drawSprite(Sprite sprite, int atX, int atY) {
 
-		drawSprite(sprite, atX, atY, 1.0f);
+		drawSprite(sprite, atX, atY, 1.0f, true);
 	}
 
-	private void drawSprite(Sprite sprite, int atX, int atY, float scale) {
+	private void drawSprite(Sprite sprite, int atX, int atY, float scale, boolean effects) {
 		int height = sprite.getHeight();
 		int width = sprite.getWidth();
 		Texture texture = sprite.getTexture();
@@ -270,16 +345,15 @@ public class ViewManagement {
 
 		int centreY = height / 2, centreX = width / 2;
 
-		// store the current model matrix
-		glPushMatrix();
+		glPushMatrix();									// store the current model matrix
+		texture.bind();									// bind to the appropriate texture for this sprite
 
-		// bind to the appropriate texture for this sprite
-		texture.bind();
-
-		glTranslatef(atX, atY, 0);				// move image to target location
-		glRotatef(rotation.x, 1.0f, 0.0f, 0.0f);		// rotate image around the X axis (the param with a 1.0 as its value)
-		glRotatef(rotation.y, 0.0f, 1.0f, 0.0f);		// rotate image around the Y axis (the param with a 1.0 as its value)
-		glRotatef(rotation.z, 0.0f, 0.0f, 1.0f);		// rotate image around the Z axis (the param with a 1.0 as its value)
+		glTranslatef(atX, atY, 0);						// move image to target location
+		if (effects) {
+			glRotatef(rotation.x, 1.0f, 0.0f, 0.0f);        // rotate image around the X axis (the param with a 1.0 as its value)
+			glRotatef(rotation.y, 0.0f, 1.0f, 0.0f);        // rotate image around the Y axis (the param with a 1.0 as its value)
+			glRotatef(rotation.z, 0.0f, 0.0f, 1.0f);        // rotate image around the Z axis (the param with a 1.0 as its value)
+		}
 		glTranslatef(-centreX, -centreY, 0);			// move image to correct for rotation around 0,0 (a corner of the image)
 
 		// draw a quad textured to match the sprite
@@ -292,6 +366,7 @@ public class ViewManagement {
 		}
 		glEnd();
 
+		glBindTexture(0,0);								// unbind so life for other sections are easier
 		glPopMatrix();
 	}
 }

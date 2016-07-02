@@ -1,3 +1,6 @@
+import org.lwjgl.Sys;
+import org.omg.CORBA.SystemException;
+
 import java.util.ArrayList;
 
 /**
@@ -15,6 +18,10 @@ public class Sector {
 
 	public void AddEntity(Entity entity) {
 		entities.add(entity);
+	}
+
+	public void removeEntity(Entity entity) {
+		entities.remove(entity);
 	}
 
 	/**
@@ -64,18 +71,23 @@ public class Sector {
 		return entities;
 	}
 
+	public void setLRS(Entity.LRS lrs) {
+		lrs.enemyCount = enemyCount;
+		lrs.starbaseCount = starbaseCount;
+		lrs.planetCount = planetCount;
+	}
+
 	public void doLogic(double secondsElapsed) {
 		// cycle round every entity doing personal logic and other interactions
 		for (Entity entity : entities) {
 			entity.doLogic(secondsElapsed);
+			entity.setCollidedWith(findCollision(entity));
 		}
 	}
 
 	public Entity findCollision(Entity me) {
-		for (int j = 0; j < entities.size(); j++) {
-			Entity him = entities.get(j);
+		for (Entity him : entities) {
 			if (me == him) continue;
-
 			if (me.collidesWith(him)) return him;
 		}
 		return null;
