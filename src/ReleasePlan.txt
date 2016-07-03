@@ -1,86 +1,25 @@
-Version 0.1 DONE
-===========
-- Basic game play
-    - DONE: Quadrant with YOU, Enemy, Star, StarBase
-    - DONE: Command interface
-        - Does lwjgl have a text window ability (NO) - implement in own class GameText
-    - DONE: Torpedo
-        - straight line for now, be ready for gravity calculations in the future
-    - DONE: Hit detection
+BUGS
+====
+- Galaxy size increase may exceed galaxy view box - need to alter font size according to galaxy size.
+    FIXED IN VERSION: ...
+- Change to impulse setting while in motion does not seem to work
+-  Impulse drive just keeps accelerating - set a MAXIMUM SPEED. (or Energy consumption might also help)
+-  Torpedoes travel too slow?
 
-Version 0.2 DONE
+Version 0.9
 ===========
-- Movement
-    - DONE: YOU
-    - DONE: Turn in direction providing shortest angle change
-    - DONE: Impulse drive (in sector only for now)
-
-Version 0.3
-===========
-- DONE: Galactic Map
-    - DONE: DOES NOT PAUSE game operation
-    - DONE: Only shows sector details for ones you have seen with LRS and then only as they were when the lrs was run
-
-Version 0.4
-===========
-- ABANDONED: Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
-     - DONE: Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
-             relevant super entities so that each can rotate at different rates
-
-Version 0.5
-===========
-- Movement
-    - DONE: Need sectors to be joined? - currently it is just the 'void' between solar systems that never ends-think about it
-    - DONE: Other fixes:
-        - Made galaxy dynamically sized.
-        - impulse travel now crosses sector boundaries
-        - STOP command now SLOWS to zero rather than instantaneous halt ;-)
-    - DONE: WARP Drive!  Travel across sector boundary
-        - NOT DOING: Accelerate to full impulse before enabling WARP drive
-
-Version 0.6
-===========
-- DONE: Add energy capability to all ships (Enterprise, Romulans, StarBase)
-    - DONE: add new Entity Types and superset of Entity (ShipEntity, ObjectEntity)
-        - DONE: move Warp and other movement parameters to ShipEntity so Objects do not have movement capability
-    - DONE: energy display (structural integrity and shields too)
-    - DONE: computer commands to calculate angle to target
-        - Computer output to SideBar reserved area
-- New Bugs:
-    - Crash when torpedo leaves sector
+    - computer commands to calculate angle to target(s) (write to notes section of computer window)
+    - Output user game statistics on exit of gameloop (Win/Lose, stardate delta, kills, rating, promotions?, etc)
+        - pause on exit of game until user enters ESC
 
 Version 0.x
 ===========
-- Phasers
-    - Lightspeed travel of beam
-    - Straight line
-    - Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
-    - cannot shoot into other quadrants - there is interstellar 'space' between the sectors within which the beam degrades to zero
-
-Version 0.x
-===========
-- Add STARDATE
-    - WARP jumps sectors
-        - i.e. long trips are quick in elapsed user time but take a number of 'days' to do (stardate update)
-    - Crossing sector boundaries adds a 'chunk of time' to the date to illustrate there is 'space' between sectors.
-        - What does this mean for torpedoes crossing the boundary?
-
-Version 0.x
-===========
-- Torpedo Tubes
-    - can launch 'n' torpedoes at once where n is the number of tubes available
-    - Each torpedo can be sent in a different direction
-    - numeric count (limit) of available torpedoes
-
-Version 0.x
-===========
-- DONE: STOP command to 'slow down to zero' rather than instantly stop.
 - Enemies 'Follow you' - even across sectors. Once you have been seen they will track you until you are more than 2
-  sectors away, (then they will continue on the path they were on?)
+  sectors away, (then they will continue on the path they were on?). I.e. enemy have LRS as well, just that it finds you and starbases
 
 Version 0.x
 ===========
-- ship status view (down right side or a new screen?  Torp count, energy levels (Total, % shields, etc), damage report diagram, other?)
+- ship status view damage report diagram
 
 Version 0.x
 ===========
@@ -93,12 +32,7 @@ Version 0.x
 
 Version 0.x
 ===========
-- DONE: Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
 - Torpedo Enhancements
-    - FUEL
-        - The destructive power of a torpedo is purely based on the fuel it carries at time of impact
-        - as the fuel is used the destructive force reduces
-        - once out of fuel the torpedo self destructs using the primer charge that would have detonated the fuel
     - life of a torpedo can be reduced by setting it on the launch command
     - torpedoes will NOT create new sectors, they self destruct on entering the unknown.
     - Arming Delay (1 seconds) - once armed it can destroy YOU too!  Theory is you could get killed by same explosion.
@@ -143,7 +77,7 @@ Version 0.x
 
 Version 0.x
 ===========
-- StarBase Recharge of your ship
+- StarBase REPAIR of your ship
     - Use (CurrentEnergy/MaxEnergy) of starbase to determine % effectiveness of repairs
     - Instant restore n% repair crews
     - Repairs run n% of 10 times quicker at base
@@ -153,6 +87,87 @@ Version 0.x
         - warp nacelles
         - Physical ship damage
 
+Version 0.x (Rethink about this...)
+===========
+- Torpedo Tubes
+    - can launch 'n' torpedoes at once where n is the number of tubes available
+    - Each torpedo can be sent in a different direction
+    - numeric count (limit) of available torpedoes
+
+************************************************************************************************************************
+
+Version 0.1 DONE
+===========
+- DONE: Basic game play
+    - DONE: Quadrant with YOU, Enemy, Star, StarBase
+    - DONE: Command interface
+        - Does lwjgl have a text window ability (NO) - implement in own class GameText
+    - DONE: Torpedo
+        - straight line for now, be ready for gravity calculations in the future
+        - FUEL
+            - The destructive power of a torpedo is purely based on the fuel it carries at time of impact
+            - as the fuel is used the destructive force reduces
+            - once out of fuel the torpedo self destructs using the primer charge that would have detonated the fuel
+    - DONE: Hit detection
+
+Version 0.2 DONE
+===========
+- DONE: Movement
+    - DONE: YOU
+    - DONE: Turn in direction provided
+    - DONE: Impulse drive (in sector only for now)
+    - DONE: Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
+
+Version 0.3 DONE
+===========
+- DONE: Galactic Map
+    - DONE: DOES NOT PAUSE game operation
+    - DONE: Only shows sector details for ones you have seen with LRS and then only as they were when the lrs was run
+- DONE: Ship status (down right side or a new screen?  Torp count, energy levels (Total, % shields, etc), )
+
+Version 0.4 DONE
+===========
+- revisit?: Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
+     - DONE: Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
+             relevant super entities so that each can rotate at different rates
+
+Version 0.5 DONE
+===========
+- Movement
+    - DONE: Need sectors to be joined? - currently it is just the 'void' between solar systems that never ends-think about it
+    - DONE: Other fixes:
+        - DONE: Made galaxy dynamically sized.
+        - ABANDONED: impulse travel now crosses sector boundaries
+        - DONE: STOP command now SLOWS to zero rather than instantaneous halt ;-)
+    - DONE: WARP Drive!  Travel across sector boundary
+        - ABANDONED: Accelerate to full impulse before enabling WARP drive
+
+Version 0.6 DONE
+===========
+- DONE: Add energy capability to all ships (Enterprise, Romulans, StarBase)
+    - DONE: add new Entity Types and superset of Entity (ShipEntity, ObjectEntity)
+        - DONE: move Warp and other movement parameters to ShipEntity so Objects do not have movement capability
+    - DONE: energy display (structural integrity and shields too)
+
+Version 0.7 DONE
+===========
+- DONE: Phasers
+    - IRRELEVANT: Lightspeed travel of beam
+    - REPLACED with broadcast attack to ALL enemies in sector, each get a share of the energy allocated: Straight line
+    - DONE: Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
+    - DONE: cannot shoot into other quadrants - there is interstellar 'space' between the sectors within which the beam degrades to zero
+
+Version 0.8
+===========
+- Add STARDATE
+    - DONE: WARP jumps sectors
+        - i.e. long trips are quick in elapsed user time but take a number of 'days' to do (stardate update)
+    - ABANDONED: Crossing sector boundaries adds a 'chunk of time' to the date to illustrate there is 'space' between sectors.
+        - What does this mean for torpedoes crossing the boundary?
+        - boring - dont do it.
+- DONE: STOP command to 'slow down to zero' rather than instantly stop.
+
+************************************************************************************************************************************************************
 Version 1.0 ALPHA
 =================
 - Fork Phone Version
@@ -286,20 +301,6 @@ OTHER THOUGHTS
     - does not affect starbase normally (maintains position itself until computer is 'damaged' item, then decay orbit)
     - does not affect ships docked to starbase
 
-BUGS
-=====
-1.  For some reason the lwjgl audio library crashes on initialisation sometimes.  Restart the application is the
-    work-around until the cause can be identified.  Possibly find a way to detect failure before app crash and try again?
-    INTERIM FIX: Detect failure and keep trying - infinite loop bug however ;-).  Add loop counter to give up at some point.
-2.  Appears to be a concurrency bug in sector dologic
-    INTERIM FIX: Move add and remove to lists
-3.  Appears to be an issue in draw Galaxy that causes array boundaries to be crossed occasionally
-    INTERIM FIX: Made rows and columns of the text map for galaxy 1 wider/higher than should be needed.
-4.  FIXED?: Travelling across sectors occasionally sets the 'playerSector' to the wrong sector and then back to the correct one
-    after the next boundary crossing
-5.  Impulse drive just keeps accelerating - set a MAXIMUM SPEED. (or Energy consumption might also help)
-6.  Torpedoes travel too slow and not long enough.
-
 NOTES
 =====
 BORG = 400% of Romulan
@@ -327,17 +328,22 @@ found and/or destroyed but if you go out of their range then you are on your own
 Torpedo's will damage and possibly destroy anything, even friendly units, as they assume you know what your are doing
 when sending one out.  Dont get it wrong or you may make more enemies.
 
-The visible sector on your main display covers a 10 by 10 light-second area of space.  Hence, even
-phaser fire can be seen travelling to the target.  Note that the phaser fire display is computer generated as you
-cannot 'see' the phaser beam.  This also means that your display will not indicate phaser fire from the enemy, but
+The visible sector on your main display covers a local area of space.  As phasers are light your display will not
+indicate phaser fire from the enemy, but
 you will feel its effects.  Torpedoes on the other hand, travel noticeably slower and so scanner reflections can
 see both our and the enemy's torpedoes in transit.
 
-Starbases report SRS results via sub-space communications.  It may pay to go to those sectors early and clean them out
-before the enemy destroy the starbase.
+Starbases can be destroyed and are targets to the enemy.  Starbases have no defensive capabilities as all the best
+captains are now on starships saving the federation and so the bases are running on automatic.
+It may pay to go to those sectors early and clean them out before the enemy destroy the starbase.  The enemy can
+also use the starbase to recharge themselves taking valuable resources away from you and your ship.
 
 Actions take energy, fortunately this is recharged slowly during normal operations and can be rapidly refilled when
 docked to a starbase.
+
+The enemy ships are an equal match to your own, however, they are aliens so their strategies and abilities may leave
+you openings to attack and hopefully win this war.  Be careful as they will learn from your actions and become
+increasingly harder to eliminate.
 
 The computer understands a number of commands but they must be entered correctly or they will not work.  The
 commands are;

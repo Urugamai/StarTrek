@@ -29,10 +29,9 @@ public class ViewManagement {
 	private int	fps = 0;
 	private double fpsTimer = 0;
 
+	// Starting hints - we use the biggest we can get in the end
 	private int screenWidth = 1024;
 	private int screenHeight = 768;
-	private double window0PercentW = 0.8;
-	private double window0PercentH = 0.8;
 
 	private Alliance alliance = null;
 	private Galaxy galaxy = null;
@@ -43,47 +42,33 @@ public class ViewManagement {
 
 	private int[] viewX, viewY, viewH, viewW;
 
+	private String[] infoLines;
+	private int maxInfoLines = 7;
+
 	private static TrueTypeFont fontGalaxy = null;
 	private static UnicodeFont fontComputer = null;
 
 	public ViewManagement(boolean fullscreen) {
-		initialiseView(fullscreen, screenWidth, screenHeight, window0PercentW, window0PercentH);
-
-		Font courierFont = new Font(Font.MONOSPACED, Font.PLAIN, 14); //name, style (PLAIN, BOLD, or ITALIC), size
-		fontGalaxy = new TrueTypeFont(courierFont, false);
-
-		Font TNRFont;
-		TNRFont = new Font("Courier New", Font.PLAIN, 16);
-		fontComputer = new UnicodeFont(TNRFont);
-		fontComputer.getEffects().add(new ColorEffect());
-		fontComputer.addAsciiGlyphs();
-		try {
-			fontComputer.loadGlyphs();
-		} catch (SlickException e) {
-			e.printStackTrace();
-		}
+		initialiseView(fullscreen, screenWidth, screenHeight);
 	}
 
 	public ViewManagement(boolean fullscreen, int sw, int sh) {
-		initialiseView(fullscreen, sw, sh, window0PercentW, window0PercentH);
+		initialiseView(fullscreen, sw, sh);
 	}
 
-	public ViewManagement(boolean fullscreen, int sw, int sh, double wWF, double wHF) {
-		initialiseView(fullscreen, sw, sh, wWF, wHF);
-	}
-
-	public void initialiseView(boolean fullscreen, int sw, int sh, double wWF, double wHF) {
+	public void initialiseView(boolean fullscreen, int sw, int sh) {
 		int selectedDM = -1;
 		DisplayMode[] dm = null;
 		screenWidth = sw;
 		screenHeight = sh;
 
-		window0PercentW = wWF;
-		window0PercentH = wHF;
 		viewX = new int[4]; viewY = new int[4];
 		viewW = new int[4]; viewH = new int[4];
 
-		// Setup DISPLAY
+		infoLines = new String[maxInfoLines];
+		for (int i = 0; i < maxInfoLines; i++) infoLines[i] = "";
+
+		// Setup DISPLAY - find biggest screen size we can get and use it
 		try {
 			Display.setTitle(Constants.WINDOW_TITLE);
 			Display.setResizable(false);
@@ -113,6 +98,8 @@ public class ViewManagement {
 
 			createGL();
 			resizeGL();
+
+			setupFonts();
 
 		} catch (LWJGLException le) {
 			System.out.println("Alliance exiting - exception in initialization:");
@@ -144,13 +131,29 @@ public class ViewManagement {
 		glViewport(0, 0, screenWidth, screenHeight);
 	}
 
+	private void setupFonts() {
+		Font galaxyFont = new Font(Font.MONOSPACED, Font.PLAIN, 14); //name, style (PLAIN, BOLD, or ITALIC), size (TODO size based on galaxySize so galaxy view always fits in its box)
+		fontGalaxy = new TrueTypeFont(galaxyFont, false);
+
+		Font computerFont;
+		computerFont = new Font("Courier New", Font.PLAIN, 16);
+		fontComputer = new UnicodeFont(computerFont);
+		fontComputer.getEffects().add(new ColorEffect());
+		fontComputer.addAsciiGlyphs();
+		try {
+			fontComputer.loadGlyphs();
+		} catch (SlickException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void Destroy() {
 		Display.destroy();
 	}
 
 	private void setViewOrigins() {
-		int window0W = (int)Math.floor(screenWidth*window0PercentW);
-		int window0H = (int)Math.floor(screenHeight*window0PercentH);
+		int window0W = (int)Math.floor(screenWidth*Constants.sectorWindowPercentW);
+		int window0H = (int)Math.floor(screenHeight*Constants.sectorWindowPercentH);
 		int window3W = screenWidth - window0W;
 		int window3H = screenHeight - window0H;
 
@@ -187,6 +190,23 @@ public class ViewManagement {
 	public void setComputer(ComputerManagement c) { computer = c; }
 
 	public void setUser(UserManagement u) { user = u; }
+
+	public void writeScreen(String message) {
+		// use first free line
+		for (int i = 0; i < maxInfoLines; i++) {
+			if (infoLines[i].isEmpty()) {
+				infoLines[i] = message;
+				return;
+			}
+		}
+
+		// Scroll all lines up one, free up bottom line
+		for (int i = 0; i < maxInfoLines - 1; i++) {
+			infoLines[i] = infoLines[i + 1];
+		}
+
+		infoLines[maxInfoLines-1] = message;
+	}
 
 	public void draw(double secondsElapsed) {
 
@@ -227,19 +247,19 @@ public class ViewManagement {
 	private void drawView(int nView, double secondsElapsed) {
 
 		switch (nView) {
-			case 0:
+			case Constants.viewSector:
 				drawSector();
 				break;
 
-			case 1:
+			case Constants.viewStatus:
 				drawStatus();
 				break;
 
-			case 2:
+			case Constants.viewComputer:
 				drawComputer();
 				break;
 
-			case 3:
+			case Constants.viewGalaxy:
 				drawGalaxy(secondsElapsed);
 				break;
 
@@ -289,20 +309,35 @@ public class ViewManagement {
 		int height = fontComputer.getLineHeight()+2;
 		String text; // = "This is a test of the computer output capability 0123456789 Test Complete.";
 
+		int textY = ship.sprite.getHeight()*20+120;
+
+		text = "Stardate: " + alliance.starDate;
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
+
 		text = "Energy Level: " + ship.energyLevel;
-		fontComputer.drawString(0, ship.sprite.getHeight()*20+120, text, txtColor);
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
 
 		text = "Torpedo Count: " + ship.torpedoCount;
-		fontComputer.drawString(0, ship.sprite.getHeight()*20+140, text, txtColor);
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
 
 		text = "Enemy Count: " + alliance.totalEnemy;
-		fontComputer.drawString(0, ship.sprite.getHeight()*20+160, text, txtColor);
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
 
 		text = "Starbase Count: " + alliance.totalStarbases;
-		fontComputer.drawString(0, ship.sprite.getHeight()*20+180, text, txtColor);
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
 
 		text = "DOCKED: " + ship.docked;
-		fontComputer.drawString(0, ship.sprite.getHeight()*20+200, text, txtColor);
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
+
+		text = "Shield Energy: " + ship.shieldEnergy;
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
 
 		glPopMatrix();
 	}
@@ -316,11 +351,17 @@ public class ViewManagement {
 		int height = fontComputer.getLineHeight()+2;
 		String text; // = "This is a test of the computer output capability 0123456789 Test Complete.";
 
-		text = user.getUserInput();
-		fontComputer.drawString(0, 0, "Computer: " + text, txtColor);
-
 		text = computer.getLastCommand();
-		fontComputer.drawString(0, 20, "last Command: " + text, txtColor);
+		fontComputer.drawString(0, 0, "last Command: " + text, txtColor);
+
+		text = user.getUserInput();
+		fontComputer.drawString(0, 0 + height, "Computer: " + text, txtColor);
+
+		for (int i = 0; i < maxInfoLines; i++) {
+			if (infoLines[i].isEmpty()) break;	// done
+
+			fontComputer.drawString(0, height *(i+2), infoLines[i], txtColor);
+		}
 
 		glPopMatrix();
 	}

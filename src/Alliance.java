@@ -62,6 +62,9 @@ public class Alliance {
 
 	public int					totalEnemy = 0, totalStarbases = 0;
 
+	public int					starDate = Constants.startDate;
+	public double				rawStarDate = starDate;
+
 	/**
 	 * Construct our game and set it running.
 	 * @param fullscreen
@@ -99,6 +102,7 @@ public class Alliance {
 		computer = new ComputerManagement();
 		computer.setAlliance(this);
 		computer.setGalaxy(galaxy);
+		computer.setView(view);
 		view.setComputer(computer);
 		computer.setSound(sound);
 
@@ -143,17 +147,30 @@ public class Alliance {
 		playerShip = new Entity(Entity.SubType.FEDERATIONSHIP, Constants.FILE_IMG_ENTERPRISE, galaxySize);
 		computer.setShip(playerShip);
 		view.setShip(playerShip);
-		playerShip.torpedoCount = Constants.maxTorpedoes;
+
 		playerShip.energyLevel = 10000;
+		playerShip.energyGrowth = 10;
+		playerShip.maxEnergy = 10000;
+
+		playerShip.torpedoCount = Constants.maxTorpedoes;
+		playerShip.maxTorpedo = Constants.maxTorpedoes;
 
 		sector = galaxy.getSector(playerGalacticX, playerGalacticY);
 		sector.AddEntity(playerShip);
 		view.setSector(sector);
 		computer.setSector(sector);
 
+		placePlayerShip(sector);
+
+		initGalaxy();
+
+		// Intialise player scan of current sector
+		galaxy.getSector(playerGalacticX, playerGalacticY).setLRS(playerShip.getLRS(playerGalacticX, playerGalacticY));	// Scan current sector
+	}
+
+	protected void placePlayerShip(Sector sector) {
 		float sectorWidth = view.getViewWidth(Constants.viewSector);
 		float sectorHeight = view.getViewHeight(Constants.viewSector);
-
 		int pX, pY;
 		float entityW = playerShip.sprite.getWidth();
 		float entityH = playerShip.sprite.getHeight();
@@ -164,11 +181,6 @@ public class Alliance {
 			playerShip.sprite.setLocation(pX, pY, 0);
 		} while (sector.findCollision(playerShip) != null);
 		System.out.println("player landed at " + pX + ", " + pY);
-
-		initGalaxy();
-
-		// Intialise player scan of current sector
-		galaxy.getSector(playerGalacticX, playerGalacticY).setLRS(playerShip.getLRS(playerGalacticX, playerGalacticY));	// Scan current sector
 	}
 
 	private void initGalaxy() {
@@ -188,9 +200,10 @@ public class Alliance {
 				sector = galaxy.getSector(gx, gy);
 
 				newEntity = new Entity(Entity.SubType.STAR, Constants.FILE_IMG_STAR);
-				newEntity.sprite.setLocation(centreX,centreY,0);
+				newEntity.sprite.setLocation(centreX, centreY, 0);
 				newEntity.sprite.setRotationInfluence(0.0f, 0.0f, 10.0f, -1.0f);
-				newEntity.energyLevel = 1000000000;
+				newEntity.energyLevel = Constants.starEnergy;
+				newEntity.maxEnergy = newEntity.energyLevel;
 				sector.AddEntity(newEntity);
 
 				sector.starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
@@ -215,7 +228,9 @@ public class Alliance {
 					} while (sector.findCollision(newEntity) != null);
 					newEntity.sprite.setLocation(pX,pY,0);
 					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, (float)(Math.random()*40.0f)-20.0f, -1.0f);
-					newEntity.energyLevel = 1000000;
+					newEntity.energyLevel = Constants.starbaseEnergy;
+					newEntity.maxEnergy = newEntity.energyLevel;
+					newEntity.torpedoCount = (int)Math.ceil(Constants.maxStarbaseTorpedoes * Math.random());
 					sector.AddEntity(newEntity);
 					totalStarbases++;
 				}
@@ -232,7 +247,8 @@ public class Alliance {
 					} while (sector.findCollision(newEntity) != null);
 					newEntity.sprite.setLocation(pX,pY,0);
 					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, (float)(Math.random()*80.0f)-40.0f, -1.0f);
-					newEntity.energyLevel = 100000000;
+					newEntity.energyLevel = Constants.planetEnergy;
+					newEntity.maxEnergy = newEntity.energyLevel;
 					sector.AddEntity(newEntity);
 				}
 
@@ -248,7 +264,8 @@ public class Alliance {
 					} while (sector.findCollision(newEntity) != null);
 					newEntity.sprite.setLocation(pX,pY,0);
 					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, 0.0f, 0.0f);
-					newEntity.energyLevel = 10000;
+					newEntity.energyLevel = Constants.shipEnergy;
+					newEntity.maxEnergy = newEntity.energyLevel;
 					sector.AddEntity(newEntity);
 					totalEnemy++;
 				}
@@ -259,31 +276,80 @@ public class Alliance {
 		System.out.println("Total Starbases = " + totalStarbases);
 	}
 
+	private void hitEnergy(Entity entity, float hitBy) {
+		if (entity.shieldsUp) {
+			entity.shieldEnergy -= hitBy;
+			if (entity.shieldEnergy < 0) {
+				hitBy = -entity.shieldEnergy;
+				entity.shieldEnergy = 0;
+				entity.shieldsUp = false;
+			} else hitBy = 0;
+		}
+
+		doDamage(entity, hitBy);
+		addEnergy( entity, -hitBy);
+
+		if (entity.eType == Entity.SubType.ENEMYSHIP) view.writeScreen("Unit " + entity.eType + " energy left " + entity.energyLevel);
+	}
+
+	private void addEnergy(Entity entity, float alter) {
+		entity.energyLevel += alter;
+		if (entity.maxEnergy > 0 && entity.energyLevel > entity.maxEnergy) entity.energyLevel = entity.maxEnergy;
+	}
+
+	private void doDamage(Entity entity, float hitBy) {
+		//TODO difference between entity.energyLevel and hitBy determines how many random things get damaged by this hit
+	}
+
 	private void gameLogic(double secondsElapsed) {
 		Sector sector;
 		Entity deadEntity = null;
+
+		if (playerShip.collidedWith == null && playerShip.docked) playerShip.docked = false;	// we have left
 
 		for (int gx = 0; gx < galaxySize; gx++) {
 			for (int gy = 0; gy < galaxySize; gy++) {
 				sector = galaxy.getSector(gx, gy);
 
+				// Energy Calcs
+				for (Entity entity : sector.getEntities()) {
+					if (entity.docked && entity.collidedWith != null) { // still docked
+						addEnergy(entity, (float)(Constants.dockedEnergy*secondsElapsed));	// Docked bonus
+						if (entity.torpedoCount < entity.maxTorpedo && entity.collidedWith.torpedoCount > 0) {
+							entity.torpedoCount++;
+							entity.collidedWith.torpedoCount--;
+						}
+					}
+
+					addEnergy(entity, (float)(entity.energyGrowth*secondsElapsed));
+
+					if (entity.shieldsUp) addEnergy(entity, -(float)(entity.shieldEnergy * secondsElapsed * Constants.shieldRunningCost) );
+
+					if (entity.energyLevel > entity.sprite.energyConsumption) {
+						addEnergy(entity, -entity.sprite.energyConsumption);
+						entity.sprite.energyConsumption = 0;
+					} else {
+						entity.sprite.setInfluence(0,0,0,0);	// out of energy
+					}
+				}
+
 				do {
 					deadEntity = null;
 
-					// Energy impact
+					// Energy impact of collisions
 					for (Entity entity : sector.getEntities()) {
 						if (entity.collidedWith != null) {
 							if (entity.eType == Entity.SubType.TORPEDO) {
-								entity.collidedWith.energyLevel -= entity.energyLevel;
+								hitEnergy(entity.collidedWith, entity.energyLevel);
 								entity.energyLevel = 0; // torpedo dies instantly
 							} else if (entity.collidedWith.eType == Entity.SubType.STARBASE) {
-								if (!playerShip.docked) {
-									playerShip.sprite.setMotion(0, 0, 0);
-									playerShip.sprite.setInfluence(0, 0, 0, 0);
-									playerShip.docked = true;
+								if (!entity.docked) {
+									entity.sprite.setMotion(0, 0, 0);
+									entity.sprite.setInfluence(0, 0, 0, 0);
+									entity.docked = true;
 								}
 							} else {
-								entity.energyLevel -= (entity.collidedWith.energyLevel * secondsElapsed);
+								addEnergy(entity, -(float)(entity.collidedWith.energyLevel * secondsElapsed));
 							}
 						}
 
@@ -331,7 +397,7 @@ public class Alliance {
 		while (gameRunning) {
 			setTimeDelta();
 
-			// TODO: move everyone along msElapsed milliSeconds
+			// move everyone along msElapsed Seconds (fractional part thereof actually)
 			updateLogic((double)msElapsed / 1000.0);
 
 			view.draw((double)msElapsed / 1000.0);
@@ -362,6 +428,9 @@ public class Alliance {
 		long now = getTime();
 		msElapsed = now - lastLoopTime;
 		lastLoopTime = now;
+
+		rawStarDate += (msElapsed/100);
+		starDate = (int)Math.floor(rawStarDate);
 	}
 
 	/**
@@ -379,6 +448,8 @@ public class Alliance {
 	 * @param argv The arguments that are passed into our game
 	 */
 	public static void main(String argv[]) {
+		// TODO Implement complete parameter handling
+		// eg. -gs 10 	for setting the galaxy size dynamically
 		System.out.println("Use -fullscreen for fullscreen mode");
 
 		new Alliance((argv.length > 0 && "-fullscreen".equalsIgnoreCase(argv[0]))).execute();

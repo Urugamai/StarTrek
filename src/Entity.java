@@ -76,6 +76,7 @@ public class Entity {
 	protected float		solidityGrowth = 0;			// How much solidity can I INCREASE per second
 	protected float		maxSolidity = 0;			// How solid can I get (damage reduces this)
 
+	public boolean 		shieldsUp = true;
 	protected float		shieldEnergy = 0;			// What is my shield energy level
 	protected float		shieldGrowth = 0;			// what is my shield rate of repair per second
 	protected float		maxShield = 0;				// How much shield protection can we deliver (damage reduces this)
@@ -115,7 +116,7 @@ public class Entity {
 		this.eType = eType;
 		this.sprite = sprite;
 		if (gs > 0) longRangeScan = allocate(LRS.class, gs, gs);
-		radius2 = Math.pow(Math.max(sprite.getHeight(), sprite.getWidth()),2);
+		radius2 = Math.pow(Math.max(sprite.getHeight(), sprite.getWidth())/2,2);
 	}
 
 	public Sprite getSprite(String ref) {
@@ -134,7 +135,7 @@ public class Entity {
 	}
 
 	/**
-	 * Check if this entity collides with another.
+	 * Check if this entity collides with another - use radius assuming shields, etc will hit outside the actual shape
 	 *
 	 * @param other The other entity to check collision against
 	 * @return True if the entities collide with each other
@@ -145,7 +146,7 @@ public class Entity {
 
 		double separation2 = Math.pow(meLocation.x-himLocation.x,2)+Math.pow(meLocation.y-himLocation.y,2)+0; // Math.pow(meLocation.z-himLocation.z,2))
 
-		// Circle collision detection - radius is max of height or width of image, Z-coord ignored.
+		// Circle collision detection - radius is half of the max of height or width of image, Z-coord ignored (for now?)
 		return ( (this.radius2	+ other.radius2) > (separation2) );
 	}
 
@@ -153,6 +154,5 @@ public class Entity {
 
 	public void doLogic(double secondsElapsed) {
 		sprite.doLogic(secondsElapsed);
-		energyLevel -= sprite.energyConsumption; sprite.energyConsumption = 0;
 	}
 }

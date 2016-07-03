@@ -137,7 +137,7 @@ public class Sprite {
 			} else influenceDuration -= secondsElapsed;
 		}
 		location = location.translate((float)(motion.x*remainingDuration), (float)(motion.y*remainingDuration), (float)(motion.z*remainingDuration));
-		energyConsumption += (float)Math.sqrt(Math.pow(motion.x*remainingDuration,2) + Math.pow(motion.y*remainingDuration,2) + Math.pow(motion.z*remainingDuration,2));
+		energyConsumption += (float)Math.sqrt(Math.pow(influence.x*remainingDuration,2) + Math.pow(influence.y*remainingDuration,2) + Math.pow(influence.z*remainingDuration,2));
 
 		remainingDuration = secondsElapsed < rotationDuration || rotationDuration < 0 ? secondsElapsed : rotationDuration;
 		rotationAngle = rotationAngle.translate((float)(rotationInfluence.x*remainingDuration), (float)(rotationInfluence.y*remainingDuration), (float)(rotationInfluence.z*remainingDuration) );
