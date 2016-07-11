@@ -281,7 +281,7 @@ public class ViewManagement {
 			for(int gy = 0; gy < alliance.galaxySize; gy++) {
 				Entity.LRS lrs = ship.getLRS(gx, gy);
 				String text = "" + (lrs.enemyCount < 0 ? dontKnow : lrs.enemyCount) + (lrs.starbaseCount < 0 ? dontKnow : lrs.starbaseCount) + (lrs.planetCount < 0 ? dontKnow : lrs.planetCount);
-				if ((gx == alliance.playerGalacticX) && (gy == alliance.playerGalacticY)) txtColor = green;
+				if ((gx == (int)ship.galacticLoc.x) && (gy == (int)ship.galacticLoc.y)) txtColor = green;
 				else txtColor = white;
 				fontGalaxy.drawString((gx+0)*width+50,(gy+0)*height, text, txtColor);
 			}
@@ -301,6 +301,9 @@ public class ViewManagement {
 	private void drawStatus() {
 		if (ship == null) return;
 
+		int ex = (int)Math.floor(ship.galacticLoc.x);
+		int ey = (int)Math.floor(ship.galacticLoc.y);
+
 		glPushMatrix();									// store the current model matrix
 
 		drawSprite(ship.sprite, 100, 100, 20.0f, false);
@@ -315,7 +318,19 @@ public class ViewManagement {
 		fontComputer.drawString(0, textY, text, txtColor);
 		textY += height;
 
-		text = "Energy Level: " + ship.energyLevel;
+		text = "Location: (" + ex + ", " + ey + ")";
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
+
+		text = "Energy Level: " + (int)ship.energyLevel;
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
+
+		text = "Shields: " + (ship.shieldsUp ? " Up" : " Down");
+		fontComputer.drawString(0, textY, text, txtColor);
+		textY += height;
+
+		text = "Shield Energy: " + (int)ship.shieldEnergy;
 		fontComputer.drawString(0, textY, text, txtColor);
 		textY += height;
 
@@ -335,9 +350,14 @@ public class ViewManagement {
 		fontComputer.drawString(0, textY, text, txtColor);
 		textY += height;
 
-		text = "Shield Energy: " + ship.shieldEnergy;
-		fontComputer.drawString(0, textY, text, txtColor);
-		textY += height;
+		if (ship.docked && ship.dockedWith != null) {
+			text = "  Base Energy: " + (int)ship.dockedWith.energyLevel;
+			fontComputer.drawString(0, textY, text, txtColor);
+			textY += height;
+			text = "  Base Torpedo Stock: " + ship.dockedWith.torpedoCount;
+			fontComputer.drawString(0, textY, text, txtColor);
+			textY += height;
+		}
 
 		glPopMatrix();
 	}
@@ -393,7 +413,7 @@ public class ViewManagement {
 		if (effects) {
 			glRotatef(rotation.x, 1.0f, 0.0f, 0.0f);        // rotate image around the X axis (the param with a 1.0 as its value)
 			glRotatef(rotation.y, 0.0f, 1.0f, 0.0f);        // rotate image around the Y axis (the param with a 1.0 as its value)
-			glRotatef(rotation.z, 0.0f, 0.0f, 1.0f);        // rotate image around the Z axis (the param with a 1.0 as its value)
+			glRotatef((rotation.z+180)%360, 0.0f, 0.0f, 1.0f);        // rotate image around the Z axis (the param with a 1.0 as its value)
 		}
 		glTranslatef(-centreX, -centreY, 0);			// move image to correct for rotation around 0,0 (a corner of the image)
 

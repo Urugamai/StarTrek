@@ -35,12 +35,6 @@ import java.io.IOException;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * Implementation of sprite that uses an OpenGL quad and a texture
- * to render a given image to the screen.
- * Enhance to include location and rotation values and influences
- *
- * @author Kevin Glass
- * @author Brian Matzon
  *
  * @author Mark W. Watson
  */
@@ -57,7 +51,7 @@ public class Sprite {
 	private Vector3f	rotationInfluence;			/** Change in Radians of rotation per second */
 	private float		rotationDuration;			/** How long before we turn off the rotationInfluence */
 
-	public float		energyConsumption = 0;
+	public double		energyConsumption = 0;
 
 	/**
 	 * Create a new sprite from a specified image.
@@ -137,7 +131,7 @@ public class Sprite {
 			} else influenceDuration -= secondsElapsed;
 		}
 		location = location.translate((float)(motion.x*remainingDuration), (float)(motion.y*remainingDuration), (float)(motion.z*remainingDuration));
-		energyConsumption += (float)Math.sqrt(Math.pow(influence.x*remainingDuration,2) + Math.pow(influence.y*remainingDuration,2) + Math.pow(influence.z*remainingDuration,2));
+		energyConsumption += Math.sqrt(Math.pow(influence.x*remainingDuration,2) + Math.pow(influence.y*remainingDuration,2) + Math.pow(influence.z*remainingDuration,2));
 
 		remainingDuration = secondsElapsed < rotationDuration || rotationDuration < 0 ? secondsElapsed : rotationDuration;
 		rotationAngle = rotationAngle.translate((float)(rotationInfluence.x*remainingDuration), (float)(rotationInfluence.y*remainingDuration), (float)(rotationInfluence.z*remainingDuration) );
@@ -147,6 +141,6 @@ public class Sprite {
 				rotationInfluence.set(0, 0, 0);
 			} else rotationDuration -= secondsElapsed;
 		}
-		energyConsumption += (float)Math.sqrt(Math.pow(rotationInfluence.x*remainingDuration,2) + Math.pow(rotationInfluence.y*remainingDuration,2) + Math.pow(rotationInfluence.z*remainingDuration,2));
+		energyConsumption += Math.sqrt(Math.pow(rotationInfluence.x*remainingDuration,2) + Math.pow(rotationInfluence.y*remainingDuration,2) + Math.pow(rotationInfluence.z*remainingDuration,2));
 	}
 }

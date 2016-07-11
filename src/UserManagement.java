@@ -27,7 +27,6 @@ public class UserManagement {
 	public boolean Update() {
 		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) return false;	// Game Over
 
-
 		// Process the command history buffer
 		if (Keyboard.isKeyDown(Keyboard.KEY_UP)) {
 			if (!inKeyUp) {
@@ -101,4 +100,7 @@ public class UserManagement {
 		galaxy = g;
 	}
 
+	public void waitEscape() {
+		while (!Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) ;	// Wait for escape key to be pressed
+	}
 }

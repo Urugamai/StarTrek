@@ -50,6 +50,7 @@ public class Alliance {
 	private UserManagement		user;
 	private SoundManagement		sound;
 	private ComputerManagement  computer;
+	private AIManagement		AI;
 
 	private Galaxy 				galaxy;
 	protected int 				galaxySize = 10;
@@ -57,8 +58,7 @@ public class Alliance {
 	public static boolean		gameRunning	= true;
 	public String 				Command = null;
 
-	private Entity				playerShip;
-	protected int				playerGalacticX, playerGalacticY;
+	protected Entity				playerShip;
 
 	public int					totalEnemy = 0, totalStarbases = 0;
 
@@ -106,6 +106,11 @@ public class Alliance {
 		view.setComputer(computer);
 		computer.setSound(sound);
 
+		AI = new AIManagement();
+		AI.setComputer(computer);
+		AI.setAlliance(this);
+		AI.setGalaxy(galaxy);
+
 		// setup the initial game state
 		startAlliance();
 	}
@@ -137,50 +142,34 @@ public class Alliance {
 	}
 
 	private void startAlliance() {
-		Sector sector;
-		ArrayList<Entity> entities;
-
-		// Add The PLAYER to a SECTOR in the GALAXY
-		playerGalacticX = (int) Math.floor(Math.random() * galaxySize);
-		playerGalacticY = (int) Math.floor(Math.random() * galaxySize);
-
-		playerShip = new Entity(Entity.SubType.FEDERATIONSHIP, Constants.FILE_IMG_ENTERPRISE, galaxySize);
-		computer.setShip(playerShip);
-		view.setShip(playerShip);
-
-		playerShip.energyLevel = 10000;
-		playerShip.energyGrowth = 10;
-		playerShip.maxEnergy = 10000;
-
-		playerShip.torpedoCount = Constants.maxTorpedoes;
-		playerShip.maxTorpedo = Constants.maxTorpedoes;
-
-		sector = galaxy.getSector(playerGalacticX, playerGalacticY);
-		sector.AddEntity(playerShip);
-		view.setSector(sector);
-		computer.setSector(sector);
-
-		placePlayerShip(sector);
-
 		initGalaxy();
 
 		// Intialise player scan of current sector
-		galaxy.getSector(playerGalacticX, playerGalacticY).setLRS(playerShip.getLRS(playerGalacticX, playerGalacticY));	// Scan current sector
+		galaxy.getSector((int)playerShip.galacticLoc.x, (int)playerShip.galacticLoc.y).setLRS(playerShip, playerShip.getLRS((int)playerShip.galacticLoc.x, (int)playerShip.galacticLoc.y));	// Scan current sector
 	}
 
-	protected void placePlayerShip(Sector sector) {
+	protected void placeEntityInSector(Entity entity, Sector sector) {
 		float sectorWidth = view.getViewWidth(Constants.viewSector);
 		float sectorHeight = view.getViewHeight(Constants.viewSector);
 		int pX, pY;
-		float entityW = playerShip.sprite.getWidth();
-		float entityH = playerShip.sprite.getHeight();
+		float entityW = entity.sprite.getWidth();
+		float entityH = entity.sprite.getHeight();
 
 		do {
 			pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
 			pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
-			playerShip.sprite.setLocation(pX, pY, 0);
-		} while (sector.findCollision(playerShip) != null);
-		System.out.println("player landed at " + pX + ", " + pY);
+			entity.sprite.setLocation(pX, pY, 0);
+		} while (sector.inACollision(entity));
+
+		entity.sprite.setRotationAngle(0, 0, (int) (Math.random() * (360)));
+		// TODO Set random (slight) motion in current direction - need enemy AI to cope with this...   -- entity.sprite.setMotion(0,0,0);
+
+		int ex = (int)Math.floor(sector.galacticLoc.x);
+		int ey = (int)Math.floor(sector.galacticLoc.y);
+
+		entity.setLocation(ex, ey, 0);
+
+		System.out.println("entity " + entity.eType + " landed at (" + pX + ", " + pY+ ") in sector (" + ex + "," + ey + ")");
 	}
 
 	private void initGalaxy() {
@@ -188,22 +177,23 @@ public class Alliance {
 		float sectorHeight = view.getViewHeight(Constants.viewSector);
 		float centreX = sectorWidth / 2;
 		float centreY = sectorHeight / 2;
-		float entityW;
-		float entityH;
 		Sector sector;
 		Entity newEntity;
 		int pX, pY, reps;
+		int	gx, gy;
 
 		// scan the galaxy and add stars, enemies, etc.
-		for (int gx = 0; gx < galaxySize; gx++) {
-			for (int gy = 0; gy < galaxySize; gy++) {
+		for (gx = 0; gx < galaxySize; gx++) {
+			for (gy = 0; gy < galaxySize; gy++) {
 				sector = galaxy.getSector(gx, gy);
 
+				// STAR first as it goes in the CENTRE of the sector every time
 				newEntity = new Entity(Entity.SubType.STAR, Constants.FILE_IMG_STAR);
 				newEntity.sprite.setLocation(centreX, centreY, 0);
 				newEntity.sprite.setRotationInfluence(0.0f, 0.0f, 10.0f, -1.0f);
-				newEntity.energyLevel = Constants.starEnergy;
-				newEntity.maxEnergy = newEntity.energyLevel;
+				newEntity.energyLevel = Constants.starEnergy.baseEnergy;
+				newEntity.energyGrowth = Constants.starEnergy.stdGrowth;
+				newEntity.maxEnergy = Constants.starEnergy.maxEnergy;
 				sector.AddEntity(newEntity);
 
 				sector.starbaseCount = Math.random() < Constants.starbaseProbability ? 1 : 0;
@@ -218,65 +208,83 @@ public class Alliance {
 
 				// Add Starbase (Maximum 1)
 				if (sector.starbaseCount > 0) {
-					newEntity = new Entity(Entity.SubType.STARBASE, Constants.FILE_IMG_STARBASE);
-					entityW = newEntity.sprite.getWidth();
-					entityH = newEntity.sprite.getHeight();
-					do {
-						pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
-						pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
-						newEntity.sprite.setLocation(pX, pY, 0);
-					} while (sector.findCollision(newEntity) != null);
-					newEntity.sprite.setLocation(pX,pY,0);
+					newEntity = new Entity(Entity.SubType.STARBASE, Constants.FILE_IMG_STARBASE, galaxySize);
 					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, (float)(Math.random()*40.0f)-20.0f, -1.0f);
-					newEntity.energyLevel = Constants.starbaseEnergy;
-					newEntity.maxEnergy = newEntity.energyLevel;
-					newEntity.torpedoCount = (int)Math.ceil(Constants.maxStarbaseTorpedoes * Math.random());
+					newEntity.energyLevel = Constants.starbaseEnergy.baseEnergy;
+					newEntity.energyGrowth = Constants.starbaseEnergy.stdGrowth;
+					newEntity.maxEnergy = Constants.starbaseEnergy.maxEnergy;
+
+					newEntity.maxShield = Constants.shieldEnergy.maxEnergy*100;
+
+					newEntity.torpedoCount = (int)Math.ceil(Constants.starbaseTorpedoes.maxValue * Math.random());
+					newEntity.maxTorpedo = (int)Constants.starbaseTorpedoes.maxValue;
+
 					sector.AddEntity(newEntity);
+					placeEntityInSector(newEntity, sector);
 					totalStarbases++;
 				}
 
 				// Add Planet(s)
 				for (reps = 0; reps < sector.planetCount; reps++) {
 					newEntity = new Entity(Entity.SubType.PLANET, Constants.FILE_IMG_PLANET);
-					entityW = newEntity.sprite.getWidth();
-					entityH = newEntity.sprite.getHeight();
-					do {
-						pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
-						pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
-						newEntity.sprite.setLocation(pX, pY, 0);
-					} while (sector.findCollision(newEntity) != null);
-					newEntity.sprite.setLocation(pX,pY,0);
 					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, (float)(Math.random()*80.0f)-40.0f, -1.0f);
-					newEntity.energyLevel = Constants.planetEnergy;
-					newEntity.maxEnergy = newEntity.energyLevel;
+					newEntity.energyLevel = Constants.planetEnergy.baseEnergy;
+					newEntity.maxEnergy = Constants.planetEnergy.maxEnergy;
+					newEntity.energyGrowth = Constants.planetEnergy.stdGrowth;
 					sector.AddEntity(newEntity);
+					placeEntityInSector(newEntity, sector);
 				}
 
 				// Add Enemy(s)
 				for (reps = 0; reps < sector.enemyCount; reps++) {
-					newEntity = new Entity(Entity.SubType.ENEMYSHIP, Constants.FILE_IMG_ROMULAN);
-					entityW = newEntity.sprite.getWidth();
-					entityH = newEntity.sprite.getHeight();
-					do {
-						pX = (int) (Math.random() * (sectorWidth - 2*entityW) + entityW);
-						pY = (int) (Math.random() * (sectorHeight - 2*entityH) + entityH);
-						newEntity.sprite.setLocation(pX, pY, 0);
-					} while (sector.findCollision(newEntity) != null);
-					newEntity.sprite.setLocation(pX,pY,0);
+					newEntity = new Entity(Entity.SubType.ENEMYSHIP, Constants.FILE_IMG_ROMULAN, galaxySize);
 					newEntity.sprite.setRotationInfluence(0.0f, 0.0f, 0.0f, 0.0f);
-					newEntity.energyLevel = Constants.shipEnergy;
-					newEntity.maxEnergy = newEntity.energyLevel;
+
+					// Enemy START with half the energy we have but they gain energy as fast as we do and can grow to twice the power - game gets harder as time goes by!
+					newEntity.energyLevel = Constants.shipEnergy.baseEnergy / 2;
+					newEntity.maxEnergy = Constants.shipEnergy.maxEnergy * 2;
+					newEntity.energyGrowth = Constants.shipEnergy.stdGrowth / 5;	// Perhaps vary this value to set game difficulty levels
+
+					newEntity.maxShield = Constants.shieldEnergy.maxEnergy;
+
+					newEntity.torpedoCount = (int)Constants.shipTorpedoes.initialValue;
+					newEntity.maxTorpedo = (int)Constants.shipTorpedoes.maxValue;
+
 					sector.AddEntity(newEntity);
+					placeEntityInSector(newEntity, sector);
 					totalEnemy++;
 				}
 			}
 		}
 
+		// Add The PLAYER to a SECTOR in the GALAXY
+		gx = (int) Math.floor(Math.random() * galaxySize);
+		gy = (int) Math.floor(Math.random() * galaxySize);
+
+		playerShip = new Entity(Entity.SubType.FEDERATIONSHIP, Constants.FILE_IMG_ENTERPRISE, galaxySize);
+
+		playerShip.energyLevel = Constants.shipEnergy.baseEnergy;
+		playerShip.energyGrowth = Constants.shipEnergy.stdGrowth;
+		playerShip.maxEnergy = Constants.shipEnergy.maxEnergy;
+
+		playerShip.maxShield = Constants.shieldEnergy.maxEnergy;
+
+		playerShip.torpedoCount = (int)Constants.shipTorpedoes.initialValue;
+		playerShip.maxTorpedo = (int)Constants.shipTorpedoes.maxValue;
+
+		computer.setShip(playerShip);
+		view.setShip(playerShip);
+		sector = galaxy.getSector(gx, gy);
+		sector.AddEntity(playerShip);
+		placeEntityInSector(playerShip, sector);
+		view.setSector(sector);
+		computer.setSector(sector);
+
 		System.out.println("Total Enemy = " + totalEnemy);
 		System.out.println("Total Starbases = " + totalStarbases);
 	}
 
-	private void hitEnergy(Entity entity, float hitBy) {
+	private void hitEnergy(Entity entity, double hitBy) {
 		if (entity.shieldsUp) {
 			entity.shieldEnergy -= hitBy;
 			if (entity.shieldEnergy < 0) {
@@ -289,23 +297,65 @@ public class Alliance {
 		doDamage(entity, hitBy);
 		addEnergy( entity, -hitBy);
 
-		if (entity.eType == Entity.SubType.ENEMYSHIP) view.writeScreen("Unit " + entity.eType + " energy left " + entity.energyLevel);
+		int ex = (int)Math.floor(entity.galacticLoc.x);
+		int ey = (int)Math.floor(entity.galacticLoc.y);
+		view.writeScreen("Enemy at (" + ex + "," + ey + ") by " + computer.getDirection(playerShip, entity) + " has " + (int)entity.energyLevel + " units of energy left");
 	}
 
-	private void addEnergy(Entity entity, float alter) {
-		entity.energyLevel += alter;
+	private void addEnergy(Entity entity, double deltaE) {
+		entity.energyLevel += deltaE;
 		if (entity.maxEnergy > 0 && entity.energyLevel > entity.maxEnergy) entity.energyLevel = entity.maxEnergy;
 	}
 
-	private void doDamage(Entity entity, float hitBy) {
+	private void doDamage(Entity entity, double hitBy) {
 		//TODO difference between entity.energyLevel and hitBy determines how many random things get damaged by this hit
+	}
+
+	private void dockedProcessing(Entity entity, Entity starbase, double secondsElapsed) {
+
+		if (!entity.docked) {
+			entity.sprite.setMotion(0, 0, 0);
+			entity.sprite.setInfluence(0, 0, 0, 0);
+			entity.docked = true;
+			entity.dockedWith = starbase;
+			entity.dockedTimer = 0;
+		}
+
+		entity.dockedTimer += secondsElapsed;	// for things that should only occur once per second
+
+		float dockEnergy = (float)(Constants.shipEnergy.dockedGrowth*secondsElapsed);
+		addEnergy(entity, dockEnergy);	// Docked bonus
+		addEnergy(starbase, -dockEnergy);
+
+		if (entity.torpedoCount < entity.maxTorpedo && starbase.torpedoCount > 0 && entity.dockedTimer >= 1) {
+			entity.torpedoCount++;
+			starbase.torpedoCount--;
+		}
+
+		if (entity.dockedTimer >= 1) entity.dockedTimer -= 1;
+	}
+
+	private void collisionDamage(Entity ca, Entity cb, double secondsElapsed) {
+
+		// Torpedoes do all damage instantly, other collisions take time
+		if (ca.eType == Entity.SubType.TORPEDO) {
+			hitEnergy(cb, ca.energyLevel);
+			ca.energyLevel = 0;
+		}
+		else if (cb.eType == Entity.SubType.TORPEDO) {
+			hitEnergy(ca, cb.energyLevel);
+			cb.energyLevel = 0;
+		} else {
+			double caEnergy = ca.energyLevel;    // pre- hit energy effect calculations
+			hitEnergy(ca, cb.energyLevel * secondsElapsed);
+			hitEnergy(cb, caEnergy * secondsElapsed);
+		}
 	}
 
 	private void gameLogic(double secondsElapsed) {
 		Sector sector;
 		Entity deadEntity = null;
-
-		if (playerShip.collidedWith == null && playerShip.docked) playerShip.docked = false;	// we have left
+		Sector.CollisionList crashes;
 
 		for (int gx = 0; gx < galaxySize; gx++) {
 			for (int gy = 0; gy < galaxySize; gy++) {
@@ -313,17 +363,10 @@ public class Alliance {
 
 				// Energy Calcs
 				for (Entity entity : sector.getEntities()) {
-					if (entity.docked && entity.collidedWith != null) { // still docked
-						addEnergy(entity, (float)(Constants.dockedEnergy*secondsElapsed));	// Docked bonus
-						if (entity.torpedoCount < entity.maxTorpedo && entity.collidedWith.torpedoCount > 0) {
-							entity.torpedoCount++;
-							entity.collidedWith.torpedoCount--;
-						}
-					}
 
-					addEnergy(entity, (float)(entity.energyGrowth*secondsElapsed));
+					addEnergy(entity, (entity.energyGrowth*secondsElapsed));
 
-					if (entity.shieldsUp) addEnergy(entity, -(float)(entity.shieldEnergy * secondsElapsed * Constants.shieldRunningCost) );
+					if (entity.shieldsUp) addEnergy(entity, -(float)(entity.shieldEnergy * secondsElapsed * Constants.shieldEnergy.runningEnergy) );
 
 					if (entity.energyLevel > entity.sprite.energyConsumption) {
 						addEnergy(entity, -entity.sprite.energyConsumption);
@@ -331,27 +374,26 @@ public class Alliance {
 					} else {
 						entity.sprite.setInfluence(0,0,0,0);	// out of energy
 					}
+//					if (entity.eType == Entity.SubType.TORPEDO) System.out.println("Torpedo energy now at " + (int)entity.energyLevel + " after change of " + (int)entity.sprite.energyConsumption);
+				}
+
+				crashes = sector.getCollisions();
+				for (Sector.CollisionList.Collision c : crashes.collisions) {
+					// Docking
+					if (c.compareTypes(Entity.SubType.FEDERATIONSHIP, Entity.SubType.STARBASE)) {
+						dockedProcessing((c.A.eType == Entity.SubType.FEDERATIONSHIP ? c.A : c.B), (c.A.eType == Entity.SubType.FEDERATIONSHIP ? c.B : c.A), secondsElapsed);
+					} else
+					if (c.compareTypes(Entity.SubType.ENEMYSHIP, Entity.SubType.STARBASE)) {	// Enemy can dock with our starbases and commandeer supplies/energy
+						dockedProcessing((c.A.eType == Entity.SubType.ENEMYSHIP ? c.A : c.B), (c.A.eType == Entity.SubType.ENEMYSHIP ? c.B : c.A), secondsElapsed);
+					} else
+						collisionDamage(c.A, c.B, secondsElapsed);
 				}
 
 				do {
 					deadEntity = null;
 
-					// Energy impact of collisions
+					// Energy impact of collisions - note that we take a little each way - as long as the FPS rate is high it should be reasonably balanced.
 					for (Entity entity : sector.getEntities()) {
-						if (entity.collidedWith != null) {
-							if (entity.eType == Entity.SubType.TORPEDO) {
-								hitEnergy(entity.collidedWith, entity.energyLevel);
-								entity.energyLevel = 0; // torpedo dies instantly
-							} else if (entity.collidedWith.eType == Entity.SubType.STARBASE) {
-								if (!entity.docked) {
-									entity.sprite.setMotion(0, 0, 0);
-									entity.sprite.setInfluence(0, 0, 0, 0);
-									entity.docked = true;
-								}
-							} else {
-								addEnergy(entity, -(float)(entity.collidedWith.energyLevel * secondsElapsed));
-							}
-						}
 
 						// Are we dead yet?
 						if (entity.energyLevel <= 0) {
@@ -366,6 +408,7 @@ public class Alliance {
 							gameRunning = false;
 							sound.playSound("Lose");
 						}
+						System.out.println("Entity " + deadEntity.eType + " ran out of energy - destroyed.");
 						sector.removeEntity(deadEntity);
 						if (deadEntity.eType == Entity.SubType.ENEMYSHIP) { totalEnemy--; sector.enemyCount--; }
 						if (deadEntity.eType == Entity.SubType.STARBASE) { totalStarbases--; sector.starbaseCount--; }
@@ -383,8 +426,13 @@ public class Alliance {
 	 * NOT USED at this TOP LEVEL, we should be the one triggering game events ;-)
 	 */
 	public void updateLogic(double secondsElapsed) {
-		galaxy.doLogic(secondsElapsed);	// Updates all the entities in the galaxy
-		gameLogic(secondsElapsed);
+		galaxy.doLogic(secondsElapsed);	// Updates all the entities in the galaxy (movements mostly)
+		gameLogic(secondsElapsed);		// Energy and damage processing
+		AILogic(secondsElapsed);					// enemy thoughts
+	}
+
+	private void AILogic(double secondsElapsed) {
+		AI.doLogic(secondsElapsed);
 	}
 
 	/*****************************************************************
@@ -397,24 +445,27 @@ public class Alliance {
 		while (gameRunning) {
 			setTimeDelta();
 
-			// move everyone along msElapsed Seconds (fractional part thereof actually)
-			updateLogic((double)msElapsed / 1000.0);
-
 			view.draw((double)msElapsed / 1000.0);
 
-			if (gameRunning) gameRunning = user.Update();
+			gameRunning = user.Update();
 
 			Command = user.getCommand();
 			if (! Command.isEmpty()) {
 				user.clearCommand();
-				computer.doCommand(Command);
+				computer.doCommand(playerShip, Command);
 			}
+
+			// move everyone along msElapsed Seconds (fractional part thereof actually)
+			updateLogic((double)msElapsed / 1000.0);
 
 			if (totalEnemy <= 0) {
 				sound.playSound("Win");
 				gameRunning = false;
 			}
 		}
+
+		view.writeScreen("Game exit in progress...");
+		sleep(2000);
 
 		// clean up
 		sound.Destroy();

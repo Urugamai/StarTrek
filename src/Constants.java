@@ -38,33 +38,49 @@ public class Constants {
 	public static final int			startDate			= 20210703;
 
 	// LIMITS
-	public static final float		maxWarpSpeed		= 10.0f;
-	public static final float 		maxImpulseSpeed		= 100f;		// pixels per second?
+	public static final class Limits {
+		float	minValue;
+		float	initialValue;
+		float	maxValue;
+		public Limits(float min, float start, float max) {
+			minValue = min;
+			initialValue = start;
+			maxValue = max;
+		}
+	}
 
-	public static final int 		maxTorpedoes		= 15;
-	public static final int 		maxStarbaseTorpedoes = 150;
-	public static final float		torpedoSpeed		= 100f;
+	public static final Limits		warpSpeed 			= new Limits(	0f,		1f,		10f		);
+	public static final Limits		impulseSpeed 		= new Limits(	0f,		1f,		100f	);
+	public static final Limits		torpedoSpeed		= new Limits(	0f,		100f,	100f	);
+
+	public static final Limits		shipTorpedoes 		= new Limits( 	0f, 	25f,	50f		);
+	public static final Limits		starbaseTorpedoes 	= new Limits(	0f,		500f,	500f	);
 
 	// ENERGY
-	public static final float		starEnergy 			= 1000000000f;
-	public static final float		planetEnergy		= 100000000f;
-	public static final float		starbaseEnergy		= 1000000f;
-	public static final float		shipEnergy			= 10000f;
-	public static final float		dockedEnergy		= 100f;
-	public static final float		shieldRunningCost	= 0.01f;		// fraction of shield energy that leaks
+	public static final class Energy {
+		double	baseEnergy;
+		double	minEnergy;
+		double	maxEnergy;
+		double	stdGrowth;
+		double	dockedGrowth;
+		double	runningEnergy;
 
+		public Energy(double be, double mine, double maxe, double stdg, double dg, double re ) {
+			baseEnergy = be;
+			minEnergy = mine;
+			maxEnergy = maxe;
+			stdGrowth = stdg;
+			dockedGrowth = dg;
+			runningEnergy = re;
+		}
+	}
 
-	public static enum DisplayMode {HELP_SCREEN, DISPLAY_SECTOR, GALACTIC_MAP, SHIP_STATUS};
-	public static enum sectorDirection { LeftTop, Top, RightTop, Left, here, Right, LeftBottom, Bottom, RightBottom };
-	public static enum LRSItems {
-		Enemy(0), Starbases(1), Planets(2);
-		private final int value;
-		LRSItems(int value) {this.value = value; }
-		public int value() { return value; }
-		public static final int Size = LRSItems.values().length;
-	};
-
-	public static double sectorXScale = 1, sectorYScale = 1;
+	public static final Energy starEnergy 		= new Energy( 1000000000, 	0, 	1000000000, 	100000, 	0, 		0 		);
+	public static final Energy planetEnergy 	= new Energy( 10000000, 	0, 	10000000, 		10000, 		0, 		0 		);
+	public static final Energy starbaseEnergy 	= new Energy( 1000000, 		0, 	1000000, 		60, 		0, 		10 		);
+	public static final Energy shipEnergy 		= new Energy( 10000, 		0, 	10000, 			50, 		100, 	1 		);
+	public static final Energy shieldEnergy 	= new Energy( 0, 			0, 	10000, 			0, 			0, 		0.001 	);
+	public static final Energy torpedoEnergy 	= new Energy( 1000,			0, 	1000, 			0, 			0, 		0	 	);
 
 	// Prevent construction call
 	private Constants(){ }

@@ -29,79 +29,118 @@ public class ComputerManagement {
 
 	public void setView(ViewManagement v) { view = v; }
 
-	public boolean doCommand(String cmd) {
-		lastCommand = cmd;
+	public boolean doCommand(Entity entity, String cmd) {
 		String[] pieces;
-		lastCommandState = false;
+		boolean commandResult = false;
 
-				pieces = cmd.trim().toUpperCase().split("[ ,\t\\n\\x0B\\f\\r]");
+		pieces = cmd.trim().toUpperCase().split("[ ,\t\\n\\x0B\\f\\r]");
 
-		if (pieces[0].compareToIgnoreCase("TOR") == 0 ) { lastCommandState = command_TOR(pieces); }
-		else if (pieces[0].compareToIgnoreCase("PHA") == 0 ) { lastCommandState = command_PHA(pieces); }
-		else if (pieces[0].compareToIgnoreCase("IMP") == 0 ) { lastCommandState = command_IMP(pieces); }
-		else if (pieces[0].compareToIgnoreCase("WARP") == 0 ) { lastCommandState = command_WARP(pieces); }
-		else if (pieces[0].compareToIgnoreCase("STOP") == 0 ) { lastCommandState = command_STOP(pieces); }
-		else if (pieces[0].compareToIgnoreCase("COMP") == 0 ) { lastCommandState = command_COMP(pieces); }
-		else if (pieces[0].compareToIgnoreCase("LRS") == 0 ) { lastCommandState = command_LRS(pieces); }
-		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) { lastCommandState = command_SHUP(pieces); }
-		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) { lastCommandState = command_SHDOWN(pieces); }
-		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) { alliance.gameRunning = false; }
+		     if (pieces[0].compareToIgnoreCase("TOR") == 0 ) 		{ commandResult = command_TOR(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("PHA") == 0 ) 		{ commandResult = command_PHA(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("IMP") == 0 ) 		{ commandResult = command_IMP(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("WARP") == 0 ) 		{ commandResult = command_WARP(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("STOP") == 0 ) 		{ commandResult = command_STOP(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("LRS") == 0 ) 		{ commandResult = command_LRS(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("SHUP") == 0 ) 		{ commandResult = command_SHUP(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("SHDOWN") == 0 ) 	{ commandResult = command_SHDOWN(entity, pieces); }
+		else if (pieces[0].compareToIgnoreCase("EXIT") == 0 ) 		{ alliance.gameRunning = false; }
+		else if (pieces[0].compareToIgnoreCase("COMP") == 0 ) 		{ commandResult = command_COMP(pieces); }
 
-		return lastCommandState;
+		if (entity.eType == Entity.SubType.FEDERATIONSHIP) {
+			lastCommand = cmd;
+			lastCommandState = commandResult;
+		}
+
+		return commandResult;
 	}
 
 	public String getLastCommand() {
 		return lastCommand + " " + (lastCommandState ? "OK" : "Failed.");
 	}
 
-	private boolean command_LRS(String[] pieces) {
-		for ( int gx = alliance.playerGalacticX - 1; gx <= alliance.playerGalacticX + 1; gx++) {
-			for (int gy = alliance.playerGalacticY - 1; gy <= alliance.playerGalacticY + 1; gy++) {
+	private boolean command_LRS(Entity entity, String[] pieces) {
+		int ex = (int)Math.floor(entity.galacticLoc.x);
+		int ey = (int)Math.floor(entity.galacticLoc.y);
+
+		for ( int gx = ex - 1; gx <= ex + 1; gx++) {
+			for (int gy = ey - 1; gy <= ey + 1; gy++) {
 				if (gx < 0 || gx >= alliance.galaxySize) continue;
 				if (gy < 0 || gy >= alliance.galaxySize) continue;
-				galaxy.getSector(gx, gy).setLRS(ship.getLRS(gx, gy));	// Scan current sector
+				galaxy.getSector(gx, gy).setLRS(entity, entity.getLRS(gx, gy));	// Scan current sector
 			}
 		}
+
 		return true;
 	}
 
-	private boolean command_TOR(String[] pieces) {
-		float angle;
+	private boolean command_TOR(Entity entity, String[] pieces) {
+		float angle = 0;
 		String direction = "";
+		boolean AllTargets = false;
 
 		if (pieces.length > 1) {
 			direction = pieces[1];
-			try {
-				angle = Float.valueOf(direction);
-			} catch (Exception e) {
-				return false;  // no firing for you when you get the parameter wrong
+			if (direction.equalsIgnoreCase("*")) AllTargets = true;
+			else {
+				try {
+					angle = Float.valueOf(direction);
+				} catch (Exception e) {
+					return false;  // no firing for you when you get the parameter wrong
+				}
 			}
 		} else {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-		if (ship.torpedoCount > 0) {
-			Entity torpedo =  new Entity(Entity.SubType.TORPEDO, Constants.FILE_IMG_TORPEDO, 0);
-			torpedo.sprite.setLocation(ship.sprite.getLocation());
-			torpedo.energyLevel = 5000;
-			torpedo.maxEnergy = torpedo.energyLevel;
-			torpedo.sprite.setRotationAngle(0, 0, 360-angle);
-			Vector3f shipMotion = ship.sprite.getMotion();
-			torpedo.sprite.setMotion(shipMotion.x-Constants.torpedoSpeed*(float)Math.sin(Math.toRadians(360-angle)),shipMotion.y+Constants.torpedoSpeed*(float)Math.cos(Math.toRadians(360-angle)), 0f);
-			torpedo.sprite.doLogic(.6); // move the torpedo out before it starts working (clears us).
-			sector.AddEntity(torpedo);
-			sound.playSound("Torpedo");
-			ship.torpedoCount--;
+		float[] angleList = new float[Constants.maxEnemy];
+		int angleEntry = 0;
+		if (AllTargets) {
+			Entity.SubType opponentType = (entity.eType == Entity.SubType.ENEMYSHIP ? Entity.SubType.FEDERATIONSHIP : Entity.SubType.ENEMYSHIP);
+			for (Entity enemy : galaxy.getSector((int)entity.galacticLoc.x, (int)entity.galacticLoc.y).getEntities()) {
+				if (enemy.eType == opponentType) {
+					angleList[angleEntry++] = (float)getDirection(entity, enemy);
+					assert (angleEntry <= Constants.maxEnemy);
+				}
+			}
+			for (int i = 0; i < angleEntry; i++)
+				launchTorpedo(entity, angleList[i]);
+		} else {
+			launchTorpedo(entity, angle);
 		}
 		return true;
 	}
 
-	private boolean command_PHA(String[] pieces) {
-		float power = 0;
+	private void launchTorpedo(Entity entity, float angle) {
+//		angle = 360 - angle;
+		if (entity.torpedoCount > 0) {
+			Entity torpedo = new Entity(Entity.SubType.TORPEDO, Constants.FILE_IMG_TORPEDO, 0);
+			torpedo.sprite.setLocation(entity.sprite.getLocation());
+			torpedo.energyLevel = Constants.torpedoEnergy.baseEnergy;
+			torpedo.energyGrowth = Constants.torpedoEnergy.stdGrowth;
+			torpedo.maxEnergy = Constants.torpedoEnergy.maxEnergy;
+			torpedo.sprite.setRotationAngle(0, 0, angle);
+			Vector3f shipMotion = entity.sprite.getMotion();
+			torpedo.sprite.setMotion(shipMotion.x - Constants.torpedoSpeed.initialValue * (float) Math.sin(Math.toRadians(angle))
+					, shipMotion.y + Constants.torpedoSpeed.initialValue * (float) Math.cos(Math.toRadians(angle))
+					, 0f
+			);
+			torpedo.sprite.setInfluence(0,0,0,0);	// NO influences
+			torpedo.sprite.setRotationInfluence(0,0,0,0);
+
+			torpedo.sprite.doLogic(.6); // move the torpedo out before it starts working (clears us).
+			galaxy.getSector((int)entity.galacticLoc.x, (int)entity.galacticLoc.y).AddEntity(torpedo);
+			sound.playSound("Torpedo");
+			entity.torpedoCount--;
+		}
+
+	}
+
+	private boolean command_PHA(Entity entity, String[] pieces) {
+		double power = 0;
 
 		if (pieces.length > 1) {
 			try {
-				power = Float.valueOf(pieces[1]);
+				power = Double.valueOf(pieces[1]);
 			} catch (Exception e) {
 				return false;  // no firing for you when you get the parameter wrong
 			}
@@ -109,18 +148,30 @@ public class ComputerManagement {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-		for (Entity entity : sector.getEntities()) {
-			if (entity.eType == Entity.SubType.ENEMYSHIP) {
-				entity.energyLevel -= (power - (distanceBetween(ship, entity)/10)) / sector.enemyCount;
-				view.writeScreen("Unit " + entity.eType + " energy left " + entity.energyLevel);
+		if (entity.energyLevel < power)
+		{
+			view.writeScreen("Insufficient energy available for requested phaser fire: " + (int)power + " > " + (int)entity.energyLevel);
+			return false;
+		}
+
+		int enemyCount = 0;
+		Entity.SubType opponentType = ( entity.eType == Entity.SubType.ENEMYSHIP ? Entity.SubType.FEDERATIONSHIP : Entity.SubType.ENEMYSHIP );
+		for (Entity enemy : galaxy.getSector((int)entity.galacticLoc.x, (int)entity.galacticLoc.y).getEntities()) {		// count opponents in sector
+			if (enemy.eType == opponentType) enemyCount++;
+		}
+
+		for (Entity enemy : galaxy.getSector((int)entity.galacticLoc.x, (int)entity.galacticLoc.y).getEntities()) {
+			if (enemy.eType == opponentType) {
+				enemy.energyLevel -= (power / enemyCount) - (distanceBetween(entity, enemy)/10);
+				view.writeScreen("Unit " + enemy.eType + " energy left " + enemy.energyLevel);
 			}
 		}
-		ship.energyLevel -= power;
+		entity.energyLevel -= power;
 
 		return true;
 	}
 
-	private boolean command_IMP(String[] pieces) {
+	private boolean command_IMP(Entity entity, String[] pieces) {
 		float angle;
 		float force;
 		float seconds;
@@ -145,36 +196,34 @@ public class ComputerManagement {
 		}
 
 		// Motion corrections
-		Vector3f currentMotion = ship.sprite.getMotion();
-		double fx = -Math.sin(Math.toRadians(360-angle))*force - currentMotion.x;
-		double fy = Math.cos(Math.toRadians(360-angle))*force - currentMotion.y;
+		Vector3f currentMotion = entity.sprite.getMotion();
+		double fx = -Math.sin(Math.toRadians(angle))*force - currentMotion.x;
+		double fy = Math.cos(Math.toRadians(angle))*force - currentMotion.y;
 		double fz = 0;
-		ship.sprite.setInfluence((float)fx, (float)fy, (float)fz, seconds);
+		entity.sprite.setInfluence((float)fx, (float)fy, (float)fz, seconds);
 
 		// rotation adjustment
-		Vector3f currentRot = ship.sprite.getRotationAngle();
-		float newRotation = (360-angle+180-currentRot.z) % 360;
-		ship.sprite.setRotationInfluence(0, 0, newRotation/3, 3);
+		Vector3f currentRot = entity.sprite.getRotationAngle();
+		float newRotation = (angle-currentRot.z) % 360;
+		entity.sprite.setRotationInfluence(0, 0, newRotation/3, 3);
 
 		return true;
 	}
 
-	private boolean command_WARP(String[] pieces) {
+	private boolean command_WARP(Entity entity, String[] pieces) {
 		float angle;
 		float range;
-//		float seconds;
-		String direction = "", power = ""; //, duration = "";
+		String direction = "", power = "";
 
 		if ( pieces.length > 2 ) {
 			direction = pieces[1];
 			power = pieces[2];
-//			duration = pieces[3];
 
 			try {
-				angle = Float.valueOf(direction) % 360;
-				if (angle < 0) angle += 360;
+				angle = Float.valueOf(direction);
+				while (angle < 0) angle += 360;
+				angle %= 360;
 				range = Float.valueOf(power); if (range > alliance.galaxySize) range = alliance.galaxySize;
-//				seconds = Float.valueOf(duration);
 			} catch (Exception e) {
 				return false; // no moving for you when you get the parameters wrong
 			}
@@ -182,44 +231,46 @@ public class ComputerManagement {
 			return false; // no moving for you when you get the parameters wrong
 		}
 
-		int gx = alliance.playerGalacticX;
-		int gy = alliance.playerGalacticY;
+		int gx = (int)entity.galacticLoc.x;
+		int gy = (int)entity.galacticLoc.y;
 		Sector currentSector = galaxy.getSector(gx, gy);
-		int deltaGx = (int)Math.ceil(-Math.sin(Math.toRadians(360-angle))*range);
-		int deltaGy = (int)Math.ceil(Math.cos(Math.toRadians(360-angle))*range);
+		int deltaGx = (int)(-Math.sin(Math.toRadians(angle))*range);
+		int deltaGy = (int)(Math.cos(Math.toRadians(angle))*range);
 		gx += deltaGx;
 		gy += deltaGy;
 
+		// bring destination back inside the galaxy
 		if (gx < 0) gx = 0; if (gx >= alliance.galaxySize) gx = alliance.galaxySize - 1;
 		if (gy < 0) gy = 0; if (gy >= alliance.galaxySize) gy = alliance.galaxySize - 1;
 
+		// you lose all the energy intended even if you do not travel the distance requested (due to trying to leave the galaxy for example)
 		float energyNeeded = (float)Math.sqrt(Math.pow(deltaGx,2)+Math.pow(deltaGy,2)) * 1000;
 
-		if (energyNeeded > ship.energyLevel) return false;
+		if (energyNeeded > entity.energyLevel) return false;
 
-		ship.energyLevel -= energyNeeded;
+		entity.energyLevel -= energyNeeded;
 		Sector newSector = galaxy.getSector(gx, gy);
-		currentSector.removeEntity(ship);
-		newSector.AddEntity(ship);
+		currentSector.removeEntity(entity);
+		newSector.AddEntity(entity);
 		view.setSector(newSector);
 		sector = newSector;
-		alliance.placePlayerShip(sector);
-		alliance.playerGalacticX = gx;
-		alliance.playerGalacticY = gy;
+		alliance.placeEntityInSector(entity, sector);
 
-		alliance.rawStarDate += range;
+		if (entity == alliance.playerShip) {
+			alliance.rawStarDate += range;
+		}
 
 		return true;
 	}
 
-	private boolean command_SHUP(String[] pieces) {
-		float shEnergy;
+	private boolean command_SHUP(Entity entity, String[] pieces) {
+		double shEnergy;
 		String energy = "";
 
 		if (pieces.length > 1) {
 			energy = pieces[1];
 			try {
-				shEnergy = Float.valueOf(energy);
+				shEnergy = Double.valueOf(energy);
 			} catch (Exception e) {
 				return false;  // no firing for you when you get the parameter wrong
 			}
@@ -227,26 +278,25 @@ public class ComputerManagement {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-		if (shEnergy >= ship.energyLevel) return false;	// not enough power
+		if (shEnergy >= entity.energyLevel) return false;	// not enough power
 
-		ship.energyLevel -= shEnergy;
-		ship.shieldEnergy += shEnergy;
-		ship.shieldsUp = true;
-
-		return true;
-	}
-
-	private boolean command_SHDOWN(String[] pieces) {
-		ship.energyLevel += ship.shieldEnergy*0.99;	// losses in transferring energy
-		ship.shieldEnergy = 0;
-		ship.shieldsUp = false;
+		shEnergy = -entity.addEnergy(-shEnergy);
+		entity.addShieldEnergy(shEnergy);
 
 		return true;
 	}
 
-	private boolean command_STOP(String[] pieces) {
-		Vector3f shipMotion = ship.sprite.getMotion();
-		ship.sprite.setInfluence(-shipMotion.x/3, -shipMotion.y/3, 0, 3);
+	private boolean command_SHDOWN(Entity entity, String[] pieces) {
+		entity.addEnergy( entity.shieldEnergy*0.99 );	// losses in transferring energy
+		entity.shieldEnergy = 0;	// excess energy is vented as we cannot leave SHUP if captain wants them down.
+		entity.shieldsUp = false;
+
+		return true;
+	}
+
+	private boolean command_STOP(Entity entity, String[] pieces) {
+		Vector3f shipMotion = entity.sprite.getMotion();
+		entity.sprite.setInfluence(-shipMotion.x/3, -shipMotion.y/3, 0, 3);
 		return true;
 	}
 
@@ -377,4 +427,15 @@ public class ComputerManagement {
 		return (float)Math.sqrt(Math.pow(meLoc.x-himLoc.x,2)+Math.pow(meLoc.y-himLoc.y,2));
 	}
 
+	public double getDirection(Entity me, Entity him) {
+		Vector3f meLoc = me.sprite.getLocation();
+		Vector3f himLoc = him.sprite.getLocation();
+
+		double deltaX = himLoc.x - meLoc.x;
+		double deltaY = himLoc.y - meLoc.y;
+		double rad = Math.atan2(deltaY, deltaX);
+		double deg = (Math.toDegrees(rad) + 270)%360;
+
+		return deg;
+	}
 }

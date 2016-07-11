@@ -19,7 +19,7 @@ public class Galaxy {
 		for (int x = 0; x < column; x++) {
 			//matrix[x] = (Sector[]) Array.newInstance(c,column);
 			for(int y = 0; y < row; y++) {
-				matrix[x][y] = new Sector();		// Allocates and initialises a Sector
+				matrix[x][y] = new Sector(x,y);		// Allocates and initialises a Sector
 			}
 		}
 		return matrix;

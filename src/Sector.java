@@ -1,5 +1,4 @@
-import org.lwjgl.Sys;
-import org.omg.CORBA.SystemException;
+import org.lwjgl.util.vector.Vector3f;
 
 import java.util.ArrayList;
 
@@ -10,69 +9,94 @@ public class Sector {
 	public int enemyCount = 0;
 	public int starbaseCount = 0;
 	public int planetCount = 0;
+	public Vector3f galacticLoc = new Vector3f(-1,-1,0);
+	public String name;
 
 	protected ArrayList<Entity> entities = new ArrayList<Entity>();
+	CollisionList crashes = new CollisionList();
+
+	public static final class CollisionList {
+		ArrayList<Collision> collisions = new ArrayList<>();
+
+		public static final class Collision {
+			Entity A, B;
+
+			public Collision(Entity ea, Entity eb) {
+				A = ea;
+				B = eb;
+			}
+			public boolean compareTypes(Entity.SubType ta, Entity.SubType tb) {
+					if ( (A.eType == ta && B.eType == tb)
+							|| (A.eType == tb && B.eType == ta)
+							) {
+						return true;
+					}
+				return false;
+			}
+		}
+
+		public void addCollision(Entity me, Entity him) {
+			for (Collision c : this.collisions) {
+				if ( (c.A == me && c.B == him)
+						|| (c.A == him && c.B == me)
+						) return;	// Already have it
+			}
+			collisions.add(new Collision(me, him));
+		}
+
+		public void removeCollision(Collision rm) {
+			Collision toBeDeleted = null;
+			for (Collision c : collisions) {
+				if ( (c.A == rm.A && c.B == rm.B)
+						|| (c.A == rm.B && c.B == rm.A)
+						) {
+					toBeDeleted = c;
+					break;
+				}
+			}
+			collisions.remove(toBeDeleted);
+		}
+	}
 
 	public Sector() {
+		galacticLoc.x = -1;
+		galacticLoc.y = -1;
+		galacticLoc.z = 0;
+	}
+
+	public Sector(int gx, int gy) {
+		galacticLoc.x = gx;
+		galacticLoc.y = gy;
+		galacticLoc.z = 0;
+	}
+
+	public Sector(int gx, int gy, int gz) {
+		galacticLoc.x = gx;
+		galacticLoc.y = gy;
+		galacticLoc.z = gz;
 	}
 
 	public void AddEntity(Entity entity) {
 		entities.add(entity);
+		entity.setLocation(galacticLoc);
 	}
 
 	public void removeEntity(Entity entity) {
 		entities.remove(entity);
-	}
-
-	/**
-	 * Initialise the starting state of the entities (ship and aliens). Each
-	 * entity will be added to the overall list of entities in the game.
-	 *
-	 * TODO Move this to Alliance.java as it is a GAME component and needs to be managed from there
-	 */
-	public void initEntities() {
-		Entity newEntity = null;
-		int xUnits = 0;
-		int yUnits = 0;
-
-		int spriteXUnits, spriteYUnits;
-
-		Sprite tmpSprite;
-
-		newEntity = new Entity(Entity.SubType.STAR, Constants.FILE_IMG_STAR);
-		newEntity.sprite.setLocation(0,0,0);	// TODO - Move star to middle of viewport - need viewport dimension!
-		AddEntity(newEntity);
-
-		// whack in a starbase if needed
-		if (starbaseCount > 0) {
-			tmpSprite = new Sprite( Constants.FILE_IMG_STARBASE);
-			tmpSprite.setRotationAngle(0.1f,0,0);
-
-			for (int i = 0; i < starbaseCount; i++) {
-				newEntity = new Entity(Entity.SubType.STARBASE, tmpSprite);
-				AddEntity(newEntity);
-			}
-			tmpSprite = null;    // dispose
-		}
-
-		// Whack in the necessary number of enemy units
-		if (enemyCount > 0) {
-			tmpSprite = new Sprite(Constants.FILE_IMG_ROMULAN);
-
-			for (int i = 0; i < enemyCount; i++) {
-				newEntity = new Entity(Entity.SubType.ENEMYSHIP, tmpSprite);
-				AddEntity(newEntity);
-			}
-			tmpSprite = null;    // dispose
-		}
+		entity.setLocation(null);
 	}
 
 	public ArrayList<Entity> getEntities() {
 		return entities;
 	}
 
-	public void setLRS(Entity.LRS lrs) {
-		lrs.enemyCount = enemyCount;
+	public void setLRS(Entity me, Entity.LRS lrs) {
+		lrs.enemyCount = 0;
+		for (Entity entity : entities) {
+			if (entity.eType == Entity.SubType.FEDERATIONSHIP && me.eType == Entity.SubType.ENEMYSHIP) lrs.enemyCount++;
+			else if (me.eType == Entity.SubType.FEDERATIONSHIP && entity.eType == Entity.SubType.ENEMYSHIP) lrs.enemyCount++;
+		}
+
 		lrs.starbaseCount = starbaseCount;
 		lrs.planetCount = planetCount;
 	}
@@ -81,15 +105,61 @@ public class Sector {
 		// cycle round every entity doing personal logic and other interactions
 		for (Entity entity : entities) {
 			entity.doLogic(secondsElapsed);
-			entity.setCollidedWith(findCollision(entity));
+			findCollisions(entity);		// Add collisions found
+		}
+		validateCollisions();			// remove any old collisions no longer happening
+	}
+
+	public boolean inACollision(Entity me) {
+		for (Entity him : entities) {
+			if (me == him) continue;
+			if (me.collidesWith(him)) {
+				return true;
+			}
+		}
+		return false;	// no collisions in progress
+	}
+
+	private void findCollisions(Entity me) {
+		for (Entity him : entities) {
+			if (me == him) continue;
+			if (me.collidesWith(him)) {
+				crashes.addCollision(me, him);
+			}
 		}
 	}
 
-	public Entity findCollision(Entity me) {
-		for (Entity him : entities) {
-			if (me == him) continue;
-			if (me.collidesWith(him)) return him;
+	private void validateCollisions() {
+		ArrayList<CollisionList.Collision> rmCollisions = new ArrayList<>();
+
+		if ( crashes.collisions.isEmpty()) return;
+
+		for (CollisionList.Collision c : crashes.collisions) {
+
+			if ( !entities.contains(c.A) || !entities.contains(c.B) || !c.A.collidesWith(c.B) ) {
+				// Undock if this is a docked pair
+				if (c.A.docked && c.A.dockedWith == c.B) {
+					c.A.docked = false;
+					c.A.dockedWith = null;
+				}
+				if (c.B.docked && c.B.dockedWith == c.A) {
+					c.B.docked = false;
+					c.B.dockedWith = null;
+				}
+
+				// drop the collision
+				rmCollisions.add(c);
+			}
 		}
-		return null;
+
+		if (rmCollisions.isEmpty()) return;
+
+		for (CollisionList.Collision c : rmCollisions) {
+			crashes.removeCollision(c);
+		}
+		rmCollisions.clear();
 	}
+
+	public CollisionList getCollisions() { return crashes; }
+
 }

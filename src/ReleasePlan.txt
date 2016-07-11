@@ -1,45 +1,22 @@
 BUGS
 ====
-- Galaxy size increase may exceed galaxy view box - need to alter font size according to galaxy size.
-    FIXED IN VERSION: ...
 - Change to impulse setting while in motion does not seem to work
 -  Impulse drive just keeps accelerating - set a MAXIMUM SPEED. (or Energy consumption might also help)
--  Torpedoes travel too slow?
 
-Version 0.9
-===========
-    - computer commands to calculate angle to target(s) (write to notes section of computer window)
-    - Output user game statistics on exit of gameloop (Win/Lose, stardate delta, kills, rating, promotions?, etc)
-        - pause on exit of game until user enters ESC
-
-Version 0.x
-===========
-- Enemies 'Follow you' - even across sectors. Once you have been seen they will track you until you are more than 2
-  sectors away, (then they will continue on the path they were on?). I.e. enemy have LRS as well, just that it finds you and starbases
-
-Version 0.x
-===========
-- ship status view damage report diagram
-
-Version 0.x
-===========
-- Enemies fight back
-    - Torpedo and Phaser capabilities
-
-Version 0.x
-===========
-- Better Audio files
-
-Version 0.x
-===========
-- Torpedo Enhancements
-    - life of a torpedo can be reduced by setting it on the launch command
-    - torpedoes will NOT create new sectors, they self destruct on entering the unknown.
-    - Arming Delay (1 seconds) - once armed it can destroy YOU too!  Theory is you could get killed by same explosion.
-
-Version 0.x
-===========
-- Damage
+TODO
+====
+- 	Output user game statistics on exit of gameloop (Win/Lose, stardate delta, kills, rating, promotions?, etc)
+	- pause on exit of game until user enters ESC
+- 	Enemies 'Follow you' - even across sectors. Once you have been seen they will track you until you are more than 2
+  	sectors away, (then they will continue on the path they were on?). I.e. enemy have LRS as well, just that it finds you and starbases
+-	Set slight movement on landing in sector - you and enemy vessels - enemy needs AI so collisions are avoided
+- 	ship status view damage report diagram
+- 	Better Audio files
+	- Phaser fire
+	- various hits (you, them, planet, star, etc) - techincally incorrect as no sound in space - call it a battle sound simulation
+    - movement (separate warp and impulse noises in future)
+	- Computer command processing
+- 	Damage
     - Add various things that can get damaged
         - Phasers
         - torpedo tubes
@@ -55,29 +32,15 @@ Version 0.x
             - reduces repair crews
             - reduces efficiency?
     - Add to all relavant vessels (enterprise, romulans, starbases, etc)
-
-Version 0.x
-===========
-- Shields
-    - Balanced by default
-    - Can manually set balance for front, back, port and starboard to re-allocate remaining shield energy
-    - shields have little effect on torpedoes
-        - Minor course alteration (similar calculation to Gravity but away from shielded vessel)
-
-Version 0.x
-===========
-- Damage Control
+- 	Damage Control
     - Repair crews (n at start)
     - commands to allocate 'n' crews to damaged area(s)
-- Damage
+- 	Damage
     - Add death of repair crews (reduces n)
-- Add audio for
+- 	Add audio for
     - damage
     - Repair completion
-
-Version 0.x
-===========
-- StarBase REPAIR of your ship
+- 	StarBase REPAIR of your ship
     - Use (CurrentEnergy/MaxEnergy) of starbase to determine % effectiveness of repairs
     - Instant restore n% repair crews
     - Repairs run n% of 10 times quicker at base
@@ -86,124 +49,16 @@ Version 0.x
         - Impulse drive
         - warp nacelles
         - Physical ship damage
+-	Places a mine at the location of the ship - make sure you are moving as it will damage you after 10 seconds (arming delay).
+	Uses the MINE command in the computer.  (essentially a non-moving torpedo - in fact, takes from your torpedo count)
+-	ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft. ('AS' command)
 
-Version 0.x (Rethink about this...)
-===========
-- Torpedo Tubes
-    - can launch 'n' torpedoes at once where n is the number of tubes available
-    - Each torpedo can be sent in a different direction
-    - numeric count (limit) of available torpedoes
-
-************************************************************************************************************************
-
-Version 0.1 DONE
-===========
-- DONE: Basic game play
-    - DONE: Quadrant with YOU, Enemy, Star, StarBase
-    - DONE: Command interface
-        - Does lwjgl have a text window ability (NO) - implement in own class GameText
-    - DONE: Torpedo
-        - straight line for now, be ready for gravity calculations in the future
-        - FUEL
-            - The destructive power of a torpedo is purely based on the fuel it carries at time of impact
-            - as the fuel is used the destructive force reduces
-            - once out of fuel the torpedo self destructs using the primer charge that would have detonated the fuel
-    - DONE: Hit detection
-
-Version 0.2 DONE
-===========
-- DONE: Movement
-    - DONE: YOU
-    - DONE: Turn in direction provided
-    - DONE: Impulse drive (in sector only for now)
-    - DONE: Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
-
-Version 0.3 DONE
-===========
-- DONE: Galactic Map
-    - DONE: DOES NOT PAUSE game operation
-    - DONE: Only shows sector details for ones you have seen with LRS and then only as they were when the lrs was run
-- DONE: Ship status (down right side or a new screen?  Torp count, energy levels (Total, % shields, etc), )
-
-Version 0.4 DONE
-===========
-- revisit?: Was GRAVITY but after a week of implementation it would seem to be a problem at this scale
-     - DONE: Move rotation from Sprite to Entity (sprite keeps the 'draw at angle') and override rate settings in the
-             relevant super entities so that each can rotate at different rates
-
-Version 0.5 DONE
-===========
-- Movement
-    - DONE: Need sectors to be joined? - currently it is just the 'void' between solar systems that never ends-think about it
-    - DONE: Other fixes:
-        - DONE: Made galaxy dynamically sized.
-        - ABANDONED: impulse travel now crosses sector boundaries
-        - DONE: STOP command now SLOWS to zero rather than instantaneous halt ;-)
-    - DONE: WARP Drive!  Travel across sector boundary
-        - ABANDONED: Accelerate to full impulse before enabling WARP drive
-
-Version 0.6 DONE
-===========
-- DONE: Add energy capability to all ships (Enterprise, Romulans, StarBase)
-    - DONE: add new Entity Types and superset of Entity (ShipEntity, ObjectEntity)
-        - DONE: move Warp and other movement parameters to ShipEntity so Objects do not have movement capability
-    - DONE: energy display (structural integrity and shields too)
-
-Version 0.7 DONE
-===========
-- DONE: Phasers
-    - IRRELEVANT: Lightspeed travel of beam
-    - REPLACED with broadcast attack to ALL enemies in sector, each get a share of the energy allocated: Straight line
-    - DONE: Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
-    - DONE: cannot shoot into other quadrants - there is interstellar 'space' between the sectors within which the beam degrades to zero
-
-Version 0.8
-===========
-- Add STARDATE
-    - DONE: WARP jumps sectors
-        - i.e. long trips are quick in elapsed user time but take a number of 'days' to do (stardate update)
-    - ABANDONED: Crossing sector boundaries adds a 'chunk of time' to the date to illustrate there is 'space' between sectors.
-        - What does this mean for torpedoes crossing the boundary?
-        - boring - dont do it.
-- DONE: STOP command to 'slow down to zero' rather than instantly stop.
-
-************************************************************************************************************************************************************
-Version 1.0 ALPHA
-=================
-- Fork Phone Version
-    - create new ReleasePlan_Phone.txt
-
-Version 1.0.x
-=============
-- Graphics
-    - Make Galactic Map GRAPHICAL (less CHARACTER based ;-) )
-    - Fix alpha channel to remove the box overlap visuals
-    - DONE: rotate the ship sprites into the direction of travel
-    - Starship Enterprise
-    - Romulan vessel
-    - 3D Star picture
-    - StarBase
-
-Version 1.0.x
-=============
-- Audio
-    - add any sound for
-        - movement (separate warp and impulse noises in future)
-        - torpedo
-        - Hits
-        - Computer accepting commands
-
-Version 1.0.x
-=============
-- Enemy Smarts
-    - Romulans - move smarter
-
-VERSION 1.1
-===========
-- BETA RELEASE
-
-Version 1.1.x
-=============
+POSSIBLE NEW FEATURES to be considered
+======================================
+- Galaxy size by parameter
+	- increase may exceed galaxy view box so need to alter font size according to galaxy size.
+- have docked ship rotate around with the starbase rotation.
+- Enemy Smarts - move smarter, attack smarter, learn from player actions, ...
 - Demotion vessels
     - BattleBridge (Split Enterprise) (110% of Enterprise but harder to hit (smaller))
     - Spaceship (50% of Enterprise)
@@ -214,9 +69,6 @@ Version 1.1.x
     - Escape Pod ( 2% of Enterprise)
     - space suit (0% of Enterprise, you have a hand phaser)
     - Holloween version - Space Zombie - cant DO anything but watch as the enemy destroy starbases, etc. Can scare the enemy into leaving the sector?
-
-Version 1.1.x
-=============
 - Promotion vessels
     - BattleStar (300% of Enterprise)
         - Forces the BORG into the game
@@ -224,48 +76,31 @@ Version 1.1.x
                 - crossing out of 'federation' space
                 - High 'Kill to StarBase visit' ratio (strong player)
                 - time limit (i.e. dont clear out the romulans within n-stardates then the Borg also appear)
-
-VERSION 1.2
-===========
-- RELEASE
-
-Version 1.2.x
-===========
-
-Version 1.2.x
-===========
-- PLANETS (between 0 and 9 per sector)
+- Shields
+    - Balanced by default
+    - Can manually set balance for front, back, port and starboard to re-allocate remaining shield energy
+- Torpedo Tubes
+    - can launch 'n' torpedoes at once where n is the number of tubes available
+    - Each torpedo can be sent in a different direction
+    - numeric count (limit) of available torpedoes
+- Fork Phone Version
+    - create new ReleasePlan_Phone.txt
+- PLANETS
     - Needs orbital calculation
     - Need a graphic or several - smaller inner and larger outer planets (can sprites be resized?)
     - Planets are allocated starting from large outer and working inwards until planet count reached
     - Orbits are at (min(width, height) - 100) / planetCount increments from centre (use as distance from star)
-    - move very slowly - faster inner and slower outer planets
-    - collisions kill
+    - move very slowly - faster inner and slower outer planets?
     - Objects to avoid orbital paths on initial placement (StarBases, ships, etc)
-    - Make star SMALLER
-    - Give star and planets energy and structural strength so they can be damaged/destroyed with enough fire power...
-
-Version 1.2.x
-===========
 - Exploration
     - Travel outside federation space introduces new enemies - Out of federation space the sectors are 'full' of relevant enemy
         - BORG out side 1
         - (those nasty trans-dimensional insectoids) out side 2
         - Romulans out side 3
         - ??? out side 4
-
-Version 1.2.x
-===========
 - Commands to split/join the Enterprise
     - BattleBridge (110% of Enterprise but less staff (repair crews, etc))
     - Saucer Section (10% of Enterprise but 200% shields)
-
-VERSION 1.3
-===========
-- RELEASE
-
-Version 2...
-================
 - Hexagonal Galaxy - SPHERICALish!
     - Sectors are hexagonal
         - moving out of one into the next is now in 6 directions
@@ -287,9 +122,6 @@ Version 2...
         - have high density near their border and reducing as they cross federation space
             - i.e. lots of ships enter but at each sector some stop while the rest continue
     - Enemies attack any ship that is NOT one of their own
-
-OTHER THOUGHTS
-==============
 - Should we have a Mouse-click option for direction/target/move as well as commands?  Mouse could be a 'damageable' item!
 - GRAVITY - Doing these calculations proves that... gravity sucks!  Have implemented Motion class but need to
             deactivate as sensible scaling is impractical.  Perhaps revisit one-day
@@ -301,6 +133,80 @@ OTHER THOUGHTS
     - does not affect starbase normally (maintains position itself until computer is 'damaged' item, then decay orbit)
     - does not affect ships docked to starbase
 
+IMPLEMENTED
+************************************************************************************************************************
+Version 0.8.2
+=============
+
+Version 0.8.1
+=============
+-	Face a random direction on landing in a sector
+- 	Torpedoes consume all their energy travelling - need to arrive with a reasonable amount of destructive force
+-  	Torpedoes travel too slow? (Can tweak it further if need be)
+- 	Enemies fight back
+    - Torpedo and Phaser capabilities
+
+Version 0.1.1 (version numbering error - ignore)
+=============
+- computer commands to calculate angle to target(s) (write to notes section of computer window)
+- Torpedo Arming Delay (1 seconds) - once armed it can destroy YOU too!  Theory is you could get killed by same explosion.
+- Fix alpha channel to remove the box overlap visuals
+
+Version 0.8
+===========
+- Add STARDATE
+    - DONE: WARP jumps sectors
+        - i.e. long trips are quick in elapsed user time but take a number of 'days' to do (stardate update)
+
+Version 0.7 DONE
+===========
+- DONE: Phasers
+    - IRRELEVANT: Lightspeed travel of beam
+    - REPLACED with broadcast attack to ALL enemies in sector, each get a share of the energy allocated: Straight line
+    - DONE: Beam energy reduced over distance until it reaches zero (should normally be able to reach about 0.75 of quadrant?)
+    - DONE: cannot shoot into other quadrants - there is interstellar 'space' between the sectors within which the beam degrades to zero
+
+Version 0.6 DONE
+===========
+- DONE: Add energy capability to all ships (Enterprise, Romulans, StarBase)
+    - DONE: energy display (structural integrity and shields too)
+
+Version 0.5 DONE
+===========
+- STOP command now SLOWS to zero rather than instantaneous halt ;-)
+- WARP Drive!  Travel across sector boundary
+
+Version 0.3 DONE
+===========
+- DONE: Galactic Map
+    - DONE: DOES NOT PAUSE game operation
+    - DONE: Only shows sector details for ones you have seen with LRS and then only as they were when the lrs was run
+- DONE: Ship status (down right side or a new screen?  Torp count, energy levels (Total, % shields, etc), )
+
+Version 0.2 DONE
+===========
+- DONE: Movement
+    - DONE: YOU
+    - DONE: Turn in direction provided
+    - DONE: Impulse drive (in sector only for now)
+    - DONE: Impulse Drive - Use 'acceleration' to get to new 'speed' selected.
+
+Version 0.1 DONE
+===========
+- DONE: Basic game play
+    - DONE: Sector with YOU, Enemy, Star, StarBase
+    - DONE: Command interface
+        - Does lwjgl have a text window ability (NO) - implement in own class GameText
+    - DONE: Torpedo
+        - straight line for now, be ready for gravity calculations in the future
+        - FUEL
+            - The destructive power of a torpedo is purely based on the fuel it carries at time of impact
+            - as the fuel is used the destructive force reduces
+            - once out of fuel the torpedo self destructs using the primer charge that would have detonated the fuel
+    - DONE: Hit detection
+
+************************************************************************************************************************************************************
+
 NOTES
 =====
 BORG = 400% of Romulan
@@ -308,22 +214,21 @@ Sector scale is ~10 light seconds? (about the most people will wait for a phaser
     - how does this compare with 'solar system'?
     - Should we have 'planets' in the sector?
 
-
 Opening Address
 ================
 
-You are the Captain of the Starship Enterprise.  Your mission is to save the Federation from the Romulan invasion.
-Do well and you will be allocated better starships and be requested to explore strange new worlds
+You are the Captain of a Federation Starship ______.  Your mission is to save the Federation from the Alien invasion.
+Do well and you will be promoted to better starships and be requested to explore strange new worlds
 and to boldly go where no man has gone before.  Do badly and you will be demoted to lesser craft where it will be
 harder for you to redeem yourself and regain your status.
-
-The Federation Space map has been compressed, the empty space between sectors is not evident but if you travel out of
-current sector on impulse drive then automated systems will activate the Warp Drive to get you to the next sector
-in a very short time.
 
 Information in the sector is provided
 to you via probes that the federation has seeded throughout our space and as they are small and fast they cannot be
 found and/or destroyed but if you go out of their range then you are on your own.
+
+The Federation Space map has been compressed, the empty space between sectors is not evident but if you travel out of
+current sector on impulse drive then you will be out of sensor-probe contact and unable to see where you are.  The enemy
+can still see you however!
 
 Torpedo's will damage and possibly destroy anything, even friendly units, as they assume you know what your are doing
 when sending one out.  Dont get it wrong or you may make more enemies.
@@ -334,55 +239,58 @@ you will feel its effects.  Torpedoes on the other hand, travel noticeably slowe
 see both our and the enemy's torpedoes in transit.
 
 Starbases can be destroyed and are targets to the enemy.  Starbases have no defensive capabilities as all the best
-captains are now on starships saving the federation and so the bases are running on automatic.
+captains are now on starships saving the federation and so the bases are running on automatic.  We have seen the
+enemy take starbases for themselves and the energy and torpedoes seem to suit their craft just as much as ours.
 It may pay to go to those sectors early and clean them out before the enemy destroy the starbase.  The enemy can
-also use the starbase to recharge themselves taking valuable resources away from you and your ship.
+travel between sectors just like us and so they may invade a starbase sector even after you have made the are safe.
 
-Actions take energy, fortunately this is recharged slowly during normal operations and can be rapidly refilled when
+Actions take energy, fortunately this is recharged during normal operations and can be refilled faster when
 docked to a starbase.
 
-The enemy ships are an equal match to your own, however, they are aliens so their strategies and abilities may leave
-you openings to attack and hopefully win this war.  Be careful as they will learn from your actions and become
-increasingly harder to eliminate.
+The enemy ships are an equal match to our own.  As they have just invaded Federation Space we are aware that their
+power levels are low but it wont take them long to rebuild now that our defences are down and you are their only
+opponent.  They are aliens so their strategies and abilities are
+different to our own.  Be careful as they seem to learn from your actions and as their energy reserves build they will
+become increasingly harder to eliminate.
 
-The computer understands a number of commands but they must be entered correctly or they will not work.  The
-commands are;
+Your ship computer understands a number of commands but it is an old system and so the commands must be entered
+correctly or they will not work.
 
-DONE
-====
-TOR,direction[,maxlife]      -   direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
-                                computer to get assistance in generating the coordinate but bear in mind that gravitational
-                                effects are far to complicated and variable for the computer to predict.
-                                Max life is in seconds and cannot be over the max life of a torpedo.
-IMP,direction,power,duration -   Impulse engines used to move around within a star system.  Does not stop until ordered.
-                                power is % of full (0 - 100), duration is in seconds.  Ship will accelerate for the
-                                duration given and then coast at the velocity arrived at.
-WARP,direction,range        -   Turn in the direction indicated and activate warp drive. Range is roughly the number of
-                                sectors travelled over.  Note that travelling at an angle will not necessary cross as
-                                many sectors as you have entered.  Get out your trigonometry and pythagoras notes to
-                                understand the distance travelled.
-SRS                         -   Add current sector details to the galactic map.
-LRS                         -   Add the current and 8 surrounding sectors to the galactic map.
-STOP                        -   Computer calculates and implements impulse forces necessary to come to a full stop
-SHUP                        -   Turn ON shields
-SHDOWN                      -   Turn OFF Shields
-EXIT                        -   Quit game.  ESC Key is also meant to work.
-COMP TGT [BSE]              -   Compute angle and distance to Base, Star or all Enemy in current sector
-COMP NAV [BE] {n}           -   Compute angle and distance to nearest sector with a Base or Enemy or with n Enemy
+The commands are;
+
+TOR direction				-	direction is a decimal number of degrees at which the torpedo will be targeted.  Use the
+								computer to get assistance in generating the coordinate but bear in mind that gravitational
+								effects are far to complicated and variable for the computer to predict.  you can
+								use * to send one torpedo towards each enemy in the current sector.
+PHA energy [direction]		-	fire Phasers at all targets using total of power indicated.  Power decreases with
+								distance.  Power is equally divided between the targets prior to firing.
+								If direction provided then all power is sent in that direction.
+IMP direction energy duration -	Impulse engines are used to move around within a star system.
+								power is % of full (0 - 100), duration is in seconds.  Ship will accelerate for the
+								duration given and then coast at the velocity arrived at.
+WARP direction range		-	Turn in the direction indicated and activate warp drive. Range is roughly the number of
+								sectors travelled over.  Note that travelling at an angle will not necessary cross as
+								many sectors as you have entered.  Get out your trigonometry and pythagoras notes to
+								understand the distance travelled.
+LRS							-	Update the current and 8 surrounding sectors in the galactic map.
+STOP						-	Computer calculates and implements impulse forces necessary to come to a full stop.
+								Typically takes about 3 seconds to come to a stop.
+SHUP energy					-	Turn ON shields at indicated energy levels - take energy from main systems
+SHDOWN						-	Turn OFF Shields.  Return energy to main systems - there is some transfer losses
+EXIT						-	Quit game.  ESC Key also works.
 
 TODO
 ====
-SH,Energy                   -   Transfer energy from main banks to boost shield percentage (1 for every 10 units of energy?)
-AS                          -   ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
-PHA,direction,power         -   fire Phasers in the direction indicated with start power at the level indicated.  Power
-                                will decrease by 1% (10%?) per lightsecond travelled.
-MINE                        -   Places a mine at the location of the ship - make sure you are moving as it will
-                                damage you after 10 seconds (arming delay).
+COMP TGT [BSE]				-	Compute angle and distance to Base, Star or all Enemy in current sector
+COMP NAV [BE] {n}			-	Compute angle and distance to nearest sector with a Base or Enemy or with n Enemy
+AS							-	ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft.
+MINE						-	Places a mine at the location of the ship - make sure you are moving as it will
+								damage you after 10 seconds (arming delay).
 
 PROBABLY WONT NEED
 ==================
 - Not doing orbits
-ORB,range                   -   go into orbit of the star at a distance of 'range' light-seconds (Needs GRAVITY implemented)
-- decided to auto-dock at slow enough velocity
-DOCK                        -   connect with starbase - you must be reasonably close for this to work as the starbase
-                                autopilot uses bluetooth to reduce detection by the enemy
+ORB,range					-	go into orbit of the star at a distance of 'range' light-seconds (Needs GRAVITY implemented)
+DOCK						-	connect with starbase - you must be reasonably close for this to work as the starbase
+								autopilot uses bluetooth to reduce detection by the enemy
+							-	decided to auto-dock at slow enough velocity
