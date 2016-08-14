@@ -20,19 +20,20 @@ public class AIManagement {
 
 	public void setGalaxy(Galaxy g) { galaxy = g; }
 
-	public void doLogic(double secondsElapsed) {
+	public void runAI(double secondsElapsed) {
 		thinkClock += secondsElapsed;
 		Sector sector;
 
+		// Check all sectors of the galaxy for 'aliens' and do their thinking...
 		for (int gx = 0; gx < alliance.galaxySize; gx++) {
 			for (int gy = 0; gy < alliance.galaxySize; gy++) {
 				sector = galaxy.getSector(gx, gy);
-				doLogic(sector);
+				this.sectorLevelAI(sector);
 			}
 		}
 	}
 
-	public void doLogic(Sector sector) {
+	public void sectorLevelAI(Sector sector) {
 		int ex, ey;
 		ArrayList<Entity> readyForAI = new ArrayList<>();
 

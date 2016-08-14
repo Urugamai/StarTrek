@@ -53,6 +53,8 @@ public class Sprite {
 
 	public double		energyConsumption = 0;
 
+	private static 		Vector3f zeroDirection = new Vector3f(0, 10, 0);
+
 	/**
 	 * Create a new sprite from a specified image.
 	 *
@@ -122,8 +124,10 @@ public class Sprite {
 	}
 
 	public void doLogic(double secondsElapsed) {
+		Vector3f oldMotion = motion;
 		double remainingDuration = secondsElapsed < influenceDuration || influenceDuration <= 0 ? secondsElapsed : influenceDuration;
 		motion = motion.translate((float)(influence.x*remainingDuration), (float)(influence.y*remainingDuration), (float)(influence.z*remainingDuration));
+		if (motion.lengthSquared() >= Math.pow(Constants.impulseSpeed.maxValue, 2)) influenceDuration = 0;
 		if (influenceDuration >= 0) {
 			if (influenceDuration <= secondsElapsed) {
 				influenceDuration = 0;
@@ -131,16 +135,17 @@ public class Sprite {
 			} else influenceDuration -= secondsElapsed;
 		}
 		location = location.translate((float)(motion.x*remainingDuration), (float)(motion.y*remainingDuration), (float)(motion.z*remainingDuration));
-		energyConsumption += Math.sqrt(Math.pow(influence.x*remainingDuration,2) + Math.pow(influence.y*remainingDuration,2) + Math.pow(influence.z*remainingDuration,2));
+		energyConsumption += Math.sqrt(influence.lengthSquared());
+		if (motion.lengthSquared() > Math.pow(Constants.impulseSpeed.maxValue, 2)) energyConsumption += ((motion.lengthSquared() - Math.pow(Constants.impulseSpeed.maxValue, 2))*10); // overspeed penalty
 
 		remainingDuration = secondsElapsed < rotationDuration || rotationDuration < 0 ? secondsElapsed : rotationDuration;
-		rotationAngle = rotationAngle.translate((float)(rotationInfluence.x*remainingDuration), (float)(rotationInfluence.y*remainingDuration), (float)(rotationInfluence.z*remainingDuration) );
+		rotationAngle = rotationAngle.translate((float) (rotationInfluence.x * remainingDuration), (float) (rotationInfluence.y * remainingDuration), (float) (rotationInfluence.z * remainingDuration));
 		if (rotationDuration >= 0) {
 			if (rotationDuration <= secondsElapsed) {
 				rotationDuration = 0;
 				rotationInfluence.set(0, 0, 0);
 			} else rotationDuration -= secondsElapsed;
 		}
-		energyConsumption += Math.sqrt(Math.pow(rotationInfluence.x*remainingDuration,2) + Math.pow(rotationInfluence.y*remainingDuration,2) + Math.pow(rotationInfluence.z*remainingDuration,2));
+		energyConsumption += Math.sqrt(rotationInfluence.lengthSquared());
 	}
 }

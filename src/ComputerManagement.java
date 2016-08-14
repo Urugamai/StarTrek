@@ -51,6 +51,9 @@ public class ComputerManagement {
 			lastCommandState = commandResult;
 		}
 
+		if (!commandResult) {
+			helpMessage(pieces[0]);
+		}
 		return commandResult;
 	}
 
@@ -196,16 +199,17 @@ public class ComputerManagement {
 		}
 
 		// Motion corrections
-		Vector3f currentMotion = entity.sprite.getMotion();
-		double fx = -Math.sin(Math.toRadians(angle))*force - currentMotion.x;
-		double fy = Math.cos(Math.toRadians(angle))*force - currentMotion.y;
+		double fx = -Math.sin(Math.toRadians(angle))*force;// + currentMotion.x;
+		double fy = Math.cos(Math.toRadians(angle))*force;// + currentMotion.y;
 		double fz = 0;
 		entity.sprite.setInfluence((float)fx, (float)fy, (float)fz, seconds);
 
-		// rotation adjustment
+		// rotation adjustment - face direction THRUSTING, NOT direction travelling!
 		Vector3f currentRot = entity.sprite.getRotationAngle();
-		float newRotation = (angle-currentRot.z) % 360;
-		entity.sprite.setRotationInfluence(0, 0, newRotation/3, 3);
+		float rotation = angle-currentRot.z;
+		float rotationDuration = (Math.abs(rotation)%180) / 180 * 3;	// 3 seconds to rotate 180 degrees
+		if (rotationDuration < 1) rotationDuration = 1;
+		entity.sprite.setRotationInfluence(0, 0, (rotation) / rotationDuration, rotationDuration );
 
 		return true;
 	}
@@ -383,6 +387,10 @@ public class ComputerManagement {
 		return true;
 	}
 
+	private boolean command_COMP_COURSE(String[] pieces) {
+		return false;
+	}
+
 	private boolean command_COMP(String[] pieces) {
 		if (pieces.length < 2) {
 			return false; // no computer command
@@ -390,36 +398,31 @@ public class ComputerManagement {
 
 		if (pieces[1].compareToIgnoreCase("TGT") == 0 ) { command_COMP_TARGET(pieces); }
 		else if (pieces[1].compareToIgnoreCase("NAV") == 0 ) { command_COMP_NAVIGATION(pieces); }
+		else if (pieces[1].compareToIgnoreCase("CRS") == 0 ) { command_COMP_COURSE(pieces); }
 		else return false;
 
 		return true;
 	}
 
 	// TODO work out how to get help on the screen and IF we even want to do this.
-//	private void initHelp() {
-//		helpWindow.writeLn( "TOR angle                   Send a torpedo out at the angle (in degrees) provided");
-//		helpWindow.writeLn( "PHA power		             Fire phasers at every enemy with total indicated power divided amongst the targets. Power drop proportional with range to target.");
-//		helpWindow.writeLn( "IMP angle force duration    Turn ship towards angle while applying force for indicated number of seconds");
-//		helpWindow.writeLn( "WARP angle factor           Turn ship towards angle then travel at Warp Factor provided");
-//		helpWindow.writeLn( "                            Warp factor 1 for 1 second will take you one sector.  Higher factors take more energy, travel further and get there faster.");
-//		helpWindow.writeLn( "STOP                        apply maximum deceleration force until we have stopped moving");
-//		helpWindow.writeLn( "SRS                         Short range scan, refreshes data about the current sector.");
-//		helpWindow.writeLn( "LRS                         Long range scan, Gather information from adjoining sectors. This updates Galactic Map.");
-//		helpWindow.writeLn( "SHUP energy                 Shields UP");
-//		helpWindow.writeLn( "SHDOWN                      Shields DOWN");
-//		helpWindow.writeLn( "EXIT");
-//		helpWindow.writeLn("");
-//		helpWindow.writeLn( "COMP command [parameters]   Ask computer to calculate something");
-//		helpWindow.writeLn( "        NAV [BE]            Computer navigation angle (and range) to any Base or Enemy in current sector");
-//		helpWindow.writeLn( "        TGT [BES]           Computer targeting information (angle and range) to Base, Enemy or Star in sector.");
-//		helpWindow.writeLn( " ");
-//		helpInitialised = true;
-//	}
-//	private void drawHelp() {
-//		if (!helpInitialised) initHelp();
-//		helpWindow.draw();
-//	}
-//
+	private void helpMessage(String command) {
+		if ( command.isEmpty() || command.compareToIgnoreCase("TOR")==0)	view.writeScreen( "TOR angle                   Send a torpedo out at the angle (in degrees) provided");
+		if ( command.isEmpty() || command.compareToIgnoreCase("PHA")==0)	view.writeScreen( "PHA power		             Fire phasers at every enemy with total indicated power divided amongst the targets. Power drop proportional with range to target.");
+		if ( command.isEmpty() || command.compareToIgnoreCase("IMP")==0)	view.writeScreen( "IMP angle force duration    Turn ship towards angle while applying force for indicated number of seconds");
+		if ( command.isEmpty() || command.compareToIgnoreCase("WARP")==0)	view.writeScreen( "WARP angle factor           Turn ship towards angle then travel at Warp Factor provided");
+		if ( command.isEmpty() || command.compareToIgnoreCase("STOP")==0)	view.writeScreen( "STOP                        apply maximum deceleration force until we have stopped moving");
+		if ( command.isEmpty() || command.compareToIgnoreCase("SRS")==0)	view.writeScreen( "SRS                         Short range scan, refreshes data about the current sector.");
+		if ( command.isEmpty() || command.compareToIgnoreCase("LRS")==0)	view.writeScreen( "LRS                         Long range scan, Gather information from adjoining sectors. This updates Galactic Map.");
+		if ( command.isEmpty() || command.compareToIgnoreCase("SHUP")==0)	view.writeScreen( "SHUP energy                 Shields UP");
+		if ( command.isEmpty() || command.compareToIgnoreCase("SHDOWN")==0)	view.writeScreen( "SHDOWN                      Shields DOWN");
+		if ( command.isEmpty() || command.compareToIgnoreCase("EXIT")==0)	view.writeScreen( "EXIT");
+		if ( command.isEmpty() || command.compareToIgnoreCase("COMP")==0) {
+			view.writeScreen("COMP command [parameters]   Ask computer to calculate something");
+			view.writeScreen("        NAV [BE]            Compute navigation angle (and range) to any Base or Enemy in current sector");
+			view.writeScreen("        TGT [BES]           Compute targeting information (angle and range) to Base, Enemy or Star in sector.");
+			view.writeScreen("        CRS Angle           (TODO) Compute impulse setting (angle and force for 1 second) to change current heading to desired heading."); //todo implement COMP CRS
+		}
+	}
 
 	private float distanceBetween(Entity me, Entity him) {
 		Vector3f meLoc = me.sprite.getLocation();

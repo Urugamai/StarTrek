@@ -50,7 +50,7 @@ public class Constants {
 	}
 
 	public static final Limits		warpSpeed 			= new Limits(	0f,		1f,		10f		);
-	public static final Limits		impulseSpeed 		= new Limits(	0f,		1f,		100f	);
+	public static final Limits		impulseSpeed 		= new Limits(	0f,		1f,		20f	);
 	public static final Limits		torpedoSpeed		= new Limits(	0f,		100f,	100f	);
 
 	public static final Limits		shipTorpedoes 		= new Limits( 	0f, 	25f,	50f		);

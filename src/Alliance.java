@@ -33,8 +33,6 @@
 
 import org.lwjgl.Sys;
 
-import java.util.ArrayList;
-
 public class Alliance {
 
 	// SCREEN Parameters
@@ -169,7 +167,7 @@ public class Alliance {
 
 		entity.setLocation(ex, ey, 0);
 
-		System.out.println("entity " + entity.eType + " landed at (" + pX + ", " + pY+ ") in sector (" + ex + "," + ey + ")");
+//		System.out.println("entity " + entity.eType + " landed at (" + pX + ", " + pY+ ") in sector (" + ex + "," + ey + ")");
 	}
 
 	private void initGalaxy() {
@@ -432,7 +430,7 @@ public class Alliance {
 	}
 
 	private void AILogic(double secondsElapsed) {
-		AI.doLogic(secondsElapsed);
+		AI.runAI(secondsElapsed);
 	}
 
 	/*****************************************************************
@@ -464,8 +462,8 @@ public class Alliance {
 			}
 		}
 
-		view.writeScreen("Game exit in progress...");
-		sleep(2000);
+		view.writeScreen("Game exit in progress...");	// Does not appear :-( TODO Make it work
+//		sleep(5000);
 
 		// clean up
 		sound.Destroy();

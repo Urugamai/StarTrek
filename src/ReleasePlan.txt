@@ -1,21 +1,12 @@
 BUGS
 ====
-- Change to impulse setting while in motion does not seem to work
--  Impulse drive just keeps accelerating - set a MAXIMUM SPEED. (or Energy consumption might also help)
 
 TODO
 ====
-- 	Output user game statistics on exit of gameloop (Win/Lose, stardate delta, kills, rating, promotions?, etc)
-	- pause on exit of game until user enters ESC
 - 	Enemies 'Follow you' - even across sectors. Once you have been seen they will track you until you are more than 2
   	sectors away, (then they will continue on the path they were on?). I.e. enemy have LRS as well, just that it finds you and starbases
--	Set slight movement on landing in sector - you and enemy vessels - enemy needs AI so collisions are avoided
-- 	ship status view damage report diagram
-- 	Better Audio files
-	- Phaser fire
-	- various hits (you, them, planet, star, etc) - techincally incorrect as no sound in space - call it a battle sound simulation
-    - movement (separate warp and impulse noises in future)
-	- Computer command processing
+-	Set slight movement on landing in sector - you and enemy vessels - enemy AI needs to be able to avoid collisions first
+-	Make angles match trigonometry, 0 to the right and anti-clockwise from there.  currently 0 down and clockwise.
 - 	Damage
     - Add various things that can get damaged
         - Phasers
@@ -37,7 +28,11 @@ TODO
     - commands to allocate 'n' crews to damaged area(s)
 - 	Damage
     - Add death of repair crews (reduces n)
-- 	Add audio for
+- 	Better Audio files
+	- Phaser fire
+	- various hits (you, them, planet, star, etc) - technically incorrect as no sound in space - call it a battle sound simulation
+    - movement (separate warp and impulse noises in future)
+	- Computer command processing
     - damage
     - Repair completion
 - 	StarBase REPAIR of your ship
@@ -49,6 +44,12 @@ TODO
         - Impulse drive
         - warp nacelles
         - Physical ship damage
+- 	ship status view damage report diagram
+-	Damage graphics, small, medium, large, total destruction - animated gif style
+-   NAME all the sectors
+-   Name the planets in a sector
+- 	Output user game statistics on exit of gameloop (Win/Lose, stardate delta, kills, rating, promotions?, etc)
+	- pause on exit of game until user enters ESC
 -	Places a mine at the location of the ship - make sure you are moving as it will damage you after 10 seconds (arming delay).
 	Uses the MINE command in the computer.  (essentially a non-moving torpedo - in fact, takes from your torpedo count)
 -	ABANDON SHIP.  Everyone into life pods to fight again another day, albeit in a lesser craft. ('AS' command)
@@ -85,13 +86,6 @@ POSSIBLE NEW FEATURES to be considered
     - numeric count (limit) of available torpedoes
 - Fork Phone Version
     - create new ReleasePlan_Phone.txt
-- PLANETS
-    - Needs orbital calculation
-    - Need a graphic or several - smaller inner and larger outer planets (can sprites be resized?)
-    - Planets are allocated starting from large outer and working inwards until planet count reached
-    - Orbits are at (min(width, height) - 100) / planetCount increments from centre (use as distance from star)
-    - move very slowly - faster inner and slower outer planets?
-    - Objects to avoid orbital paths on initial placement (StarBases, ships, etc)
 - Exploration
     - Travel outside federation space introduces new enemies - Out of federation space the sectors are 'full' of relevant enemy
         - BORG out side 1
@@ -125,6 +119,12 @@ POSSIBLE NEW FEATURES to be considered
 - Should we have a Mouse-click option for direction/target/move as well as commands?  Mouse could be a 'damageable' item!
 - GRAVITY - Doing these calculations proves that... gravity sucks!  Have implemented Motion class but need to
             deactivate as sensible scaling is impractical.  Perhaps revisit one-day
+    - Needs orbital calculation
+    - Need a graphic or several - smaller inner and larger outer planets (can sprites be resized?)
+    - Planets are allocated starting from large outer and working inwards until planet count reached
+    - Orbits are at (min(width, height) - 100) / planetCount increments from centre (use as distance from star)
+    - move very slowly - faster inner and slower outer planets?
+    - Objects to avoid orbital paths on initial placement (StarBases, ships, etc)
     - For orbits, gravity, etc it may be worthwhile changing from x,y coordinates to Heading,Velocity.
     - Need to add 'vector' class for direction of motion, gravitational calculations, etc
     - Affect ships? (sucks them towards star)
@@ -137,6 +137,13 @@ IMPLEMENTED
 ************************************************************************************************************************
 Version 0.8.2
 =============
+- Change to impulse setting while in motion does not seem to work
+	- yes it does, it is a new thrust direction, not the final heading which is a combination of the current movement
+	  vector and the thrust induced vector.
+- Impulse drive just keeps accelerating - set a MAXIMUM SPEED. (or Energy consumption might also help)
+	- Increased energy consumption 10 times by the square of the excess speed - i.e. dont give commands that will make
+	  you go faster than the maximum, it will allow some leakage over the maximum before halting thrust so be careful
+
 
 Version 0.8.1
 =============
