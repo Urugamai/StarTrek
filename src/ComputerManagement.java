@@ -77,7 +77,7 @@ public class ComputerManagement {
 	}
 
 	private boolean command_TOR(Entity entity, String[] pieces) {
-		float angle = 0;
+		Angle angle = new Angle(0);
 		String direction = "";
 		boolean AllTargets = false;
 
@@ -86,7 +86,7 @@ public class ComputerManagement {
 			if (direction.equalsIgnoreCase("*")) AllTargets = true;
 			else {
 				try {
-					angle = Float.valueOf(direction);
+					angle.setTrigAngle( Double.valueOf(direction) );
 				} catch (Exception e) {
 					return false;  // no firing for you when you get the parameter wrong
 				}
@@ -95,36 +95,37 @@ public class ComputerManagement {
 			return false;  // no firing for you when you get the parameter wrong
 		}
 
-		float[] angleList = new float[Constants.maxEnemy];
+		double[] angleList = new double[Constants.maxEnemy];
 		int angleEntry = 0;
 		if (AllTargets) {
 			Entity.SubType opponentType = (entity.eType == Entity.SubType.ENEMYSHIP ? Entity.SubType.FEDERATIONSHIP : Entity.SubType.ENEMYSHIP);
 			for (Entity enemy : galaxy.getSector((int)entity.galacticLoc.x, (int)entity.galacticLoc.y).getEntities()) {
 				if (enemy.eType == opponentType) {
-					angleList[angleEntry++] = (float)getDirection(entity, enemy);
+					angle.setTrigAngle(getDirection(entity, enemy));
+					angleList[angleEntry++] = angle.getScreenAngle();
 					assert (angleEntry <= Constants.maxEnemy);
 				}
 			}
 			for (int i = 0; i < angleEntry; i++)
 				launchTorpedo(entity, angleList[i]);
 		} else {
-			launchTorpedo(entity, angle);
+			launchTorpedo(entity, angle.getScreenAngle());
 		}
 		return true;
 	}
 
-	private void launchTorpedo(Entity entity, float angle) {
-//		angle = 360 - angle;
+	private void launchTorpedo(Entity entity, double screenAngle) {
+		Angle angle = new Angle("Screen", screenAngle);
 		if (entity.torpedoCount > 0) {
 			Entity torpedo = new Entity(Entity.SubType.TORPEDO, Constants.FILE_IMG_TORPEDO, 0);
 			torpedo.sprite.setLocation(entity.sprite.getLocation());
 			torpedo.energyLevel = Constants.torpedoEnergy.baseEnergy;
 			torpedo.energyGrowth = Constants.torpedoEnergy.stdGrowth;
 			torpedo.maxEnergy = Constants.torpedoEnergy.maxEnergy;
-			torpedo.sprite.setRotationAngle(0, 0, angle);
+			torpedo.sprite.setRotationAngle(0, 0, (float)angle.getSpriteAngle());
 			Vector3f shipMotion = entity.sprite.getMotion();
-			torpedo.sprite.setMotion(shipMotion.x - Constants.torpedoSpeed.initialValue * (float) Math.sin(Math.toRadians(angle))
-					, shipMotion.y + Constants.torpedoSpeed.initialValue * (float) Math.cos(Math.toRadians(angle))
+			torpedo.sprite.setMotion(shipMotion.x - Constants.torpedoSpeed.initialValue * (float) Math.sin(Math.toRadians(angle.getScreenAngle()))
+					, shipMotion.y + Constants.torpedoSpeed.initialValue * (float) Math.cos(Math.toRadians(angle.getScreenAngle()))
 					, 0f
 			);
 			torpedo.sprite.setInfluence(0,0,0,0);	// NO influences
@@ -175,7 +176,7 @@ public class ComputerManagement {
 	}
 
 	private boolean command_IMP(Entity entity, String[] pieces) {
-		float angle;
+		Angle angle = new Angle();
 		float force;
 		float seconds;
 		String direction = "", power = "", duration = "";
@@ -186,7 +187,7 @@ public class ComputerManagement {
 			duration = pieces[3];
 
 			try {
-				angle = Float.valueOf(direction);
+				angle.setTrigAngle( Double.valueOf(direction) );
 
 				force = Float.valueOf(power); if (force > 20) force = 20;	// technically could make the energy requirements exponential and so preclude the need for a limit
 
@@ -199,23 +200,23 @@ public class ComputerManagement {
 		}
 
 		// Motion corrections
-		double fx = -Math.sin(Math.toRadians(angle))*force;// + currentMotion.x;
-		double fy = Math.cos(Math.toRadians(angle))*force;// + currentMotion.y;
+		double fx = -Math.sin(angle.getScreenAngleRad())*force;// + currentMotion.x;
+		double fy = Math.cos(angle.getScreenAngleRad())*force;// + currentMotion.y;
 		double fz = 0;
 		entity.sprite.setInfluence((float)fx, (float)fy, (float)fz, seconds);
 
 		// rotation adjustment - face direction THRUSTING, NOT direction travelling!
 		Vector3f currentRot = entity.sprite.getRotationAngle();
-		float rotation = angle-currentRot.z;
-		float rotationDuration = (Math.abs(rotation)%180) / 180 * 3;	// 3 seconds to rotate 180 degrees
+		double rotation = angle.getSpriteAngle() - currentRot.z;
+		double rotationDuration = (Math.abs(rotation)%180) / 180 * 3;	// 3 seconds to rotate 180 degrees
 		if (rotationDuration < 1) rotationDuration = 1;
-		entity.sprite.setRotationInfluence(0, 0, (rotation) / rotationDuration, rotationDuration );
+		entity.sprite.setRotationInfluence(0, 0, (float)(rotation) / (float)rotationDuration, (float)rotationDuration );
 
 		return true;
 	}
 
 	private boolean command_WARP(Entity entity, String[] pieces) {
-		float angle;
+		Angle angle = new Angle();
 		float range;
 		String direction = "", power = "";
 
@@ -224,9 +225,7 @@ public class ComputerManagement {
 			power = pieces[2];
 
 			try {
-				angle = Float.valueOf(direction);
-				while (angle < 0) angle += 360;
-				angle %= 360;
+				angle.setTrigAngle(Double.valueOf(direction));
 				range = Float.valueOf(power); if (range > alliance.galaxySize) range = alliance.galaxySize;
 			} catch (Exception e) {
 				return false; // no moving for you when you get the parameters wrong
@@ -238,8 +237,8 @@ public class ComputerManagement {
 		int gx = (int)entity.galacticLoc.x;
 		int gy = (int)entity.galacticLoc.y;
 		Sector currentSector = galaxy.getSector(gx, gy);
-		int deltaGx = (int)(-Math.sin(Math.toRadians(angle))*range);
-		int deltaGy = (int)(Math.cos(Math.toRadians(angle))*range);
+		int deltaGx = (int)(Math.sin(angle.getTrigAngleRad())*range);
+		int deltaGy = (int)(Math.cos(angle.getTrigAngleRad())*range);
 		gx += deltaGx;
 		gy += deltaGy;
 
@@ -434,10 +433,10 @@ public class ComputerManagement {
 		Vector3f meLoc = me.sprite.getLocation();
 		Vector3f himLoc = him.sprite.getLocation();
 
-		double deltaX = himLoc.x - meLoc.x;
-		double deltaY = himLoc.y - meLoc.y;
-		double rad = Math.atan2(deltaY, deltaX);
-		double deg = (Math.toDegrees(rad) + 270)%360;
+		double rad = Vector3f.angle(meLoc, himLoc);
+		double deg = Math.toDegrees(rad);
+
+//		System.out.println("getDirection got rad "+rad+" converts to deg " + deg);
 
 		return deg;
 	}

@@ -3,8 +3,23 @@ BUGS
 
 TODO
 ====
+-	Consolidate all motion, angle, influence into one class (Vector) that uses Double data type and 3 dimension co-ordinates for everything - provides consistency throughout program
+	- Use to consolidate screen rotation calculations
+	- Consolidate user (trig) coordinate translation to screen
+	- any other angle, direction, force, etc calculations and settings
+	- Store everything as (x,y,z) coordinates
+		- angles are x,y,z vector from 0,0,0
+		- force is x,y,z per second vector from 0,0,0
+		- speed is x,y,z per second vector from 0,0,0
+		- Function: Add/Subtract vectors
+		- Function: angle between vectors
+		- convert vector to x,y,z degrees from each axis (i.e. the x value is the degrees off the x-axis, z is off the z-axis (i.e. x-y plane) and y is the LENGTH (strength) (per second where relevant) )
+		
+-	Enemy AI collision avoidance, motion generation, and related 'moving around' requirements.
 - 	Enemies 'Follow you' - even across sectors. Once you have been seen they will track you until you are more than 2
   	sectors away, (then they will continue on the path they were on?). I.e. enemy have LRS as well, just that it finds you and starbases
+-	Enemies attack and/or use Starbases.  Need to alert 'friendlies' when starbases are under attack (enemy using
+	a starbase is the result of a successful attack resulting in takeover rather than destruction).
 -	Set slight movement on landing in sector - you and enemy vessels - enemy AI needs to be able to avoid collisions first
 -	Make angles match trigonometry, 0 to the right and anti-clockwise from there.  currently 0 down and clockwise.
 - 	Damage
@@ -137,13 +152,16 @@ IMPLEMENTED
 ************************************************************************************************************************
 Version 0.8.2
 =============
+-
+
+Version 0.8.2
+=============
 - Change to impulse setting while in motion does not seem to work
 	- yes it does, it is a new thrust direction, not the final heading which is a combination of the current movement
 	  vector and the thrust induced vector.
 - Impulse drive just keeps accelerating - set a MAXIMUM SPEED. (or Energy consumption might also help)
 	- Increased energy consumption 10 times by the square of the excess speed - i.e. dont give commands that will make
 	  you go faster than the maximum, it will allow some leakage over the maximum before halting thrust so be careful
-
 
 Version 0.8.1
 =============

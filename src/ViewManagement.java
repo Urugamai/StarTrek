@@ -2,6 +2,7 @@
 import java.awt.*;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import javafx.scene.canvas.GraphicsContext;
@@ -403,6 +404,11 @@ public class ViewManagement {
 		int width = sprite.getWidth();
 		Texture texture = sprite.getTexture();
 		Vector3f rotation = sprite.getRotationAngle();
+//		Angle[] angle = (Angle[]) Array.newInstance(Angle.class, 3);
+		Angle[] angle = new Angle[3];
+		angle[0] = new Angle("Sprite",rotation.x);
+		angle[1] = new Angle("Sprite",rotation.y);
+		angle[2] = new Angle("Sprite",rotation.z);
 
 		int centreY = height / 2, centreX = width / 2;
 
@@ -411,9 +417,9 @@ public class ViewManagement {
 
 		glTranslatef(atX, atY, 0);						// move image to target location
 		if (effects) {
-			glRotatef(rotation.x, 1.0f, 0.0f, 0.0f);        // rotate image around the X axis (the param with a 1.0 as its value)
-			glRotatef(rotation.y, 0.0f, 1.0f, 0.0f);        // rotate image around the Y axis (the param with a 1.0 as its value)
-			glRotatef((rotation.z+180)%360, 0.0f, 0.0f, 1.0f);        // rotate image around the Z axis (the param with a 1.0 as its value)
+			glRotatef((float)angle[0].getSpriteAngle(), 1.0f, 0.0f, 0.0f);        // rotate image around the X axis (the param with a 1.0 as its value)
+			glRotatef((float)angle[1].getSpriteAngle(), 0.0f, 1.0f, 0.0f);        // rotate image around the Y axis (the param with a 1.0 as its value)
+			glRotatef((float)angle[2].getSpriteAngle(), 0.0f, 0.0f, 1.0f);        // rotate image around the Z axis (the param with a 1.0 as its value)
 		}
 		glTranslatef(-centreX, -centreY, 0);			// move image to correct for rotation around 0,0 (a corner of the image)
 
